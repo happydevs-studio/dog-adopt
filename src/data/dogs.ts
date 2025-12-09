@@ -1,0 +1,122 @@
+import dog1 from '@/assets/dog-1.jpg';
+import dog2 from '@/assets/dog-2.jpg';
+import dog3 from '@/assets/dog-3.jpg';
+import dog4 from '@/assets/dog-4.jpg';
+import dog5 from '@/assets/dog-5.jpg';
+import dog6 from '@/assets/dog-6.jpg';
+
+import type { Dog } from '@/types/dog';
+
+export const dogs: Dog[] = [
+  {
+    id: '1',
+    name: 'Biscuit',
+    breed: 'Beagle',
+    age: 'Puppy',
+    size: 'Medium',
+    gender: 'Male',
+    location: 'London',
+    rescue: 'Battersea Dogs Home',
+    image: dog1,
+    goodWithKids: true,
+    goodWithDogs: true,
+    goodWithCats: false,
+    description: 'Biscuit is a playful and affectionate beagle puppy who loves cuddles and treats. He would make a wonderful family companion.',
+  },
+  {
+    id: '2',
+    name: 'Luna',
+    breed: 'Border Collie',
+    age: 'Young',
+    size: 'Medium',
+    gender: 'Female',
+    location: 'Manchester',
+    rescue: 'Dogs Trust Manchester',
+    image: dog2,
+    goodWithKids: true,
+    goodWithDogs: true,
+    goodWithCats: true,
+    description: 'Luna is an intelligent and energetic border collie who needs an active family. She knows basic commands and loves agility.',
+  },
+  {
+    id: '3',
+    name: 'Cocoa',
+    breed: 'Labrador Retriever',
+    age: 'Puppy',
+    size: 'Large',
+    gender: 'Male',
+    location: 'Birmingham',
+    rescue: 'RSPCA Birmingham',
+    image: dog3,
+    goodWithKids: true,
+    goodWithDogs: true,
+    goodWithCats: true,
+    description: 'Cocoa is a gentle chocolate lab puppy with soulful eyes. He is calm for his age and would suit a family with children.',
+  },
+  {
+    id: '4',
+    name: 'Pixie',
+    breed: 'Terrier Mix',
+    age: 'Adult',
+    size: 'Small',
+    gender: 'Female',
+    location: 'Bristol',
+    rescue: 'Bristol Animal Rescue',
+    image: dog4,
+    goodWithKids: false,
+    goodWithDogs: true,
+    goodWithCats: false,
+    description: 'Pixie is a feisty little terrier with a big personality. She needs an experienced owner who understands small terriers.',
+  },
+  {
+    id: '5',
+    name: 'Max',
+    breed: 'German Shepherd',
+    age: 'Adult',
+    size: 'Large',
+    gender: 'Male',
+    location: 'Leeds',
+    rescue: 'German Shepherd Rescue',
+    image: dog5,
+    goodWithKids: true,
+    goodWithDogs: false,
+    goodWithCats: false,
+    description: 'Max is a loyal and protective german shepherd who bonds deeply with his family. He needs to be the only pet.',
+  },
+  {
+    id: '6',
+    name: 'Honey',
+    breed: 'Cocker Spaniel',
+    age: 'Senior',
+    size: 'Medium',
+    gender: 'Female',
+    location: 'Edinburgh',
+    rescue: 'Scottish SPCA',
+    image: dog6,
+    goodWithKids: true,
+    goodWithDogs: true,
+    goodWithCats: true,
+    description: 'Honey is a sweet senior spaniel looking for a quiet home to spend her golden years. She loves gentle walks and snoozing.',
+  },
+];
+
+export const rescues = [
+  'Battersea Dogs Home',
+  'Dogs Trust',
+  'RSPCA',
+  'Blue Cross',
+  'Wood Green',
+  'Many Tears',
+  'Scottish SPCA',
+];
+
+export const locations = [
+  'London',
+  'Manchester',
+  'Birmingham',
+  'Leeds',
+  'Bristol',
+  'Edinburgh',
+  'Glasgow',
+  'Liverpool',
+];
