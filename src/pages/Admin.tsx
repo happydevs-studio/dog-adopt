@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useDogs } from '@/hooks/useDogs';
@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Heart, Loader2, Plus, Pencil, Trash2, LogOut, ArrowLeft } from 'lucide-react';
+import { Heart, Loader2, Plus, Pencil, Trash2, LogOut, ArrowLeft, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Dog } from '@/types/dog';
@@ -60,6 +60,10 @@ const Admin = () => {
   const [editingDog, setEditingDog] = useState<Dog | null>(null);
   const [formData, setFormData] = useState<DogFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -97,11 +101,55 @@ const Admin = () => {
         good_with_dogs: dog.goodWithDogs,
         good_with_cats: dog.goodWithCats,
       });
+      setImagePreview(dog.image);
     } else {
       setEditingDog(null);
       setFormData(initialFormData);
+      setImagePreview(null);
     }
+    setImageFile(null);
     setIsDialogOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' });
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('dog-adopt-images')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('dog-adopt-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(editingDog?.image || null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +157,21 @@ const Admin = () => {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = formData.image;
+
+      // Upload new image if selected
+      if (imageFile) {
+        setIsUploading(true);
+        imageUrl = await uploadImage(imageFile);
+        setIsUploading(false);
+      }
+
+      if (!imageUrl && !imageFile) {
+        toast({ title: 'Error', description: 'Please upload an image', variant: 'destructive' });
+        setIsSubmitting(false);
+        return;
+      }
+
       const rescue = rescues.find(r => r.id === formData.rescue_id);
       const dogData = {
         name: formData.name,
@@ -119,7 +182,7 @@ const Admin = () => {
         location: formData.location,
         rescue: rescue?.name || '',
         rescue_id: formData.rescue_id || null,
-        image: formData.image,
+        image: imageUrl,
         description: formData.description,
         good_with_kids: formData.good_with_kids,
         good_with_dogs: formData.good_with_dogs,
@@ -319,15 +382,52 @@ const Admin = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
-                  <Input
-                    id="image"
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
-                    required
-                  />
+                  <Label>Dog Image</Label>
+                  <div className="flex flex-col gap-3">
+                    {imagePreview && (
+                      <div className="relative w-32 h-32">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover rounded-lg border border-border"
+                        />
+                        {imageFile && (
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 w-6 h-6"
+                            onClick={clearImage}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        ref={fileInputRef}
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                      </Button>
+                      {imageFile && (
+                        <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                          {imageFile.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
