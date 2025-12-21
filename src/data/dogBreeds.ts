@@ -270,4 +270,5 @@ export const COMMON_CROSS_BREEDS = [
 export const ALL_DOG_BREEDS = [
   ...DOG_BREEDS,
   ...COMMON_CROSS_BREEDS,
+  "Terrier Mix", // Generic terrier cross-breed for existing data
 ].sort();

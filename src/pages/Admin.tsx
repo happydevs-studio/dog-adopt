@@ -155,18 +155,21 @@ const Admin = () => {
     }
   };
 
+  const validateDogForm = (data: DogFormData, hasImage: boolean): { isValid: boolean; error?: string } => {
+    if (data.breeds.length === 0) {
+      return { isValid: false, error: 'Please select at least one breed' };
+    }
+    if (!hasImage) {
+      return { isValid: false, error: 'Please upload an image' };
+    }
+    return { isValid: true };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Validate breeds
-      if (formData.breeds.length === 0) {
-        toast({ title: 'Error', description: 'Please select at least one breed', variant: 'destructive' });
-        setIsSubmitting(false);
-        return;
-      }
-
       let imageUrl = formData.image;
 
       // Upload new image if selected
@@ -176,8 +179,10 @@ const Admin = () => {
         setIsUploading(false);
       }
 
-      if (!imageUrl && !imageFile) {
-        toast({ title: 'Error', description: 'Please upload an image', variant: 'destructive' });
+      // Validate form
+      const validation = validateDogForm(formData, !!(imageUrl || imageFile));
+      if (!validation.isValid) {
+        toast({ title: 'Error', description: validation.error, variant: 'destructive' });
         setIsSubmitting(false);
         return;
       }

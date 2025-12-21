@@ -54,6 +54,13 @@ export function BreedCombobox({
     onChange(value.filter((b) => b !== breed));
   };
 
+  const handleBadgeKeyDown = (breed: string, e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onChange(value.filter((b) => b !== breed));
+    }
+  };
+
   const filteredBreeds = React.useMemo(() => {
     if (!search) return ALL_DOG_BREEDS;
     return ALL_DOG_BREEDS.filter((breed) =>
@@ -84,7 +91,9 @@ export function BreedCombobox({
                   <button
                     type="button"
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    onMouseDown={(e) => handleRemove(breed, e)}
+                    onClick={(e) => handleRemove(breed, e)}
+                    onKeyDown={(e) => handleBadgeKeyDown(breed, e)}
+                    aria-label={`Remove ${breed}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
