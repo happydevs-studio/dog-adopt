@@ -1,3 +1,4 @@
+Connecting to db 5432
 export type Json =
   | string
   | number
@@ -7,14 +8,133 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
-  public: {
+  dogadopt: {
     Tables: {
-      [_ in never]: never
+      dogs: {
+        Row: {
+          age: string
+          breed: string
+          created_at: string
+          description: string
+          gender: string
+          good_with_cats: boolean
+          good_with_dogs: boolean
+          good_with_kids: boolean
+          id: string
+          image: string
+          location: string
+          name: string
+          rescue: string
+          rescue_id: string | null
+          size: string
+        }
+        Insert: {
+          age: string
+          breed: string
+          created_at?: string
+          description: string
+          gender: string
+          good_with_cats?: boolean
+          good_with_dogs?: boolean
+          good_with_kids?: boolean
+          id?: string
+          image: string
+          location: string
+          name: string
+          rescue: string
+          rescue_id?: string | null
+          size: string
+        }
+        Update: {
+          age?: string
+          breed?: string
+          created_at?: string
+          description?: string
+          gender?: string
+          good_with_cats?: boolean
+          good_with_dogs?: boolean
+          good_with_kids?: boolean
+          id?: string
+          image?: string
+          location?: string
+          name?: string
+          rescue?: string
+          rescue_id?: string | null
+          size?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dogs_rescue_id_fkey"
+            columns: ["rescue_id"]
+            isOneToOne: false
+            referencedRelation: "rescues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      rescues: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          region: string
+          type: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          region: string
+          type?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          region?: string
+          type?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["dogadopt"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["dogadopt"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["dogadopt"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -22,7 +142,7 @@ export type Database = {
     Functions: {
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
+          _role: Database["dogadopt"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
@@ -39,7 +159,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "dogadopt">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -155,9 +275,10 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  public: {
+  dogadopt: {
     Enums: {
       app_role: ["admin", "user"],
     },
   },
 } as const
+
