@@ -65,26 +65,40 @@ This project is built with:
 
 This application uses Supabase for authentication.
 
-### Local Development Login
+### Local Development Setup
 
-For local development, a test admin account is automatically created:
+**Step 1: Sign Up**
+1. Navigate to `/auth` in your browser
+2. Sign up with any email/password (e.g., `admin@test.com` / `admin123`)
 
-- **Email**: `admin@test.com`
-- **Password**: `admin123`
+**Step 2: Make Yourself Admin**
 
-To access the admin panel:
-1. Click "Sign In" in the header
-2. Enter the credentials above
-3. Navigate to `/admin` or click the Admin link in the header
+Run the helper script:
+```bash
+./scripts/make-admin.sh admin@test.com
+```
+
+Or manually via SQL:
+```bash
+docker exec supabase_db_dog-adopt psql -U postgres -c "UPDATE dogadopt.user_roles SET role = 'admin' WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@test.com');"
+```
+
+**Step 3: Access Admin Panel**
+- Refresh your browser
+- You'll see an "Admin" link in the header
+- Navigate to `/admin` to manage dogs
+
+### Google OAuth (Mock for Local Dev)
+
+When you click "Continue with Google" locally, it creates a mock Google user automatically.
+To promote a mock Google user to admin, find their email and run the make-admin script.
 
 ### Production Setup
 
 For production deployment:
 1. Set up Supabase authentication providers in your Supabase dashboard
 2. Configure OAuth providers (Google, etc.) as needed
-3. Create admin users by inserting records into `dogadopt.user_roles` table with role='admin'
-
-For detailed setup instructions, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md) if it exists.
+3. Create admin users by running the SQL command to update their role to 'admin'
 
 ## How can I deploy this project?
 
