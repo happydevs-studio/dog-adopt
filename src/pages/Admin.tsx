@@ -189,11 +189,10 @@ const Admin = () => {
       }
 
       const rescue = rescues.find(r => r.id === formData.rescue_id);
-      // Store breeds as comma-separated for backward compatibility
-      const breedString = formData.breeds.join(', ');
+      
       const dogData = {
         name: formData.name,
-        breed: breedString,
+        breed: formData.breeds.join(', '), // Legacy column for backward compatibility
         age: formData.age,
         size: formData.size,
         gender: formData.gender,
@@ -207,6 +206,8 @@ const Admin = () => {
         good_with_cats: formData.good_with_cats,
       };
 
+      let dogId: string;
+
       if (editingDog) {
         const { error } = await (supabase as any)
           .from('dogs')
@@ -214,15 +215,33 @@ const Admin = () => {
           .eq('id', editingDog.id);
 
         if (error) throw error;
-        toast({ title: 'Success', description: 'Dog updated successfully' });
+        dogId = editingDog.id;
       } else {
-        const { error } = await (supabase as any)
+        const { data: newDog, error } = await (supabase as any)
           .from('dogs')
-          .insert([dogData]);
+          .insert([dogData])
+          .select()
+          .single();
 
         if (error) throw error;
-        toast({ title: 'Success', description: 'Dog added successfully' });
+        dogId = newDog.id;
       }
+
+      // Update breeds using the helper function
+      const { error: breedsError } = await (supabase as any).rpc(
+        'set_dog_breeds',
+        {
+          p_dog_id: dogId,
+          p_breed_names: formData.breeds
+        }
+      );
+
+      if (breedsError) throw breedsError;
+
+      toast({ 
+        title: 'Success', 
+        description: editingDog ? 'Dog updated successfully' : 'Dog added successfully' 
+      });
 
       setIsDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['dogs'] });
