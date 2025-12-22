@@ -39,15 +39,14 @@ In production:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
-3. Enable the **Google+ API**
+3. Configure the **OAuth consent screen** if not already done
 4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-5. Configure OAuth consent screen if not already done
-6. Set Application Type to **Web application**
-7. Add authorized redirect URIs:
+5. Set Application Type to **Web application**
+6. Add authorized redirect URIs:
    - Development: `http://localhost:54321/auth/v1/callback` (Supabase local)
    - Production: `https://your-project-id.supabase.co/auth/v1/callback`
 
-8. Copy the **Client ID** and **Client Secret**
+7. Copy the **Client ID** and **Client Secret**
 
 ### 2. Configure Supabase
 
@@ -124,7 +123,7 @@ VALUES ('user-uuid-here', 'admin');
 1. **Verify redirect URIs** match exactly (including protocol and trailing slashes)
 2. **Check Supabase logs** in Dashboard → Logs → Auth
 3. **Verify Google credentials** are correctly saved in Supabase
-4. **Ensure Google+ API** is enabled in Google Cloud Console
+4. **Ensure OAuth consent screen** is properly configured in Google Cloud Console
 
 ### Admin Access Not Working
 
