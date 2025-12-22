@@ -49,7 +49,7 @@ const initialFormData: DogFormData = {
 };
 
 const Admin = () => {
-  const { user, isAdmin, isLoading: authLoading, signOut } = useAuth();
+  const { user, isAdmin, isLoading: authLoading, signOut, isDevBypass } = useAuth();
   const { data: dogs = [], isLoading: dogsLoading, refetch } = useDogs();
   const { data: rescues = [] } = useRescues();
   const navigate = useNavigate();
@@ -257,6 +257,11 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {isDevBypass && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500/10 border border-yellow-500 text-yellow-700 dark:text-yellow-400 px-4 py-2 rounded-lg text-sm font-medium">
+          🔓 Dev Mode: Auth Bypassed
+        </div>
+      )}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">

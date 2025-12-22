@@ -59,6 +59,17 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Authentication & Database)
+
+## Authentication Setup
+
+This application uses Supabase for authentication with Google OAuth support.
+
+For detailed setup instructions, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md)
+
+**Quick Start:**
+- Development: Authentication is bypassed by default for easier local development
+- Production: Full authentication with Google OAuth is enabled
 
 ## How can I deploy this project?
 
