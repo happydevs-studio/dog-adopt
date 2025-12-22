@@ -17,6 +17,7 @@ import { Heart, Loader2, Plus, Pencil, Trash2, LogOut, ArrowLeft, Upload, X } fr
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Dog } from '@/types/dog';
+import { DevBypassBanner } from '@/components/auth/DevBypassBanner';
 
 interface DogFormData {
   name: string;
@@ -49,7 +50,7 @@ const initialFormData: DogFormData = {
 };
 
 const Admin = () => {
-  const { user, isAdmin, isLoading: authLoading, signOut } = useAuth();
+  const { user, isAdmin, isLoading: authLoading, signOut, isDevBypass } = useAuth();
   const { data: dogs = [], isLoading: dogsLoading, refetch } = useDogs();
   const { data: rescues = [] } = useRescues();
   const navigate = useNavigate();
@@ -257,6 +258,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {isDevBypass && <DevBypassBanner />}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
