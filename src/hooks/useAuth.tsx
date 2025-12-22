@@ -3,8 +3,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 // DEV ONLY: Set to true to bypass auth and simulate admin access
-// In production (import.meta.env.PROD), this will always be false
-const DEV_BYPASS_AUTH = import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH !== 'false';
+// Disabled by default - use proper Supabase auth instead
+const DEV_BYPASS_AUTH = false;
 
 interface AuthContextType {
   user: User | null;
@@ -106,13 +106,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1');
+    
+    if (isLocal) {
+      // Mock Google Auth for local development
+      const mockEmail = `google.user.${Date.now()}@gmail.com`;
+      const mockPassword = 'google-auth-mock-password';
+      
+      try {
+        // First, try to sign up the mock user
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: mockEmail,
+          password: mockPassword,
+          options: {
+            data: {
+              full_name: 'Google User',
+              avatar_url: 'https://via.placeholder.com/150/0066CC/FFFFFF?text=G',
+              provider: 'google'
+            }
+          }
+        });
+        
+        if (signUpError && !signUpError.message.includes('already registered')) {
+          return { error: signUpError };
+        }
+        
+        // Then sign in with the mock credentials
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: mockEmail,
+          password: mockPassword,
+        });
+        
+        if (signInError) return { error: signInError };
+        return { error: null };
+      } catch (error: any) {
+        console.error('Mock Google auth error:', error);
+        return { error: new Error('Mock Google authentication failed') };
       }
-    });
-    return { error };
+    } else {
+      // Production Google OAuth
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      return { error };
+    }
   };
 
   const signOut = async () => {

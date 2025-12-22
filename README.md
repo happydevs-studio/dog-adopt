@@ -63,13 +63,28 @@ This project is built with:
 
 ## Authentication Setup
 
-This application uses Supabase for authentication with Google OAuth support.
+This application uses Supabase for authentication.
 
-For detailed setup instructions, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md)
+### Local Development Login
 
-**Quick Start:**
-- Development: Authentication is bypassed by default for easier local development
-- Production: Full authentication with Google OAuth is enabled
+For local development, a test admin account is automatically created:
+
+- **Email**: `admin@test.com`
+- **Password**: `admin123`
+
+To access the admin panel:
+1. Click "Sign In" in the header
+2. Enter the credentials above
+3. Navigate to `/admin` or click the Admin link in the header
+
+### Production Setup
+
+For production deployment:
+1. Set up Supabase authentication providers in your Supabase dashboard
+2. Configure OAuth providers (Google, etc.) as needed
+3. Create admin users by inserting records into `dogadopt.user_roles` table with role='admin'
+
+For detailed setup instructions, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md) if it exists.
 
 ## How can I deploy this project?
 
