@@ -1,4 +1,27 @@
--- Rescue organization data: ADCH member rescues
+-- Rescues and Locations
+-- Rescue organizations, physical locations (centres, foster homes), and related data
+
+-- Create rescues table
+CREATE TABLE dogadopt.rescues (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  type TEXT NOT NULL DEFAULT 'Full',
+  region TEXT NOT NULL,
+  website TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- Enable RLS on rescues
+ALTER TABLE dogadopt.rescues ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for rescues (publicly viewable, admins can manage)
+CREATE POLICY "Rescues are publicly viewable" 
+ON dogadopt.rescues FOR SELECT 
+USING (true);
+
+CREATE POLICY "Admins can manage rescues"
+ON dogadopt.rescues FOR ALL
+USING (dogadopt.has_role(auth.uid(), 'admin'));
 
 -- Insert ADCH member rescue organizations
 INSERT INTO dogadopt.rescues (name, type, region, website) VALUES
@@ -110,3 +133,75 @@ INSERT INTO dogadopt.rescues (name, type, region, website) VALUES
 ('Woodgreen, The Animals Charity', 'Full', 'East England', 'www.woodgreen.org.uk'),
 ('Yorkshire Animal Sanctuary', 'Full', 'Yorkshire & The Humber', 'www.yorkshireanimalsanctuary.co.uk'),
 ('Yorkshire Coast Dog Rescue', 'Full', 'Yorkshire & The Humber', 'www.yorkshirecoastdogrescue.co.uk');
+
+-- Create location_type enum
+CREATE TYPE dogadopt.location_type AS ENUM ('centre', 'foster_home', 'office', 'other');
+
+-- Create locations table
+CREATE TABLE dogadopt.locations (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  rescue_id UUID NOT NULL REFERENCES dogadopt.rescues(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  location_type dogadopt.location_type NOT NULL DEFAULT 'centre',
+  address_line1 TEXT,
+  address_line2 TEXT,
+  city TEXT NOT NULL,
+  county TEXT,
+  postcode TEXT,
+  region TEXT,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  phone TEXT,
+  email TEXT,
+  is_public BOOLEAN NOT NULL DEFAULT true,
+  enquiry_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- Create indexes
+CREATE INDEX idx_locations_rescue_id ON dogadopt.locations(rescue_id);
+
+-- Enable RLS on locations
+ALTER TABLE dogadopt.locations ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for locations
+CREATE POLICY "Locations are publicly viewable"
+ON dogadopt.locations FOR SELECT
+USING (true);
+
+CREATE POLICY "Admins can manage locations"
+ON dogadopt.locations FOR ALL
+USING (dogadopt.has_role(auth.uid(), 'admin'));
+
+-- Create a default location for each rescue
+INSERT INTO dogadopt.locations (rescue_id, name, city, region, location_type, is_public)
+SELECT 
+  r.id,
+  r.name || ' - ' || r.region,
+  COALESCE(
+    CASE 
+      WHEN r.region LIKE '%London%' THEN 'London'
+      WHEN r.region LIKE '%Edinburgh%' THEN 'Edinburgh'
+      WHEN r.region LIKE '%Cardiff%' THEN 'Cardiff'
+      WHEN r.region LIKE '%Belfast%' THEN 'Belfast'
+      WHEN r.region LIKE '%Birmingham%' THEN 'Birmingham'
+      WHEN r.region LIKE '%Manchester%' THEN 'Manchester'
+      WHEN r.region LIKE '%Leeds%' THEN 'Leeds'
+      WHEN r.region LIKE '%Bristol%' THEN 'Bristol'
+      ELSE SPLIT_PART(r.region, ' ', 1)
+    END,
+    r.region
+  ),
+  r.region,
+  'centre',
+  true
+FROM dogadopt.rescues r;
+
+-- Grant permissions
+GRANT SELECT ON dogadopt.rescues TO anon, authenticated;
+GRANT ALL ON dogadopt.rescues TO authenticated;
+GRANT SELECT ON dogadopt.locations TO anon, authenticated;
+
+-- Add documentation comments
+COMMENT ON TABLE dogadopt.locations IS 'Physical locations for rescues - supports centres, foster homes, and other locations with privacy controls';
+COMMENT ON COLUMN dogadopt.locations.is_public IS 'If true, show full address details. If false, show only city/region for privacy (e.g., foster homes)';

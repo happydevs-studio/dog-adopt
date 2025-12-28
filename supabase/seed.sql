@@ -17,33 +17,33 @@
 -- Sample dogs for demonstration
 -- First, insert dogs
 WITH inserted_dogs AS (
-  INSERT INTO dogadopt.dogs (name, age, size, gender, location, rescue, rescue_id, image, good_with_kids, good_with_dogs, good_with_cats, description) VALUES
-  ('Bella', 'Adult', 'Large', 'Female', 'London', 'Battersea', 
+  INSERT INTO dogadopt.dogs (name, age, size, gender, rescue_id, image, good_with_kids, good_with_dogs, good_with_cats, description) VALUES
+  ('Bella', 'Adult', 'Large', 'Female',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Battersea'), 
    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800', 
    true, true, false, 'Bella is a gentle giant with a heart of gold. She loves long walks in the park and cuddles on the sofa.'),
 
-  ('Max', 'Young', 'Large', 'Male', 'Manchester', 'Dogs Trust', 
+  ('Max', 'Young', 'Large', 'Male',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Dogs Trust'), 
    'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=800', 
    true, true, false, 'Max is an intelligent and loyal companion. He''s great with training and loves to learn new tricks.'),
 
-  ('Daisy', 'Senior', 'Medium', 'Female', 'Bristol', 'Bristol Animal Rescue Centre', 
+  ('Daisy', 'Senior', 'Medium', 'Female',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Bristol Animal Rescue Centre'), 
    'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800', 
    true, true, true, 'Daisy is a sweet senior girl looking for a quiet home. She enjoys gentle walks and sunny spots.'),
 
-  ('Charlie', 'Puppy', 'Small', 'Male', 'Birmingham', 'Birmingham Dogs Home', 
+  ('Charlie', 'Puppy', 'Small', 'Male',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Birmingham Dogs Home'), 
    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800', 
    true, true, false, 'Charlie is a bundle of energy! This playful pup needs an active family who can keep up with him.'),
 
-  ('Luna', 'Adult', 'Medium', 'Female', 'Leeds', 'Hope Rescue', 
+  ('Luna', 'Adult', 'Medium', 'Female',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Hope Rescue'), 
    'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=800', 
    true, false, false, 'Luna is a loving staffie who adores humans. She would thrive as the only pet in a devoted home.'),
 
-  ('Oscar', 'Young', 'Medium', 'Male', 'Edinburgh', 'Scottish SPCA', 
+  ('Oscar', 'Young', 'Medium', 'Male',
    (SELECT id FROM dogadopt.rescues WHERE name = 'Scottish SPCA'), 
    'https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?w=800', 
    true, true, true, 'Oscar is incredibly smart and needs mental stimulation. Perfect for an active family who loves the outdoors.')
