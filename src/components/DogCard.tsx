@@ -8,7 +8,7 @@ interface DogCardProps {
   viewMode?: 'text-only' | 'with-images';
 }
 
-const DogCard = ({ dog, viewMode = 'with-images' }: DogCardProps) => {
+const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
   const showImage = viewMode === 'with-images';
 
   return (
