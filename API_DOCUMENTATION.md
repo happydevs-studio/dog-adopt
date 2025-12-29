@@ -99,7 +99,7 @@ Content-Type: application/json
   "size": "Medium",
   "gender": "Male",
   "rescue_id": "uuid",
-  "location": "London",
+  "location_id": "uuid",  // Optional - rescue region is used if not provided
   "image": "https://...",
   "description": "A friendly dog...",
   "good_with_kids": true,
@@ -107,6 +107,8 @@ Content-Type: application/json
   "good_with_cats": false
 }
 ```
+
+**Note:** The `location` field in dog responses is computed from the rescue's region. The database field is `location_id` (UUID reference to locations table), but it's optional.
 
 #### Update Dog (Admin Only)
 Update an existing dog using PostgREST query filter syntax:
@@ -218,7 +220,7 @@ interface Dog {
   size: 'Small' | 'Medium' | 'Large';
   gender: 'Male' | 'Female';
   rescue_id?: string;      // UUID
-  location_id?: string;    // UUID
+  location_id?: string;    // UUID (optional - typically uses rescue.region)
   image: string;           // URL
   description: string;
   good_with_kids: boolean;
@@ -229,6 +231,14 @@ interface Dog {
   status_notes?: string;
   created_at: string;      // ISO 8601
   last_updated_at: string; // ISO 8601
+}
+
+// Frontend representation includes computed location from rescue
+interface DogFrontend extends Dog {
+  location: string;        // Computed from rescues.region
+  rescue: string;          // Computed from rescues.name
+  breeds: string[];        // Array from dogs_breeds join
+  breed: string;           // Display string from breeds array
 }
 ```
 

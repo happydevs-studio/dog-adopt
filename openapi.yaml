@@ -214,10 +214,10 @@ paths:
             example: created_at.desc
         - name: status
           in: query
-          description: Filter by adoption status
+          description: Filter by adoption status using PostgREST syntax
           schema:
             type: string
-            enum: [available, reserved, adopted, on_hold, fostered, withdrawn]
+          example: eq.available
       responses:
         '200':
           description: Successfully retrieved dogs list
@@ -480,9 +480,10 @@ paths:
             example: name.asc
         - name: region
           in: query
-          description: Filter by region
+          description: Filter by region using PostgREST syntax
           schema:
             type: string
+          example: eq.London
       responses:
         '200':
           description: Successfully retrieved rescues list
@@ -767,9 +768,12 @@ components:
           type: string
           format: uuid
           nullable: true
-        location:
+          description: ID of the rescue organization
+        location_id:
           type: string
-          description: Location name/region
+          format: uuid
+          nullable: true
+          description: ID of the physical location (optional - rescue region is typically used)
         image:
           type: string
           format: uri
@@ -811,8 +815,11 @@ components:
           type: string
           format: uuid
           nullable: true
-        location:
+        location_id:
           type: string
+          format: uuid
+          nullable: true
+          description: ID of the physical location (optional)
         image:
           type: string
           format: uri
