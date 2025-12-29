@@ -17,6 +17,8 @@ import { Heart, Loader2, Plus, Pencil, Trash2, LogOut, ArrowLeft, Upload, X } fr
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { BreedCombobox } from '@/components/BreedCombobox';
+import { RescueCombobox } from '@/components/RescueCombobox';
+import { LocationCombobox } from '@/components/LocationCombobox';
 import type { Dog } from '@/types/dog';
 import { DevBypassBanner } from '@/components/auth/DevBypassBanner';
 
@@ -397,25 +399,20 @@ const Admin = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
+                    <LocationCombobox
                       value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      required
+                      onChange={(location) => setFormData({ ...formData, location })}
+                      placeholder="Select or enter location..."
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="rescue">Rescue Organisation</Label>
-                    <Select value={formData.rescue_id} onValueChange={(v) => setFormData({ ...formData, rescue_id: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select rescue" /></SelectTrigger>
-                      <SelectContent>
-                        {rescues.map((rescue) => (
-                          <SelectItem key={rescue.id} value={rescue.id}>
-                            {rescue.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <RescueCombobox
+                      value={formData.rescue_id}
+                      onChange={(rescue_id) => setFormData({ ...formData, rescue_id })}
+                      rescues={rescues}
+                      placeholder="Select rescue organisation..."
+                    />
                   </div>
                 </div>
 
