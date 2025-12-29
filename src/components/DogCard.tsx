@@ -22,12 +22,14 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
       url.searchParams.set('utm_campaign', 'dog_profile');
       return url.toString();
     } catch (e) {
-      // If URL is invalid, return the original URL
-      return dog.profileUrl;
+      // If URL is invalid, return null to prevent broken links
+      console.warn(`Invalid profile URL for dog ${dog.name}:`, dog.profileUrl, e);
+      return null;
     }
   };
 
   const profileUrl = getDogProfileUrl();
+  const hasValidUrl = !!profileUrl;
 
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
@@ -89,10 +91,10 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
         <Button 
           variant="default" 
           className="w-full"
-          asChild={!!profileUrl}
-          disabled={!profileUrl}
+          asChild={hasValidUrl}
+          disabled={!hasValidUrl}
         >
-          {profileUrl ? (
+          {hasValidUrl ? (
             <a 
               href={profileUrl}
               target="_blank"
