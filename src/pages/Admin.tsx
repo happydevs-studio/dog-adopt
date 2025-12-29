@@ -574,7 +574,7 @@ const Admin = () => {
                     </p>
                     <p className="text-xs text-muted-foreground">{dog.rescue}</p>
                   </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
+                  <div className="flex gap-2 w-full sm:w-auto justify-end">
                     <Button variant="outline" size="icon" onClick={() => handleOpenDialog(dog)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
