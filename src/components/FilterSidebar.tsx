@@ -35,7 +35,15 @@ const FilterSidebar = ({
             </Button>
           </CollapsibleTrigger>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setIsOpen(true);
+                onClearFilters();
+              }} 
+              className="text-muted-foreground"
+            >
               <X className="w-4 h-4 mr-1" />
               Clear
             </Button>
