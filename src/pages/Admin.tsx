@@ -402,13 +402,16 @@ const Admin = () => {
                     <RescueCombobox
                       value={formData.rescue_id}
                       onChange={(rescue_id) => {
-                        setFormData({ ...formData, rescue_id });
-                        // Auto-populate location with rescue's region if no location set
+                        // Auto-populate location with rescue's region when adding new dog
                         if (!editingDog) {
                           const selectedRescue = rescues.find(r => r.id === rescue_id);
                           if (selectedRescue) {
                             setFormData(prev => ({ ...prev, rescue_id, location: selectedRescue.region }));
+                          } else {
+                            setFormData(prev => ({ ...prev, rescue_id }));
                           }
+                        } else {
+                          setFormData(prev => ({ ...prev, rescue_id }));
                         }
                       }}
                       rescues={rescues}
