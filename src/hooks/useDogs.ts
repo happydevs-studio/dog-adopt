@@ -8,8 +8,7 @@ interface DogRow {
   age: string;
   size: string;
   gender: string;
-  location: string;
-  rescue: string;
+  location_id: string | null;
   rescue_id: string | null;
   image: string;
   description: string;
@@ -23,7 +22,7 @@ interface DogRow {
     region: string;
     website: string | null;
   } | null;
-  dog_breeds: Array<{
+  dogs_breeds: Array<{
     breeds: {
       id: string;
       name: string;
@@ -46,7 +45,7 @@ export const useDogs = () => {
             region,
             website
           ),
-          dog_breeds (
+          dogs_breeds (
             display_order,
             breeds (
               id,
@@ -62,7 +61,7 @@ export const useDogs = () => {
 
       return (data as unknown as DogRow[]).map((dog) => {
         // Get breeds from many-to-many relationship
-        const breeds = dog.dog_breeds
+        const breeds = dog.dogs_breeds
           ?.sort((a, b) => a.display_order - b.display_order)
           .map((db) => db.breeds.name) || [];
 
@@ -74,8 +73,8 @@ export const useDogs = () => {
           age: dog.age,
           size: dog.size as 'Small' | 'Medium' | 'Large',
           gender: dog.gender as 'Male' | 'Female',
-          location: dog.location,
-          rescue: dog.rescues?.name || dog.rescue,
+          location: dog.rescues?.region || 'Unknown', // Use rescue region as location
+          rescue: dog.rescues?.name || 'Unknown',
           rescueWebsite: dog.rescues?.website,
           image: dog.image,
           goodWithKids: dog.good_with_kids,
