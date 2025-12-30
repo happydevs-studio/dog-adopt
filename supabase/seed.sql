@@ -139,7 +139,7 @@ WHEN NOT MATCHED BY SOURCE THEN
   DELETE;
 
 -- Sync default locations for rescues that don't have any locations yet
-INSERT INTO dogadopt.locations (rescue_id, name, city, region, location_type, is_public)
+INSERT INTO dogadopt.locations (rescue_id, name, city, region, location_type, is_public, latitude, longitude)
 SELECT 
   r.id,
   r.name || ' - ' || r.region,
@@ -159,7 +159,31 @@ SELECT
   ),
   r.region,
   'centre',
-  true
+  true,
+  CASE r.name
+    WHEN 'Benvardin Animal Rescue Kennels' THEN 55.1423832946954
+    WHEN 'Boxer Welfare Scotland' THEN 57.436291
+    WHEN 'Causeway Coast Dog Rescue' THEN 55.13260582557945
+    WHEN 'Dogs Trust Ireland' THEN 53.4141094466885
+    WHEN 'Freshfields Animal Rescue' THEN 53.293873
+    WHEN 'Grovehill Animal Trust' THEN 54.60724252744901
+    WHEN 'Hope Rescue' THEN 51.5683353
+    WHEN 'Mid Antrim Animal Sanctuary' THEN 54.62641683950719
+    WHEN 'North Clwyd Animal Rescue' THEN 53.176625
+    ELSE NULL
+  END,
+  CASE r.name
+    WHEN 'Benvardin Animal Rescue Kennels' THEN -6.5083271272516035
+    WHEN 'Boxer Welfare Scotland' THEN -1.82941
+    WHEN 'Causeway Coast Dog Rescue' THEN -6.6658603369137195
+    WHEN 'Dogs Trust Ireland' THEN -6.319405314133566
+    WHEN 'Freshfields Animal Rescue' THEN -3.051279
+    WHEN 'Grovehill Animal Trust' THEN -7.3045544503179
+    WHEN 'Hope Rescue' THEN -3.4233855
+    WHEN 'Mid Antrim Animal Sanctuary' THEN -5.677465333766653
+    WHEN 'North Clwyd Animal Rescue' THEN -3.142241
+    ELSE NULL
+  END
 FROM dogadopt.rescues r
 WHERE NOT EXISTS (
   SELECT 1 
