@@ -16,6 +16,7 @@ You need to set up the following secrets in your GitHub repository:
 - `VITE_SUPABASE_URL` - Your Supabase project URL
 - `VITE_SUPABASE_PUBLISHABLE_KEY` - Your Supabase anonymous/publishable key (client-side key)
 - `VITE_SUPABASE_PROJECT_ID` - Your Supabase project ID
+- `VITE_BASE_PATH` - Base path for deployment (e.g., `/adopt-a-dog-uk/` for GitHub Pages subdirectory, `/` for root domain)
 
 ### Deployment Secrets (Required for Database Migrations)
 - `SUPABASE_ACCESS_TOKEN` - Supabase CLI access token
@@ -55,7 +56,10 @@ You need to set up the following secrets in your GitHub repository:
    - Enter the name exactly as shown above (e.g., `VITE_SUPABASE_URL`)
    - Paste the corresponding value
    - Click "Add secret"
-6. **Repeat for all 5 secrets**
+6. **For `VITE_BASE_PATH`:**
+   - Use `/adopt-a-dog-uk/` for the current GitHub Pages deployment
+   - When moving to root domain, change this to `/`
+7. **Repeat for all 6 secrets**
 
 ### Step 3: Verify Setup
 
@@ -70,7 +74,7 @@ After adding all secrets:
 ## Troubleshooting
 
 ### Build is failing
-- Double-check that all 5 secrets are set in GitHub repository settings
+- Double-check that all 6 secrets are set in GitHub repository settings
 - Make sure the secret names match exactly (they are case-sensitive)
 - Verify the values don't have extra spaces or line breaks
 

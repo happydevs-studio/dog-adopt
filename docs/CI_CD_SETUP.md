@@ -92,7 +92,10 @@ Add the following secrets in your repository settings (Settings → Secrets and 
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
 VITE_SUPABASE_PROJECT_ID=your-project-id
+VITE_BASE_PATH=/adopt-a-dog-uk/
 ```
+
+**Note:** `VITE_BASE_PATH` controls the base URL path for the application. Use `/adopt-a-dog-uk/` for GitHub Pages subdirectory deployment, or `/` when deploying to the root domain.
 
 **For Supabase Migrations:**
 ```
@@ -125,11 +128,14 @@ After setting up:
 
 ## Local Development
 
-The base path configuration is automatically handled:
-- **Development:** Uses root path `/`
-- **Production:** Uses `/adopt-a-dog-uk/` for GitHub Pages
+The base path is controlled by the `VITE_BASE_PATH` environment variable:
+- **Default (if not set):** Uses root path `/`
+- **Current production:** Set to `/adopt-a-dog-uk/` for GitHub Pages subdirectory
+- **Future production:** Change to `/` when moving to root domain
 
-No changes needed in your development workflow.
+Update the value in your `.env` file for local development, and in GitHub Secrets for production deployment.
+
+No other changes are needed in your development workflow.
 
 ## Troubleshooting
 
