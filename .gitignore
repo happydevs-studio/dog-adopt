@@ -27,3 +27,6 @@ supabase/.branches
 supabase/.temp
 
 .task/*
+
+# Test scripts
+test-age-calculation.js

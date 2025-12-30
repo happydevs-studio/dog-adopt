@@ -31,8 +31,16 @@ function calculateAgeCategory(
     if (isNaN(birthDate.getTime())) return null;
     
     const now = new Date();
-    const ageInMonths = (now.getFullYear() - birthDate.getFullYear()) * 12 + 
-                        (now.getMonth() - birthDate.getMonth());
+    
+    // Calculate age more accurately by considering all date components
+    let ageInMonths = (now.getFullYear() - birthDate.getFullYear()) * 12;
+    ageInMonths += now.getMonth() - birthDate.getMonth();
+    
+    // Adjust if we haven't reached the birth day in the current month
+    if (now.getDate() < birthDate.getDate()) {
+      ageInMonths--;
+    }
+    
     const ageInYears = ageInMonths / 12;
     
     // Categorize based on age

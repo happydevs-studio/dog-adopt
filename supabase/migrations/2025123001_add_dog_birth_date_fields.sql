@@ -38,6 +38,7 @@ STABLE
 AS $$
 DECLARE
   v_birth_date DATE;
+  v_age_interval INTERVAL;
   v_age_years NUMERIC;
   v_age_months NUMERIC;
 BEGIN
@@ -64,9 +65,10 @@ BEGIN
     END;
   END IF;
   
-  -- Calculate age in years and months
-  v_age_years := EXTRACT(YEAR FROM age(CURRENT_DATE, v_birth_date));
-  v_age_months := v_age_years * 12 + EXTRACT(MONTH FROM age(CURRENT_DATE, v_birth_date));
+  -- Calculate age once and extract components
+  v_age_interval := age(CURRENT_DATE, v_birth_date);
+  v_age_years := EXTRACT(YEAR FROM v_age_interval);
+  v_age_months := v_age_years * 12 + EXTRACT(MONTH FROM v_age_interval);
   
   -- Categorize based on age
   IF v_age_months <= 6 THEN

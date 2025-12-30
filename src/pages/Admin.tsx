@@ -207,13 +207,19 @@ const Admin = () => {
     
     if (hasDay) {
       const day = parseInt(data.birthDay);
+      const year = parseInt(data.birthYear);
+      const month = parseInt(data.birthMonth);
+      
       if (isNaN(day) || day < 1 || day > 31) {
         return { isValid: false, error: 'Birth day must be between 1 and 31' };
       }
       
+      // Validate year and month are valid numbers before creating date
+      if (isNaN(year) || isNaN(month)) {
+        return { isValid: false, error: 'Valid year and month are required for birth day' };
+      }
+      
       // Validate actual date exists
-      const year = parseInt(data.birthYear);
-      const month = parseInt(data.birthMonth);
       const testDate = new Date(year, month - 1, day);
       if (testDate.getMonth() !== month - 1 || testDate.getDate() !== day) {
         return { isValid: false, error: 'Invalid date (e.g., February 30th doesn\'t exist)' };
