@@ -20,7 +20,9 @@ const DogGrid = () => {
   const filteredDogs = useMemo(() => {
     return dogs.filter((dog) => {
       const matchesSize = sizeFilter === 'All' || dog.size === sizeFilter;
-      const matchesAge = ageFilter === 'All' || dog.age === ageFilter;
+      // Use computedAge (from birth date if available) for filtering
+      const effectiveAge = dog.computedAge || dog.age;
+      const matchesAge = ageFilter === 'All' || effectiveAge === ageFilter;
       const matchesSearch =
         searchQuery === '' ||
         dog.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -27,6 +27,9 @@ interface DogFormData {
   name: string;
   breeds: string[];
   age: string;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
   size: string;
   gender: string;
   location: string;
@@ -43,6 +46,9 @@ const initialFormData: DogFormData = {
   name: '',
   breeds: [],
   age: 'Adult',
+  birthYear: '',
+  birthMonth: '',
+  birthDay: '',
   size: 'Medium',
   gender: 'Male',
   location: '',
@@ -100,6 +106,9 @@ const Admin = () => {
         name: dog.name,
         breeds: breeds,
         age: dog.age,
+        birthYear: dog.birthYear ? String(dog.birthYear) : '',
+        birthMonth: dog.birthMonth ? String(dog.birthMonth) : '',
+        birthDay: dog.birthDay ? String(dog.birthDay) : '',
         size: dog.size,
         gender: dog.gender,
         location: dog.location,
@@ -166,6 +175,51 @@ const Admin = () => {
     if (data.breeds.length === 0) {
       return { isValid: false, error: 'Please select at least one breed' };
     }
+    
+    // Validate birth date fields
+    const hasYear = data.birthYear !== '';
+    const hasMonth = data.birthMonth !== '';
+    const hasDay = data.birthDay !== '';
+    
+    if (hasMonth && !hasYear) {
+      return { isValid: false, error: 'Birth year is required when birth month is provided' };
+    }
+    
+    if (hasDay && (!hasYear || !hasMonth)) {
+      return { isValid: false, error: 'Birth year and month are required when birth day is provided' };
+    }
+    
+    // Validate ranges if values are provided
+    if (hasYear) {
+      const year = parseInt(data.birthYear);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(year) || year < 1900 || year > currentYear + 1) {
+        return { isValid: false, error: `Birth year must be between 1900 and ${currentYear + 1}` };
+      }
+    }
+    
+    if (hasMonth) {
+      const month = parseInt(data.birthMonth);
+      if (isNaN(month) || month < 1 || month > 12) {
+        return { isValid: false, error: 'Birth month must be between 1 and 12' };
+      }
+    }
+    
+    if (hasDay) {
+      const day = parseInt(data.birthDay);
+      if (isNaN(day) || day < 1 || day > 31) {
+        return { isValid: false, error: 'Birth day must be between 1 and 31' };
+      }
+      
+      // Validate actual date exists
+      const year = parseInt(data.birthYear);
+      const month = parseInt(data.birthMonth);
+      const testDate = new Date(year, month - 1, day);
+      if (testDate.getMonth() !== month - 1 || testDate.getDate() !== day) {
+        return { isValid: false, error: 'Invalid date (e.g., February 30th doesn\'t exist)' };
+      }
+    }
+    
     return { isValid: true };
   };
 
@@ -201,6 +255,9 @@ const Admin = () => {
       const dogData = {
         name: formData.name,
         age: formData.age,
+        birth_year: formData.birthYear ? parseInt(formData.birthYear) : null,
+        birth_month: formData.birthMonth ? parseInt(formData.birthMonth) : null,
+        birth_day: formData.birthDay ? parseInt(formData.birthDay) : null,
         size: formData.size,
         gender: formData.gender,
         rescue_id: formData.rescue_id || null,
@@ -399,6 +456,56 @@ const Admin = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Birth Date (Optional)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Enter the dog's birth date if known. This will automatically calculate their age category.
+                  </p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="birthYear" className="text-xs">Year</Label>
+                      <Input
+                        id="birthYear"
+                        type="number"
+                        placeholder="YYYY"
+                        min="1900"
+                        max={new Date().getFullYear() + 1}
+                        value={formData.birthYear}
+                        onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthMonth" className="text-xs">Month</Label>
+                      <Input
+                        id="birthMonth"
+                        type="number"
+                        placeholder="MM"
+                        min="1"
+                        max="12"
+                        value={formData.birthMonth}
+                        onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
+                        disabled={!formData.birthYear}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDay" className="text-xs">Day</Label>
+                      <Input
+                        id="birthDay"
+                        type="number"
+                        placeholder="DD"
+                        min="1"
+                        max="31"
+                        value={formData.birthDay}
+                        onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
+                        disabled={!formData.birthYear || !formData.birthMonth}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Year is required if you provide month or day. If birth date is not available, the manual age category will be used.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

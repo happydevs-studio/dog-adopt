@@ -10,6 +10,9 @@ interface DogCardProps {
 
 const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
   const showImage = viewMode === 'with-images';
+  
+  // Use computed age from birth date if available, otherwise fall back to manual age
+  const displayAge = dog.computedAge || dog.age;
 
   // Add UTM parameters to dog profile URL
   const getDogProfileUrl = () => {
@@ -41,7 +44,7 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute top-3 left-3 flex gap-2">
-            <Badge variant="warm">{dog.age}</Badge>
+            <Badge variant="warm">{displayAge}</Badge>
             <Badge variant="secondary">{dog.size}</Badge>
           </div>
           <button className="absolute top-3 right-3 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shadow-soft">
@@ -53,7 +56,7 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
       <div className="p-5 space-y-4">
         {!showImage && (
           <div className="flex gap-2 mb-2">
-            <Badge variant="warm">{dog.age}</Badge>
+            <Badge variant="warm">{displayAge}</Badge>
             <Badge variant="secondary">{dog.size}</Badge>
           </div>
         )}
