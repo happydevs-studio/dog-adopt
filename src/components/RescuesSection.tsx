@@ -82,7 +82,7 @@ const RescuesSection = () => {
           </div>
         ) : filteredRescues.length > 0 ? (
           <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {paginatedRescues.map((rescue, index) => (
                 <div
                   key={rescue.id}
@@ -164,17 +164,15 @@ const RescuesSection = () => {
                     )}
                     
                     {/* Last page */}
-                    {totalPages > 1 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          {...(currentPage !== totalPages && { onClick: () => setCurrentPage(totalPages) })}
-                          isActive={currentPage === totalPages}
-                          className={currentPage !== totalPages ? 'cursor-pointer' : ''}
-                        >
-                          {totalPages}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
+                    <PaginationItem>
+                      <PaginationLink
+                        {...(currentPage !== totalPages && { onClick: () => setCurrentPage(totalPages) })}
+                        isActive={currentPage === totalPages}
+                        className={currentPage !== totalPages ? 'cursor-pointer' : ''}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
                     
                     <PaginationItem>
                       <PaginationNext
