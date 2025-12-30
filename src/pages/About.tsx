@@ -1,19 +1,17 @@
 import Header from '@/components/Header';
-import Hero from '@/components/Hero';
-import DogGrid from '@/components/DogGrid';
+import AboutSection from '@/components/AboutSection';
 import Footer from '@/components/Footer';
 
-const Index = () => {
+const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <Hero />
-        <DogGrid />
+        <AboutSection />
       </main>
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default About;
