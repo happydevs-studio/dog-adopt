@@ -3,7 +3,11 @@ export interface Dog {
   name: string;
   breed: string; // Computed display string from breeds array
   breeds: string[]; // Multiple breeds array (source of truth)
-  age: string;
+  age: string; // Manual age category (Puppy/Young/Adult/Senior) - used as fallback
+  birthYear?: number | null; // Birth year (required if any birth date provided)
+  birthMonth?: number | null; // Birth month (1-12, requires birthYear)
+  birthDay?: number | null; // Birth day (1-31, requires birthYear and birthMonth)
+  computedAge?: string; // Computed age category from birth date (if available)
   size: 'Small' | 'Medium' | 'Large';
   gender: 'Male' | 'Female';
   location: string;
