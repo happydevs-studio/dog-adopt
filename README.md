@@ -126,29 +126,22 @@ See [CI/CD Setup Documentation](docs/CI_CD_SETUP.md) for detailed configuration 
 
 ### Rescues and Locations
 
-This project maintains a reference list of rescue organizations from the ADCH (Association of Dogs and Cats Homes). The data is managed through a post-deploy sync system.
+This project maintains a reference list of rescue organizations from the ADCH (Association of Dogs and Cats Homes). The data is managed through the seed file which uses UPSERT logic to safely update records.
 
 **Updating Rescues Data:**
 
-1. Edit the data file: `supabase/data/rescues.csv`
-2. Update the SQL script: `supabase/post-deploy/sync-rescues-locations.sql`
-3. Test locally: `npm run sync-rescues`
-4. Deploy: Push to main branch (auto-syncs via GitHub Actions)
-
-**Manual Sync to Production:**
-```bash
-export SUPABASE_PROJECT_REF=your-project-ref
-export SUPABASE_ACCESS_TOKEN=your-access-token
-npm run sync-rescues:prod
-```
+1. Edit the seed file: `supabase/seed.sql` (search for "RESCUES AND LOCATIONS REFERENCE DATA")
+2. Test locally: `npm run supabase:reset` (resets DB and runs seed file)
+3. Deploy: Push to main branch (auto-runs seed via GitHub Actions)
 
 **Key Features:**
 - ✅ Only updates records when data has changed
 - ✅ Maintains full audit trail of all changes
 - ✅ Automatically runs after migrations in CI/CD
 - ✅ Creates default locations for new rescues
+- ✅ Safe to run multiple times (idempotent)
 
-For detailed documentation, see [supabase/data/README.md](supabase/data/README.md)
+The seed file uses smart UPSERT logic that compares existing values before updating, preventing unnecessary audit log entries.
 
 ### Alternative Deployment
 
