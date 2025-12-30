@@ -3,6 +3,7 @@ import { Heart, Search } from 'lucide-react';
 import heroImage from '@/assets/hero-dog.jpg';
 import { useDogs } from '@/hooks/useDogs';
 import { useRescues } from '@/hooks/useRescues';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const { data: dogs = [] } = useDogs();
@@ -35,7 +36,7 @@ const Hero = () => {
                 </a>
               </Button>
               <Button variant="heroOutline" asChild>
-                <a href="#about">Learn More</a>
+                <Link to="/about">Learn More</Link>
               </Button>
             </div>
 
