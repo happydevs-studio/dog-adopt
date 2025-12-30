@@ -16,4 +16,12 @@ export default defineConfig(({ mode }) => ({
     },
   },
   base: mode === "production" ? "/adopt-a-dog-uk/" : "/",
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        404: path.resolve(__dirname, "404.html"),
+      },
+    },
+  },
 }));
