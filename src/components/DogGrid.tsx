@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import DogCard from './DogCard';
 import FilterSidebar from './FilterSidebar';
 import { useDogs } from '@/hooks/useDogs';
@@ -28,6 +28,7 @@ const DogGrid = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('text-only');
   const [currentPage, setCurrentPage] = useState(1);
   const { data: dogs = [], isLoading, error } = useDogs();
+  const gridTopRef = useRef<HTMLDivElement>(null);
 
   const filteredDogs = useMemo(() => {
     return dogs.filter((dog) => {
@@ -73,10 +74,17 @@ const DogGrid = () => {
     setCurrentPage(1);
   };
 
+  // Scroll to top of dog grid when page changes
+  useEffect(() => {
+    if (gridTopRef.current) {
+      gridTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentPage]);
+
   return (
     <section id="dogs" className="py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" ref={gridTopRef}>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Dogs Looking for Homes
           </h2>
