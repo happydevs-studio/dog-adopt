@@ -56,17 +56,7 @@ async function syncLocal() {
   console.log('🔄 Syncing rescues and locations to LOCAL Supabase...\n');
   
   try {
-    // Execute SQL file against local Supabase
-    await runCommand('docker', [
-      'exec',
-      '-i',
-      'supabase_db_dog-adopt',
-      'psql',
-      '-U', 'postgres',
-      '-f', '-'
-    ], {});
-    
-    // Read and pipe the SQL file
+    // Read and pipe the SQL file to local Supabase via Docker
     const sql = readFileSync(SQL_FILE, 'utf8');
     const proc = spawn('docker', [
       'exec',
