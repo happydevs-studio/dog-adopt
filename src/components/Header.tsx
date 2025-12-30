@@ -42,9 +42,9 @@ const Header = () => {
             <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               About
             </Link>
-            <a href="#rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Rescues
-            </a>
+            </Link>
             {isAdmin && (
               <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
                 <Shield className="w-4 h-4" />
@@ -106,9 +106,9 @@ const Header = () => {
               <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 About
               </Link>
-              <a href="#rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+              <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Rescues
-              </a>
+              </Link>
               {isAdmin && (
                 <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
                   <Shield className="w-4 h-4" />
