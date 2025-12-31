@@ -100,6 +100,7 @@ export function MultiSelectCombobox({
                   {item}
                   <button
                     type="button"
+                    tabIndex={0}
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     onClick={(e) => handleRemove(item, e)}
                     onKeyDown={(e) => handleBadgeKeyDown(item, e)}
