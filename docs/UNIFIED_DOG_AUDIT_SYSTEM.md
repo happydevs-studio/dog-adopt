@@ -245,6 +245,54 @@ Use the provided test scripts to verify the audit system:
 ./verify-audit.sh
 ```
 
+## Implementation History
+
+The unified dog audit system evolved through several iterations:
+
+1. **Initial Implementation**: Separate audit tables for dogs and breeds
+2. **Consolidation**: Unified into single `dogs_audit_logs` table
+3. **Enhanced Snapshots**: Added complete resolved snapshots with foreign keys
+4. **Breed Tracking**: Integrated breed change tracking with sub-operations
+5. **Unified View**: Single `dogs_audit_logs_resolved` view for all queries
+
+### Migration Files
+
+The audit system is implemented across multiple migrations:
+1. `2025122803_dogadopt_dogs_and_breeds.sql`: Initial audit setup
+2. Later migrations: Enhanced snapshot capture and unified views
+
+All migrations have been consolidated and are production-ready.
+
+## Comparison with Legacy System
+
+### Before Consolidation
+- ❌ Separate audit tables for dogs and breeds (`dog_audit_log`, `dog_breeds_audit_log`)
+- ❌ IDs not resolved (needed joins to understand changes)
+- ❌ Incomplete snapshots
+- ❌ Multiple views for different query types
+- ❌ Difficult to track complete dog state changes
+
+### After Consolidation (Current)
+- ✅ Single comprehensive audit log (`dogs_audit_logs`)
+- ✅ All IDs resolved in snapshots
+- ✅ Complete before/after state captured
+- ✅ Single unified view for all queries
+- ✅ Easy time-travel queries
+- ✅ Human-readable change summaries
+- ✅ Event sourcing capable
+- ✅ Breed changes tracked as dog updates with sub-operations
+
+## Related Audit Systems
+
+### Rescues and Locations Audit
+
+Similar audit systems exist for rescues and locations:
+- `dogadopt.rescues_audit_logs` - Audit log for rescue organizations
+- `dogadopt.locations_audit_logs` - Audit log for rescue locations
+- Both follow the same architecture and patterns as dog audit system
+
+See [RESCUES_LOCATIONS_AUDIT.md](./RESCUES_LOCATIONS_AUDIT.md) for details.
+
 ## Future Enhancements
 
 - Event replay capabilities
@@ -252,3 +300,4 @@ Use the provided test scripts to verify the audit system:
 - Real-time audit event streaming
 - Audit analytics dashboard
 - Point-in-time dog state reconstruction API
+- Cross-entity audit queries (track dog moves between rescues)

@@ -14,8 +14,10 @@ build/
 *.log
 npm-debug.log*
 
-# Generated files
-charity-numbers.csv
+# Data collection artifacts (keep committed ones in data/ directory)
+# charity-numbers.csv (removed - now in .gitignore properly)
+/*.csv
+/*.sql
 
 # Editor directories
 .vscode/
