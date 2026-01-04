@@ -219,11 +219,89 @@ const RATE_LIMIT_DELAY = 1000; // 1 request per second
 
 For ~100 rescues, expect the script to run for approximately **2-3 minutes**.
 
+## Geocoding Rescue Locations
+
+After collecting contact details (including postcodes), you can geocode the locations to add latitude/longitude coordinates for map display.
+
+### Running the Geocoder
+
+```bash
+node scripts/geocode-rescues.js
+```
+
+### What it does:
+
+1. Queries rescues with postcodes but missing coordinates
+2. Uses postcodes.io API (free, UK-only, no API key required)
+3. Retrieves latitude/longitude for each postcode
+4. Updates the database with coordinates
+5. Generates CSV and SQL files for reference
+
+### Output Files
+
+- `rescue-coordinates.csv` - CSV export of all geocoded rescues
+- `rescue-coordinates.sql` - SQL UPDATE statements
+
+### Postcodes.io API
+
+- **Source**: https://postcodes.io
+- **Coverage**: UK postcodes only
+- **Cost**: Free, no API key required
+- **Accuracy**: Postcode centroid (typically within 100m)
+- **Rate Limit**: None specified (be respectful)
+
+### Verification
+
+```sql
+-- Check geocoding coverage
+SELECT 
+  COUNT(*) as total_rescues,
+  COUNT(latitude) as with_coordinates,
+  ROUND(COUNT(latitude)::decimal / COUNT(*) * 100, 1) as coverage_percent
+FROM dogadopt.rescues;
+
+-- View geocoded rescues
+SELECT name, postcode, latitude, longitude
+FROM dogadopt.rescues
+WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+ORDER BY name;
+```
+
+### Limitations
+
+- Only works for UK postcodes
+- International rescues (Ireland, Channel Islands, Isle of Man) need alternative geocoding service
+- Accuracy limited to postcode centroid (not exact building location)
+
+### Manual Geocoding
+
+For rescues outside the UK or with missing postcodes:
+
+1. Visit https://www.latlong.net/
+2. Enter the full address
+3. Copy latitude and longitude
+4. Update in seed.sql or directly in database
+
+## Historical Collection Summary
+
+### Contact Collection (December 2025)
+
+Successfully collected contact details for **54 rescues** (81% of those with charity numbers) using the Charity Commission API:
+- 18 rescues in Phase 1 (new ADCH members)
+- 36 rescues in Phase 2 (remaining rescues with charity numbers)
+
+### Geocoding Coverage (December 2025)
+
+Geocoded **55 rescues** bringing total coverage to **71.6%** (111 of 155 rescues):
+- Geocoded using postcodes.io API
+- Remaining rescues lack either postcodes or are outside UK coverage
+
 ## Future Enhancements
 
 - [ ] Bulk charity number lookup by organization name
 - [ ] Scheduled automatic re-collection (monthly)
 - [ ] Integration with Scottish Charity Register (OSCR)
+- [ ] International geocoding service for non-UK rescues
 - [ ] Admin UI to trigger collection and view results
 - [ ] Webhook notifications when contact details change
 - [ ] Export contact data for CRM integration
