@@ -1,16 +1,115 @@
 import type { Dog } from '@/types/dog';
 import type { Rescue } from '@/hooks/useRescues';
 
+export interface ChatResponse {
+  content: string;
+  suggestedQuestions?: string[];
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  suggestedQuestions?: string[];
+  dogs?: Dog[]; // Dogs included in this message for display
 }
 
 interface ChatContext {
   dogs: Dog[];
   rescues: Rescue[];
+}
+
+interface ConversationState {
+  preferredSize?: 'Small' | 'Medium' | 'Large';
+  preferredAge?: string;
+  needsKidFriendly?: boolean;
+  needsDogFriendly?: boolean;
+  needsCatFriendly?: boolean;
+  preferredLocation?: string;
+  lastQuery?: string;
+}
+
+// Conversation state management
+let conversationState: ConversationState = {};
+
+/**
+ * Reset conversation state
+ */
+export function resetConversationState() {
+  conversationState = {};
+}
+
+/**
+ * Extract preferences from user message and update conversation state
+ */
+function updateConversationState(message: string) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Extract size preferences
+  if (lowerMessage.includes('small')) conversationState.preferredSize = 'Small';
+  else if (lowerMessage.includes('medium')) conversationState.preferredSize = 'Medium';
+  else if (lowerMessage.includes('large') || lowerMessage.includes('big')) conversationState.preferredSize = 'Large';
+  
+  // Extract age preferences
+  if (lowerMessage.includes('puppy') || lowerMessage.includes('puppies')) conversationState.preferredAge = 'Puppy';
+  else if (lowerMessage.includes('young')) conversationState.preferredAge = 'Young';
+  else if (lowerMessage.includes('adult')) conversationState.preferredAge = 'Adult';
+  else if (lowerMessage.includes('senior') || lowerMessage.includes('older')) conversationState.preferredAge = 'Senior';
+  
+  // Extract trait preferences
+  if (lowerMessage.includes('good with') || lowerMessage.includes('friendly')) {
+    if (lowerMessage.includes('kid') || lowerMessage.includes('child')) conversationState.needsKidFriendly = true;
+    if (lowerMessage.includes('dog')) conversationState.needsDogFriendly = true;
+    if (lowerMessage.includes('cat')) conversationState.needsCatFriendly = true;
+  }
+  
+  // Extract location preferences
+  const locations = ['wales', 'scotland', 'england', 'northern ireland', 'london', 'birmingham', 'manchester', 'glasgow'];
+  for (const loc of locations) {
+    if (lowerMessage.includes(loc)) {
+      conversationState.preferredLocation = loc;
+      break;
+    }
+  }
+  
+  conversationState.lastQuery = message;
+}
+
+/**
+ * Apply conversation state filters to dogs
+ */
+function applyConversationFilters(dogs: Dog[]): Dog[] {
+  let filtered = dogs;
+  
+  if (conversationState.preferredSize) {
+    filtered = filtered.filter(d => d.size === conversationState.preferredSize);
+  }
+  
+  if (conversationState.preferredAge) {
+    filtered = filtered.filter(d => (d.computedAge || d.age) === conversationState.preferredAge);
+  }
+  
+  if (conversationState.needsKidFriendly) {
+    filtered = filtered.filter(d => d.goodWithKids);
+  }
+  
+  if (conversationState.needsDogFriendly) {
+    filtered = filtered.filter(d => d.goodWithDogs);
+  }
+  
+  if (conversationState.needsCatFriendly) {
+    filtered = filtered.filter(d => d.goodWithCats);
+  }
+  
+  if (conversationState.preferredLocation) {
+    filtered = filtered.filter(d => 
+      d.location.toLowerCase().includes(conversationState.preferredLocation!) ||
+      d.rescue.toLowerCase().includes(conversationState.preferredLocation!)
+    );
+  }
+  
+  return filtered;
 }
 
 /**
@@ -87,152 +186,285 @@ ${contextStr}`;
 }
 
 /**
- * Generate a fallback response using pattern matching
+ * Format a list of dogs for display
+ */
+function formatDogList(dogs: Dog[], limit: number = 5, showDetails: boolean = false): string {
+  if (dogs.length === 0) {
+    return "I'm sorry, I couldn't find any dogs matching those criteria.";
+  }
+  
+  const dogsToShow = dogs.slice(0, limit);
+  const dogList = dogsToShow.map(dog => {
+    let info = `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age}, ${dog.size.toLowerCase()} ${dog.gender.toLowerCase()}`;
+    info += `\n  📍 ${dog.rescue} in ${dog.location}`;
+    
+    if (showDetails) {
+      const traits = [];
+      if (dog.goodWithKids) traits.push('👶 Good with kids');
+      if (dog.goodWithDogs) traits.push('🐕 Good with dogs');
+      if (dog.goodWithCats) traits.push('🐈 Good with cats');
+      if (traits.length > 0) {
+        info += `\n  ${traits.join(', ')}`;
+      }
+    }
+    
+    return info;
+  }).join('\n\n');
+  
+  let response = dogList;
+  const remaining = dogs.length - limit;
+  if (remaining > 0) {
+    response += `\n\n_...and ${remaining} more ${remaining === 1 ? 'dog' : 'dogs'} available!_`;
+  }
+  
+  return response;
+}
+
+/**
+ * Generate contextual follow-up suggestions
+ */
+function generateSuggestions(dogs: Dog[], context: ChatContext): string[] {
+  const suggestions: string[] = [];
+  
+  // If we have results, suggest refinements
+  if (dogs.length > 5) {
+    if (!conversationState.preferredSize) {
+      suggestions.push('Show me only small dogs', 'Show me only large dogs');
+    }
+    if (!conversationState.needsKidFriendly && dogs.some(d => d.goodWithKids)) {
+      suggestions.push('Which are good with children?');
+    }
+    if (!conversationState.preferredAge) {
+      suggestions.push('Show me puppies', 'Show me senior dogs');
+    }
+  } else if (dogs.length > 0 && dogs.length <= 3) {
+    // If few results, suggest similar or broadening search
+    suggestions.push('Tell me more about these dogs', 'Show me all available dogs');
+  } else if (dogs.length === 0) {
+    // If no results, suggest alternatives
+    suggestions.push('What dogs are available?', 'Show me all rescues');
+  }
+  
+  return suggestions.slice(0, 3);
+}
+
+/**
+ * Generate a fallback response using enhanced pattern matching
  */
 function generateFallbackResponse(
   userMessage: string,
   context: ChatContext
-): string {
+): ChatResponse | string {
   const message = userMessage.toLowerCase();
   const { dogs, rescues } = context;
   
+  // Update conversation state
+  updateConversationState(userMessage);
+  
+  // Greeting patterns
+  if (message.match(/^(hi|hello|hey|good morning|good afternoon|good evening)[\s!?]*$/)) {
+    return {
+      content: `Hello! 👋 I'm here to help you find your perfect dog match from ${dogs.length} available dogs across ${rescues.length} rescues in the UK.\n\nWhat kind of dog are you looking for?`,
+      suggestedQuestions: ['What dogs are available?', 'Show me small dogs', 'Tell me about puppies']
+    };
+  }
+  
+  // Help patterns
+  if (message.includes('help') || message.includes('what can you') || message.includes('how do')) {
+    return `I can help you find the perfect dog! Here are some things you can ask me:\n\n• "What dogs are available?"\n• "Show me small dogs good with children"\n• "Are there any puppies in Wales?"\n• "Tell me about [dog name]"\n• "Which dogs are good with cats?"\n• "Show me dogs at [rescue name]"\n\nYou can combine criteria like size, age, temperament, and location!`;
+  }
+  
+  // Thank you patterns
+  if (message.match(/^(thanks|thank you|ty|cheers)[\s!.]*$/)) {
+    return `You're welcome! 🐾 Feel free to ask me anything else about available dogs or rescues. Good luck finding your perfect companion!`;
+  }
+  
+  // Compound queries - multiple criteria
+  if ((message.includes('small') || message.includes('medium') || message.includes('large')) &&
+      ((message.includes('good with') || message.includes('friendly')) && 
+       (message.includes('kid') || message.includes('child') || message.includes('dog') || message.includes('cat')))) {
+    
+    let filtered = applyConversationFilters(dogs);
+    
+    if (filtered.length === 0) {
+      return `I couldn't find any dogs matching all those criteria. Let me show you some dogs that match some of your preferences:\n\n${formatDogList(dogs.filter(d => d.size === conversationState.preferredSize), 5, true)}`;
+    }
+    
+    const criteria = [];
+    if (conversationState.preferredSize) criteria.push(conversationState.preferredSize.toLowerCase());
+    if (conversationState.needsKidFriendly) criteria.push('good with children');
+    if (conversationState.needsDogFriendly) criteria.push('good with dogs');
+    if (conversationState.needsCatFriendly) criteria.push('good with cats');
+    
+    return `Great! I found ${filtered.length} ${criteria.join(', ')} ${filtered.length === 1 ? 'dog' : 'dogs'}:\n\n${formatDogList(filtered, 5, true)}`;
+  }
+  
   // Pattern: What dogs are available / Show me dogs
-  if (message.includes('what dogs') || (message.includes('show') && message.includes('dog'))) {
+  if (message.includes('what dogs') || (message.includes('show') && message.includes('dog')) || message.includes('list') && message.includes('dog')) {
     if (dogs.length === 0) {
       return "I'm sorry, there are currently no dogs available for adoption.";
     }
     
-    const dogList = dogs.slice(0, 5).map(dog => 
-      `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age}, ${dog.size} ${dog.gender.toLowerCase()} at ${dog.rescue}`
-    ).join('\n');
+    // Apply any existing conversation filters
+    let filtered = applyConversationFilters(dogs);
+    if (filtered.length === 0) filtered = dogs; // Fall back to all dogs
     
-    const more = dogs.length > 5 ? `\n\n...and ${dogs.length - 5} more dogs available!` : '';
-    return `Here are some dogs available for adoption:\n\n${dogList}${more}`;
+    return `I found ${filtered.length} wonderful ${filtered.length === 1 ? 'dog' : 'dogs'} available for adoption:\n\n${formatDogList(filtered, 5, true)}`;
   }
   
   // Pattern: Dogs good with children/kids
   if ((message.includes('good with') || message.includes('friendly')) && (message.includes('kid') || message.includes('child'))) {
-    const kidFriendly = dogs.filter(d => d.goodWithKids);
+    conversationState.needsKidFriendly = true;
+    let filtered = applyConversationFilters(dogs);
     
-    if (kidFriendly.length === 0) {
-      return "I don't have information about dogs that are specifically noted as good with children at the moment.";
+    if (filtered.length === 0) {
+      return "I don't have information about dogs that are specifically noted as good with children at the moment. Try browsing all available dogs or ask about other criteria!";
     }
     
-    const dogList = kidFriendly.slice(0, 5).map(dog => 
-      `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age} at ${dog.rescue}`
-    ).join('\n');
-    
-    return `Here are some dogs that are good with children:\n\n${dogList}`;
+    return `Here are ${filtered.length} ${filtered.length === 1 ? 'dog' : 'dogs'} that ${filtered.length === 1 ? 'is' : 'are'} good with children:\n\n${formatDogList(filtered, 5, true)}`;
   }
   
   // Pattern: Dogs good with other dogs
-  if ((message.includes('good with') || message.includes('friendly')) && message.includes('dog') && !message.includes('what')) {
-    const dogFriendly = dogs.filter(d => d.goodWithDogs);
+  if ((message.includes('good with') || message.includes('friendly')) && message.includes('other dog')) {
+    conversationState.needsDogFriendly = true;
+    let filtered = applyConversationFilters(dogs);
     
-    if (dogFriendly.length === 0) {
+    if (filtered.length === 0) {
       return "I don't have information about dogs that are specifically noted as good with other dogs at the moment.";
     }
     
-    const dogList = dogFriendly.slice(0, 5).map(dog => 
-      `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age} at ${dog.rescue}`
-    ).join('\n');
-    
-    return `Here are some dogs that are good with other dogs:\n\n${dogList}`;
+    return `Here are ${filtered.length} ${filtered.length === 1 ? 'dog' : 'dogs'} that ${filtered.length === 1 ? 'is' : 'are'} good with other dogs:\n\n${formatDogList(filtered, 5, true)}`;
   }
   
   // Pattern: Dogs good with cats
   if ((message.includes('good with') || message.includes('friendly')) && message.includes('cat')) {
-    const catFriendly = dogs.filter(d => d.goodWithCats);
+    conversationState.needsCatFriendly = true;
+    let filtered = applyConversationFilters(dogs);
     
-    if (catFriendly.length === 0) {
+    if (filtered.length === 0) {
       return "I don't have information about dogs that are specifically noted as good with cats at the moment.";
     }
     
-    const dogList = catFriendly.slice(0, 5).map(dog => 
-      `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age} at ${dog.rescue}`
-    ).join('\n');
-    
-    return `Here are some dogs that are good with cats:\n\n${dogList}`;
+    return `Here are ${filtered.length} ${filtered.length === 1 ? 'dog' : 'dogs'} that ${filtered.length === 1 ? 'is' : 'are'} good with cats:\n\n${formatDogList(filtered, 5, true)}`;
   }
   
   // Pattern: Specific breed
   if (message.includes('breed')) {
     const breeds = new Set(dogs.flatMap(d => d.breeds));
-    return `We have dogs of various breeds available including: ${Array.from(breeds).slice(0, 10).join(', ')}. Would you like to know more about a specific breed?`;
+    return `We currently have dogs of these breeds available:\n\n${Array.from(breeds).slice(0, 15).join(', ')}.\n\nWould you like to know more about a specific breed? Just ask!`;
+  }
+  
+  // Pattern: Search for specific breed name
+  const allBreeds = new Set(dogs.flatMap(d => d.breeds.map(b => b.toLowerCase())));
+  for (const breed of allBreeds) {
+    if (message.includes(breed)) {
+      const breedDogs = dogs.filter(d => d.breeds.some(b => b.toLowerCase().includes(breed)));
+      if (breedDogs.length > 0) {
+        return `I found ${breedDogs.length} ${breed} ${breedDogs.length === 1 ? 'dog' : 'dogs'}:\n\n${formatDogList(breedDogs, 5, true)}`;
+      }
+    }
   }
   
   // Pattern: Size preference
-  if (message.includes('small') || message.includes('medium') || message.includes('large')) {
+  if (message.includes('small') || message.includes('medium') || message.includes('large') || message.includes('big')) {
     let size: 'Small' | 'Medium' | 'Large' | null = null;
     if (message.includes('small')) size = 'Small';
     else if (message.includes('medium')) size = 'Medium';
-    else if (message.includes('large')) size = 'Large';
+    else if (message.includes('large') || message.includes('big')) size = 'Large';
     
     if (size) {
-      const sizedDogs = dogs.filter(d => d.size === size);
+      conversationState.preferredSize = size;
+      let filtered = applyConversationFilters(dogs);
       
-      if (sizedDogs.length === 0) {
-        return `I'm sorry, there are currently no ${size.toLowerCase()} dogs available.`;
+      if (filtered.length === 0) {
+        return `I'm sorry, there are currently no ${size.toLowerCase()} dogs available matching your criteria.`;
       }
       
-      const dogList = sizedDogs.slice(0, 5).map(dog => 
-        `• **${dog.name}**: ${dog.breed}, ${dog.computedAge || dog.age} at ${dog.rescue}`
-      ).join('\n');
-      
-      const more = sizedDogs.length > 5 ? `\n\n...and ${sizedDogs.length - 5} more ${size.toLowerCase()} dogs!` : '';
-      return `Here are some ${size.toLowerCase()} dogs available:\n\n${dogList}${more}`;
+      return `Here are ${filtered.length} ${size.toLowerCase()} ${filtered.length === 1 ? 'dog' : 'dogs'} available:\n\n${formatDogList(filtered, 5, true)}`;
     }
   }
   
   // Pattern: Age preference
-  if (message.includes('puppy') || message.includes('puppies') || message.includes('young') || message.includes('senior') || message.includes('adult')) {
+  if (message.includes('puppy') || message.includes('puppies') || message.includes('young') || message.includes('senior') || message.includes('adult') || message.includes('older')) {
     let age: string | null = null;
     if (message.includes('puppy') || message.includes('puppies')) age = 'Puppy';
     else if (message.includes('young')) age = 'Young';
-    else if (message.includes('senior')) age = 'Senior';
+    else if (message.includes('senior') || message.includes('older')) age = 'Senior';
     else if (message.includes('adult')) age = 'Adult';
     
     if (age) {
-      const agedDogs = dogs.filter(d => (d.computedAge || d.age) === age);
+      conversationState.preferredAge = age;
+      let filtered = applyConversationFilters(dogs);
       
-      if (agedDogs.length === 0) {
-        return `I'm sorry, there are currently no ${age.toLowerCase()} dogs available.`;
+      if (filtered.length === 0) {
+        return `I'm sorry, there are currently no ${age.toLowerCase()} dogs available matching your criteria.`;
       }
       
-      const dogList = agedDogs.slice(0, 5).map(dog => 
-        `• **${dog.name}**: ${dog.breed}, ${dog.size} at ${dog.rescue}`
-      ).join('\n');
-      
-      return `Here are some ${age.toLowerCase()} dogs available:\n\n${dogList}`;
+      return `Here are ${filtered.length} ${age.toLowerCase()} ${filtered.length === 1 ? 'dog' : 'dogs'} available:\n\n${formatDogList(filtered, 5, true)}`;
     }
   }
   
-  // Pattern: Location/Region
-  if (message.includes('wales') || message.includes('scotland') || message.includes('england') || message.includes('rescue') && message.includes('in')) {
+  // Pattern: Location/Region queries
+  if (message.includes('wales') || message.includes('scotland') || message.includes('england') || message.includes('northern ireland') ||
+      message.includes('london') || message.includes('where') || (message.includes('rescue') && (message.includes('in') || message.includes('near')))) {
+    
+    // Extract location
+    const locations = ['wales', 'scotland', 'england', 'northern ireland', 'london', 'birmingham', 'manchester', 'glasgow', 'cardiff', 'edinburgh'];
+    let foundLocation = null;
+    for (const loc of locations) {
+      if (message.includes(loc)) {
+        foundLocation = loc;
+        conversationState.preferredLocation = loc;
+        break;
+      }
+    }
+    
+    if (foundLocation) {
+      const localDogs = dogs.filter(d => 
+        d.location.toLowerCase().includes(foundLocation) ||
+        d.rescue.toLowerCase().includes(foundLocation)
+      );
+      
+      if (localDogs.length > 0) {
+        return `I found ${localDogs.length} ${localDogs.length === 1 ? 'dog' : 'dogs'} in or near ${foundLocation}:\n\n${formatDogList(localDogs, 5, true)}`;
+      } else {
+        return `I couldn't find any dogs specifically in ${foundLocation}, but we have dogs across the UK. Would you like to see all available dogs?`;
+      }
+    }
+    
+    // General location query
     const regions = rescues.map(r => r.region);
     const uniqueRegions = Array.from(new Set(regions));
     
-    return `We work with rescues across the UK in regions including: ${uniqueRegions.slice(0, 10).join(', ')}. You can browse all rescues on our Rescues page.`;
+    return `We work with rescues across the UK in these regions:\n\n${uniqueRegions.slice(0, 12).join(', ')}\n\nWould you like to see dogs from a specific area?`;
   }
   
-  // Pattern: Tell me about [dog name]
-  if ((message.includes('tell me about') || message.includes('about')) && dogs.length > 0) {
+  // Pattern: Tell me about / more about a specific dog
+  if ((message.includes('tell me about') || message.includes('more about') || message.includes('tell me more')) && dogs.length > 0) {
     // Try to find a dog by name
     const words = message.split(' ');
     for (const word of words) {
       const dog = dogs.find(d => d.name.toLowerCase() === word);
       if (dog) {
-        let info = `**${dog.name}** is a ${dog.computedAge || dog.age} ${dog.size.toLowerCase()} ${dog.breed} (${dog.gender.toLowerCase()}) `;
-        info += `available at ${dog.rescue} in ${dog.location}.\n\n`;
-        info += `${dog.description}\n\n`;
+        let info = `🐕 **${dog.name}**\n\n`;
+        info += `**Breed:** ${dog.breed}\n`;
+        info += `**Age:** ${dog.computedAge || dog.age}\n`;
+        info += `**Size:** ${dog.size}\n`;
+        info += `**Gender:** ${dog.gender}\n`;
+        info += `**Location:** ${dog.rescue}, ${dog.location}\n\n`;
+        info += `**About ${dog.name}:**\n${dog.description}\n\n`;
         
         const traits = [];
-        if (dog.goodWithKids) traits.push('good with kids');
-        if (dog.goodWithDogs) traits.push('good with dogs');
-        if (dog.goodWithCats) traits.push('good with cats');
+        if (dog.goodWithKids) traits.push('✓ Good with kids');
+        if (dog.goodWithDogs) traits.push('✓ Good with dogs');
+        if (dog.goodWithCats) traits.push('✓ Good with cats');
         
         if (traits.length > 0) {
-          info += `${dog.name} is ${traits.join(', ')}.`;
+          info += `**Temperament:**\n${traits.join('\n')}\n\n`;
+        }
+        
+        if (dog.rescueWebsite) {
+          info += `For more info, visit: ${dog.rescueWebsite}`;
         }
         
         return info;
@@ -240,16 +472,73 @@ function generateFallbackResponse(
     }
   }
   
-  // Default response with helpful suggestions
-  return `I can help you find information about available dogs and rescues! Here are some things you can ask me:
-
-• "What dogs are available?"
-• "Show me dogs good with children"
-• "Do you have any small dogs?"
-• "Tell me about puppies"
-• "What rescues are in Wales?"
-
-Feel free to ask me anything about our available dogs!`;
+  // Pattern: Show more / see more / view more
+  if ((message.includes('more') || message.includes('another') || message.includes('other')) && conversationState.lastQuery) {
+    let filtered = applyConversationFilters(dogs);
+    if (filtered.length > 5) {
+      return `Here are more dogs matching your preferences:\n\n${formatDogList(filtered.slice(5, 10), 5, true)}`;
+    }
+  }
+  
+  // Pattern: Rescues information
+  if ((message.includes('rescue') || message.includes('shelter') || message.includes('organisation')) && 
+      !message.includes('dog') && !message.includes('show')) {
+    
+    if (rescues.length === 0) {
+      return "I don't have information about rescues at the moment.";
+    }
+    
+    const rescueList = rescues.slice(0, 8).map(rescue => 
+      `• **${rescue.name}** (${rescue.type}) - ${rescue.region}${rescue.website ? `\n  🌐 ${rescue.website}` : ''}`
+    ).join('\n\n');
+    
+    const more = rescues.length > 8 ? `\n\n_...and ${rescues.length - 8} more rescues!_` : '';
+    return `We work with ${rescues.length} amazing rescue organizations across the UK:\n\n${rescueList}${more}\n\nVisit our Rescues page to see them all!`;
+  }
+  
+  // Pattern: Reset / start over
+  if (message.includes('reset') || message.includes('start over') || message.includes('clear')) {
+    resetConversationState();
+    return `Okay, I've cleared your preferences! 🔄 Let's start fresh. What kind of dog are you looking for?`;
+  }
+  
+  // Pattern: Summary/stats
+  if (message.includes('how many') || message.includes('stats') || message.includes('summary')) {
+    const kidFriendly = dogs.filter(d => d.goodWithKids).length;
+    const dogFriendly = dogs.filter(d => d.goodWithDogs).length;
+    const catFriendly = dogs.filter(d => d.goodWithCats).length;
+    const small = dogs.filter(d => d.size === 'Small').length;
+    const medium = dogs.filter(d => d.size === 'Medium').length;
+    const large = dogs.filter(d => d.size === 'Large').length;
+    
+    return `📊 **Current Statistics:**\n\n` +
+      `**Total Dogs:** ${dogs.length}\n` +
+      `**Rescues:** ${rescues.length}\n\n` +
+      `**By Size:**\n• Small: ${small}\n• Medium: ${medium}\n• Large: ${large}\n\n` +
+      `**Temperament:**\n• Good with kids: ${kidFriendly}\n• Good with dogs: ${dogFriendly}\n• Good with cats: ${catFriendly}\n\n` +
+      `What would you like to explore?`;
+  }
+  
+  // Default response with helpful suggestions based on context
+  const hasPreferences = Object.keys(conversationState).length > 0;
+  
+  if (hasPreferences) {
+    return `I didn't quite understand that, but I remember you're looking for:\n${
+      conversationState.preferredSize ? `• ${conversationState.preferredSize} dogs\n` : ''
+    }${
+      conversationState.preferredAge ? `• ${conversationState.preferredAge} dogs\n` : ''
+    }${
+      conversationState.needsKidFriendly ? `• Good with children\n` : ''
+    }${
+      conversationState.needsDogFriendly ? `• Good with other dogs\n` : ''
+    }${
+      conversationState.needsCatFriendly ? `• Good with cats\n` : ''
+    }${
+      conversationState.preferredLocation ? `• In ${conversationState.preferredLocation}\n` : ''
+    }\nTry asking:\n• "Show me these dogs"\n• "Tell me more"\n• "Start over" to reset`;
+  }
+  
+  return `I can help you find information about available dogs and rescues! Here are some things you can ask me:\n\n• "What dogs are available?"\n• "Show me small dogs good with children"\n• "Are there any puppies?"\n• "Which dogs are good with cats?"\n• "What rescues are in Wales?"\n• "How many dogs are available?"\n\nFeel free to ask me anything about our available dogs!`;
 }
 
 /**
@@ -258,19 +547,37 @@ Feel free to ask me anything about our available dogs!`;
 export async function getChatResponse(
   userMessage: string,
   context: ChatContext
-): Promise<string> {
+): Promise<ChatResponse> {
   try {
     // Try OpenAI first if API key is configured
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
     if (apiKey) {
-      return await generateOpenAIResponse(userMessage, context);
+      const response = await generateOpenAIResponse(userMessage, context);
+      return { content: response };
     }
   } catch (error) {
     console.warn('OpenAI API failed, falling back to pattern matching:', error);
   }
   
   // Fall back to pattern matching
-  return generateFallbackResponse(userMessage, context);
+  const fallbackResponse = generateFallbackResponse(userMessage, context);
+  
+  // If it's a string (old format), convert to new format
+  if (typeof fallbackResponse === 'string') {
+    const suggestions = generateSuggestions(context.dogs, context);
+    return {
+      content: fallbackResponse,
+      suggestedQuestions: suggestions.length > 0 ? suggestions : undefined
+    };
+  }
+  
+  // If it's already a ChatResponse, add suggestions if not present
+  if (!fallbackResponse.suggestedQuestions) {
+    const suggestions = generateSuggestions(context.dogs, context);
+    fallbackResponse.suggestedQuestions = suggestions.length > 0 ? suggestions : undefined;
+  }
+  
+  return fallbackResponse;
 }
 
 /**
@@ -292,7 +599,12 @@ export function getStarterQuestions(context: ChatContext): string[] {
     questions.push('Tell me about puppies');
   }
   
-  questions.push('What rescues are available?');
+  // Add more dynamic questions
+  if (dogs.some(d => d.goodWithCats)) {
+    questions.push('Which dogs are good with cats?');
+  }
+  
+  questions.push('How many dogs are available?');
   
   return questions;
 }
