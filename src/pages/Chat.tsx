@@ -47,7 +47,7 @@ const Chat = () => {
     if (!inputValue.trim() || isLoading || dataLoading) return;
     
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'user',
       content: inputValue.trim(),
       timestamp: new Date(),
@@ -61,7 +61,7 @@ const Chat = () => {
       const response = await getChatResponse(inputValue.trim(), { dogs, rescues });
       
       const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: response,
         timestamp: new Date(),
@@ -72,7 +72,7 @@ const Chat = () => {
       console.error('Error getting chat response:', error);
       
       const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: "I'm sorry, I encountered an error processing your message. Please try again.",
         timestamp: new Date(),
@@ -84,7 +84,7 @@ const Chat = () => {
     }
   };
   
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -224,7 +224,7 @@ const Chat = () => {
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder={dataLoading ? "Loading data..." : "Type your message..."}
                 disabled={isLoading || dataLoading}
                 className="flex-1"

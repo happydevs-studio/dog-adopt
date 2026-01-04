@@ -97,7 +97,7 @@ function generateFallbackResponse(
   const { dogs, rescues } = context;
   
   // Pattern: What dogs are available / Show me dogs
-  if (message.includes('what dogs') || message.includes('show') && message.includes('dog')) {
+  if (message.includes('what dogs') || (message.includes('show') && message.includes('dog'))) {
     if (dogs.length === 0) {
       return "I'm sorry, there are currently no dogs available for adoption.";
     }
