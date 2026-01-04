@@ -65,7 +65,7 @@ interface DogRow {
   age: string;
   size: string;
   gender: string;
-  status: string;
+  status: 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn';
   status_notes: string | null;
   location_id: string | null;
   rescue_id: string | null;

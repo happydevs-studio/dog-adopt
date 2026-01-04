@@ -33,7 +33,7 @@ interface DogFormData {
   rescueSinceDate: string;
   size: string;
   gender: string;
-  status: string;
+  status: 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn';
   status_notes: string;
   location: string;
   rescue_id: string;
