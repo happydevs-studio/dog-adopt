@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare, Loader2 } from 'lucide-react';
+import { Send, MessageSquare, Loader2, RotateCcw } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { useDogs } from '@/hooks/useDogs';
 import { useRescues } from '@/hooks/useRescues';
-import { getChatResponse, getStarterQuestions, type ChatMessage } from '@/services/chatService';
+import { getChatResponse, getStarterQuestions, resetConversationState, type ChatMessage, type ChatResponse } from '@/services/chatService';
 import { cn } from '@/lib/utils';
 
 const Chat = () => {
@@ -63,8 +64,9 @@ const Chat = () => {
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: response,
+        content: response.content,
         timestamp: new Date(),
+        suggestedQuestions: response.suggestedQuestions,
       };
       
       setMessages(prev => [...prev, assistantMessage]);
@@ -93,6 +95,21 @@ const Chat = () => {
   
   const handleStarterQuestion = (question: string) => {
     setInputValue(question);
+    // Auto-send the question
+    setTimeout(() => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter' });
+      handleKeyDown(event as any);
+    }, 100);
+  };
+  
+  const handleResetConversation = () => {
+    resetConversationState();
+    setMessages([{
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: `Conversation reset! 🔄 Let's start fresh. What kind of dog are you looking for?`,
+      timestamp: new Date(),
+    }]);
   };
   
   // Format message content with basic markdown-like formatting
@@ -134,10 +151,23 @@ const Chat = () => {
         
         <Card className="flex-1 flex flex-col min-h-0">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Dog Adoption Assistant
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                <CardTitle>Dog Adoption Assistant</CardTitle>
+              </div>
+              {messages.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetConversation}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset
+                </Button>
+              )}
+            </div>
             <CardDescription>
               {dataLoading ? 'Loading data...' : `Currently tracking ${dogs.length} dogs and ${rescues.length} rescues`}
             </CardDescription>
@@ -179,6 +209,25 @@ const Chat = () => {
                           minute: '2-digit' 
                         })}
                       </div>
+                      
+                      {/* Suggested follow-up questions */}
+                      {message.role === 'assistant' && message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border/50">
+                          <p className="text-xs text-muted-foreground mb-2">You might also ask:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {message.suggestedQuestions.map((question, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="secondary"
+                                className="cursor-pointer hover:bg-secondary/80 text-xs"
+                                onClick={() => handleStarterQuestion(question)}
+                              >
+                                {question}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -215,6 +264,43 @@ const Chat = () => {
                       {question}
                     </Button>
                   ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Quick filter buttons - show when conversation has started */}
+            {messages.length > 1 && !isLoading && (
+              <div className="mb-4">
+                <p className="text-xs text-muted-foreground mb-2">Quick filters:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-secondary text-xs"
+                    onClick={() => handleStarterQuestion('Show me small dogs')}
+                  >
+                    Small Dogs
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-secondary text-xs"
+                    onClick={() => handleStarterQuestion('Show me puppies')}
+                  >
+                    Puppies
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-secondary text-xs"
+                    onClick={() => handleStarterQuestion('Dogs good with kids')}
+                  >
+                    Good with Kids
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-secondary text-xs"
+                    onClick={() => handleStarterQuestion('Dogs good with cats')}
+                  >
+                    Good with Cats
+                  </Badge>
                 </div>
               </div>
             )}
