@@ -2,7 +2,7 @@ import { Heart, Menu, Shield, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,17 +16,27 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If we're already on the homepage, scroll to top and clear hash
+    if (location.pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.replaceState(null, '', '/');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" onClick={handleLogoClick}>
             <img 
               src="/brand_images/logos/Original Logo Symbol.png" 
               alt="DogAdopt Logo" 
