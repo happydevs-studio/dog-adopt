@@ -51,24 +51,36 @@ RETURNS TABLE (
   email TEXT,
   full_name TEXT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = auth, dogadopt
 AS $$
+BEGIN
+  -- Verify caller is an admin (for direct function calls)
+  -- Views using this function are already protected by RLS
+  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+    RETURN QUERY SELECT NULL::TEXT, NULL::TEXT WHERE FALSE;
+    RETURN;
+  END IF;
+  
+  RETURN QUERY
   SELECT 
     u.email::TEXT,
     (u.raw_user_meta_data->>'full_name')::TEXT
   FROM auth.users u
   WHERE u.id = user_id;
+END;
 $$;
 ```
 
 **Key Security Features:**
 - `SECURITY DEFINER`: Function executes with the privileges of the owner (who has access to auth.users)
-- `SET search_path`: Prevents SQL injection by fixing the schema search path
+- `SET search_path`: Prevents SQL injection by fixing the schema search path to auth and dogadopt
 - `STABLE`: Function is safe for query optimization (same inputs = same outputs)
+- **Admin check**: Function verifies caller is an admin before returning data
 - Limited output: Only returns email and full_name, not all user data
+- Returns empty result for non-admin callers (prevents information leakage)
 
 #### 2. Recreated Views Using LATERAL Joins
 
@@ -105,9 +117,10 @@ user_info.full_name AS changed_by_name
 
 ### Security Improvements
 - ✅ `auth.users` no longer exposed through PostgREST schema
-- ✅ User data access is controlled through secure function
+- ✅ User data access is controlled through secure function with admin check
 - ✅ Reduced attack surface for potential SQL injection
 - ✅ Clearer separation between auth schema and application schema
+- ✅ Function has built-in admin verification to prevent unauthorized direct calls
 
 ## Testing
 
@@ -122,10 +135,22 @@ To verify the fix works correctly:
 ```
 
 ### 2. Test Function Access
-```sql
--- Should return email and name for valid user_id
-SELECT * FROM dogadopt.get_user_info('valid-user-uuid-here');
 
+**Admin user should see results:**
+```sql
+-- Should return email and name for valid user_id (as admin)
+SELECT * FROM dogadopt.get_user_info('valid-user-uuid-here');
+```
+
+**Non-admin user should get empty result:**
+```sql
+-- Should return empty result for non-admin users
+SELECT * FROM dogadopt.get_user_info('valid-user-uuid-here');
+-- Expected: 0 rows (access denied for non-admin)
+```
+
+**Invalid user_id:**
+```sql
 -- Should return empty result for invalid user_id
 SELECT * FROM dogadopt.get_user_info('00000000-0000-0000-0000-000000000000');
 ```

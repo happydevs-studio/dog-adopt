@@ -3,25 +3,35 @@
 -- with a SECURITY DEFINER function that safely retrieves user information
 
 -- Create a SECURITY DEFINER function to safely get user information
--- Only admins can access this through the audit views
+-- Only accessible through audit views which have admin-only RLS policies
 CREATE OR REPLACE FUNCTION dogadopt.get_user_info(user_id UUID)
 RETURNS TABLE (
   email TEXT,
   full_name TEXT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = auth, dogadopt
 AS $$
+BEGIN
+  -- Verify caller is an admin (for direct function calls)
+  -- Views using this function are already protected by RLS
+  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+    RETURN QUERY SELECT NULL::TEXT, NULL::TEXT WHERE FALSE;
+    RETURN;
+  END IF;
+  
+  RETURN QUERY
   SELECT 
     u.email::TEXT,
     (u.raw_user_meta_data->>'full_name')::TEXT
   FROM auth.users u
   WHERE u.id = user_id;
+END;
 $$;
 
-COMMENT ON FUNCTION dogadopt.get_user_info IS 'Safely retrieves user email and name for audit logs. SECURITY DEFINER function to prevent direct auth.users exposure.';
+COMMENT ON FUNCTION dogadopt.get_user_info IS 'Safely retrieves user email and name for audit logs. SECURITY DEFINER function with admin-only access check to prevent direct auth.users exposure.';
 
 -- Recreate dogs_audit_logs_resolved view without direct auth.users join
 DROP VIEW IF EXISTS dogadopt.dogs_audit_logs_resolved CASCADE;
@@ -180,6 +190,7 @@ GRANT SELECT ON dogadopt.dogs_audit_logs_resolved TO authenticated;
 GRANT SELECT ON dogadopt.rescues_audit_logs_resolved TO authenticated;
 GRANT SELECT ON dogadopt.locations_audit_logs_resolved TO authenticated;
 
--- Grant execute permission on the new function to authenticated users
--- This is safe because the function only returns email/name, not sensitive auth data
+-- Grant execute permission to authenticated users
+-- Function has internal admin check for security
+-- Audit views using this function have RLS policies requiring admin access
 GRANT EXECUTE ON FUNCTION dogadopt.get_user_info TO authenticated;
