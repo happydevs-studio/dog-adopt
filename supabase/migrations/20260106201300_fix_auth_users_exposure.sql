@@ -12,13 +12,12 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = auth, dogadopt
+SET search_path = dogadopt, auth
 AS $$
 BEGIN
   -- Verify caller is an admin (for direct function calls)
   -- Views using this function are already protected by RLS
   IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
-    RETURN QUERY SELECT NULL::TEXT, NULL::TEXT WHERE FALSE;
     RETURN;
   END IF;
   

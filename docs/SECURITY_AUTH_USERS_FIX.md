@@ -54,13 +54,12 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = auth, dogadopt
+SET search_path = dogadopt, auth
 AS $$
 BEGIN
   -- Verify caller is an admin (for direct function calls)
   -- Views using this function are already protected by RLS
   IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
-    RETURN QUERY SELECT NULL::TEXT, NULL::TEXT WHERE FALSE;
     RETURN;
   END IF;
   
@@ -76,7 +75,7 @@ $$;
 
 **Key Security Features:**
 - `SECURITY DEFINER`: Function executes with the privileges of the owner (who has access to auth.users)
-- `SET search_path`: Prevents SQL injection by fixing the schema search path to auth and dogadopt
+- `SET search_path`: Prevents SQL injection by fixing the schema search path to dogadopt and auth
 - `STABLE`: Function is safe for query optimization (same inputs = same outputs)
 - **Admin check**: Function verifies caller is an admin before returning data
 - Limited output: Only returns email and full_name, not all user data
