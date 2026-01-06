@@ -83,7 +83,7 @@ $$;
 ```sql
 -- Without admin check, any authenticated user could do this:
 SELECT dogadopt.set_dog_breeds(
-  'any-dog-uuid',
+  '12345678-1234-1234-1234-123456789012',  -- Example dog UUID
   ARRAY['Malicious Breed', 'Another Breed']
 );
 -- This would bypass the RLS policy requiring admin access!
@@ -152,9 +152,9 @@ CREATE OR REPLACE FUNCTION dogadopt.set_dog_breeds(...)
 SECURITY DEFINER  -- Still needed
 AS $$
 BEGIN
-  -- ✅ Admin verification
-  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
-    RAISE EXCEPTION 'Access denied: Only administrators can modify dog breeds'
+  -- ✅ Admin verification with NULL check
+  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Access denied: set_dog_breeds() requires administrator privileges'
       USING ERRCODE = 'insufficient_privilege';
   END IF;
   
@@ -213,8 +213,9 @@ SECURITY DEFINER
 AS $$
 BEGIN
   -- ✅ Verify caller has appropriate permissions
-  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
-    RAISE EXCEPTION 'Access denied';
+  -- Always check for NULL to prevent unauthenticated access
+  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Access denied: my_privileged_function() requires admin privileges';
   END IF;
   
   -- Privileged operations...
@@ -272,8 +273,8 @@ CREATE FUNCTION privileged_function()
 SECURITY DEFINER
 AS $$
 BEGIN
-  IF NOT is_admin(auth.uid()) THEN
-    RAISE EXCEPTION 'Access denied';
+  IF auth.uid() IS NULL OR NOT is_admin(auth.uid()) THEN
+    RAISE EXCEPTION 'Access denied: privileged_function() requires admin';
   END IF;
   -- ...
 END;
@@ -300,14 +301,14 @@ ORDER BY changed_at DESC LIMIT 1;
 As a non-admin user:
 ```sql
 -- Should FAIL with "Access denied" error
-SELECT dogadopt.set_dog_breeds('some-dog-uuid', ARRAY['Test Breed']);
--- Expected: ERROR: Access denied: Only administrators can modify dog breeds
+SELECT dogadopt.set_dog_breeds('12345678-1234-1234-1234-123456789012', ARRAY['Test Breed']);
+-- Expected: ERROR: Access denied: set_dog_breeds() requires administrator privileges
 ```
 
 As an admin user:
 ```sql
 -- Should SUCCEED
-SELECT dogadopt.set_dog_breeds('some-dog-uuid', ARRAY['Labrador', 'Golden Retriever']);
+SELECT dogadopt.set_dog_breeds('12345678-1234-1234-1234-123456789012', ARRAY['Labrador', 'Golden Retriever']);
 -- Expected: Success
 ```
 

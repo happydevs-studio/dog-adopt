@@ -497,8 +497,9 @@ DECLARE
 BEGIN
   -- SECURITY CHECK: Verify caller is an admin
   -- Without this check, any authenticated user could bypass RLS policies
-  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
-    RAISE EXCEPTION 'Access denied: Only administrators can modify dog breeds'
+  -- Check for NULL to prevent unauthenticated access
+  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Access denied: set_dog_breeds() requires administrator privileges'
       USING ERRCODE = 'insufficient_privilege';
   END IF;
   
