@@ -32,8 +32,8 @@ SELECT
   dal.operation,
   dal.changed_at,
   dal.changed_by,
-  (SELECT email FROM dogadopt.get_user_info(dal.changed_by)) AS changed_by_email,
-  (SELECT full_name FROM dogadopt.get_user_info(dal.changed_by)) AS changed_by_name,
+  user_info.email AS changed_by_email,
+  user_info.full_name AS changed_by_name,
   
   -- Dog information from snapshot
   COALESCE(dal.new_snapshot->>'name', dal.old_snapshot->>'name') AS dog_name,
@@ -72,6 +72,7 @@ SELECT
   
   dal.created_at
 FROM dogadopt.dogs_audit_logs dal
+LEFT JOIN LATERAL dogadopt.get_user_info(dal.changed_by) AS user_info ON true
 ORDER BY dal.changed_at DESC;
 
 COMMENT ON VIEW dogadopt.dogs_audit_logs_resolved IS 'Comprehensive resolved audit log view showing all dog and breed changes with human-readable fields. Uses SECURITY DEFINER function to safely access user info.';
@@ -85,8 +86,8 @@ SELECT
   ral.operation,
   ral.changed_at,
   ral.changed_by,
-  (SELECT email FROM dogadopt.get_user_info(ral.changed_by)) AS changed_by_email,
-  (SELECT full_name FROM dogadopt.get_user_info(ral.changed_by)) AS changed_by_name,
+  user_info.email AS changed_by_email,
+  user_info.full_name AS changed_by_name,
   
   -- Rescue information from snapshot
   COALESCE(ral.new_snapshot->>'name', ral.old_snapshot->>'name') AS rescue_name,
@@ -117,6 +118,7 @@ SELECT
   
   ral.created_at
 FROM dogadopt.rescues_audit_logs ral
+LEFT JOIN LATERAL dogadopt.get_user_info(ral.changed_by) AS user_info ON true
 ORDER BY ral.changed_at DESC;
 
 COMMENT ON VIEW dogadopt.rescues_audit_logs_resolved IS 'Comprehensive resolved audit log view showing all rescue changes with human-readable fields. Uses SECURITY DEFINER function to safely access user info.';
@@ -130,8 +132,8 @@ SELECT
   lal.operation,
   lal.changed_at,
   lal.changed_by,
-  (SELECT email FROM dogadopt.get_user_info(lal.changed_by)) AS changed_by_email,
-  (SELECT full_name FROM dogadopt.get_user_info(lal.changed_by)) AS changed_by_name,
+  user_info.email AS changed_by_email,
+  user_info.full_name AS changed_by_name,
   
   -- Location information from snapshot
   COALESCE(lal.new_snapshot->>'name', lal.old_snapshot->>'name') AS location_name,
@@ -168,6 +170,7 @@ SELECT
   
   lal.created_at
 FROM dogadopt.locations_audit_logs lal
+LEFT JOIN LATERAL dogadopt.get_user_info(lal.changed_by) AS user_info ON true
 ORDER BY lal.changed_at DESC;
 
 COMMENT ON VIEW dogadopt.locations_audit_logs_resolved IS 'Comprehensive resolved audit log view showing all location changes with human-readable fields. Uses SECURITY DEFINER function to safely access user info.';
