@@ -494,11 +494,15 @@ DECLARE
   v_breed_name TEXT;
   v_breed_id UUID;
   v_order INT;
+  v_user_id UUID;
 BEGIN
   -- SECURITY CHECK: Verify caller is an admin
   -- Without this check, any authenticated user could bypass RLS policies
+  -- Store auth.uid() to avoid duplicate function calls
+  v_user_id := auth.uid();
+  
   -- Check for NULL to prevent unauthenticated access
-  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+  IF v_user_id IS NULL OR NOT dogadopt.has_role(v_user_id, 'admin') THEN
     RAISE EXCEPTION 'Access denied: set_dog_breeds() requires administrator privileges'
       USING ERRCODE = 'insufficient_privilege';
   END IF;

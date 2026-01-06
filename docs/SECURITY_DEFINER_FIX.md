@@ -151,9 +151,14 @@ $$;
 CREATE OR REPLACE FUNCTION dogadopt.set_dog_breeds(...)
 SECURITY DEFINER  -- Still needed
 AS $$
+DECLARE
+  v_user_id UUID;
 BEGIN
   -- ✅ Admin verification with NULL check
-  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+  -- Store auth.uid() to avoid duplicate function calls
+  v_user_id := auth.uid();
+  
+  IF v_user_id IS NULL OR NOT dogadopt.has_role(v_user_id, 'admin') THEN
     RAISE EXCEPTION 'Access denied: set_dog_breeds() requires administrator privileges'
       USING ERRCODE = 'insufficient_privilege';
   END IF;
@@ -211,10 +216,15 @@ Based on this fix, here are the best practices we follow:
 CREATE FUNCTION my_privileged_function()
 SECURITY DEFINER
 AS $$
+DECLARE
+  v_user_id UUID;
 BEGIN
   -- ✅ Verify caller has appropriate permissions
   -- Always check for NULL to prevent unauthenticated access
-  IF auth.uid() IS NULL OR NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+  -- Store auth.uid() to avoid duplicate function calls
+  v_user_id := auth.uid();
+  
+  IF v_user_id IS NULL OR NOT dogadopt.has_role(v_user_id, 'admin') THEN
     RAISE EXCEPTION 'Access denied: my_privileged_function() requires admin privileges';
   END IF;
   
@@ -272,8 +282,11 @@ GRANT EXECUTE ON FUNCTION privileged_function TO admin_role;
 CREATE FUNCTION privileged_function()
 SECURITY DEFINER
 AS $$
+DECLARE
+  v_user_id UUID;
 BEGIN
-  IF auth.uid() IS NULL OR NOT is_admin(auth.uid()) THEN
+  v_user_id := auth.uid();
+  IF v_user_id IS NULL OR NOT is_admin(v_user_id) THEN
     RAISE EXCEPTION 'Access denied: privileged_function() requires admin';
   END IF;
   -- ...
