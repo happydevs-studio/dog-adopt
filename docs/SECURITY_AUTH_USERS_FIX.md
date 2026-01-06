@@ -54,12 +54,12 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = dogadopt, auth
+SET search_path = ''
 AS $$
 BEGIN
   -- Verify caller is an admin (for direct function calls)
   -- Views using this function are already protected by RLS
-  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+  IF NOT dogadopt.has_role(auth.uid(), 'admin'::dogadopt.app_role) THEN
     RETURN;
   END IF;
   
@@ -75,11 +75,12 @@ $$;
 
 **Key Security Features:**
 - `SECURITY DEFINER`: Function executes with the privileges of the owner (who has access to auth.users)
-- `SET search_path`: Prevents SQL injection by fixing the schema search path to dogadopt and auth
+- `SET search_path = ''`: Maximum security - all references must be fully qualified to prevent schema injection
 - `STABLE`: Function is safe for query optimization (same inputs = same outputs)
-- **Admin check**: Function verifies caller is an admin before returning data
+- **Admin check**: Function verifies caller is an admin before returning data using fully qualified function calls
 - Limited output: Only returns email and full_name, not all user data
 - Returns empty result for non-admin callers (prevents information leakage)
+- **Fully qualified names**: All schema references (dogadopt, auth) are explicit in the function body
 
 #### 2. Recreated Views Using LATERAL Joins
 

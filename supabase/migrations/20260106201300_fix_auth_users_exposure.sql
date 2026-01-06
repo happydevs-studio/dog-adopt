@@ -12,12 +12,12 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = dogadopt, auth
+SET search_path = ''
 AS $$
 BEGIN
   -- Verify caller is an admin (for direct function calls)
   -- Views using this function are already protected by RLS
-  IF NOT dogadopt.has_role(auth.uid(), 'admin') THEN
+  IF NOT dogadopt.has_role(auth.uid(), 'admin'::dogadopt.app_role) THEN
     RETURN;
   END IF;
   
@@ -190,6 +190,9 @@ GRANT SELECT ON dogadopt.rescues_audit_logs_resolved TO authenticated;
 GRANT SELECT ON dogadopt.locations_audit_logs_resolved TO authenticated;
 
 -- Grant execute permission to authenticated users
--- Function has internal admin check for security
--- Audit views using this function have RLS policies requiring admin access
+-- SECURITY NOTE: This grant is safe because:
+-- 1. Function has internal admin check - non-admins get empty results
+-- 2. Audit views using this function have RLS policies requiring admin access
+-- 3. Function only returns limited user info (email, name) - not sensitive auth data
+-- 4. This enables the views to work correctly for admin users
 GRANT EXECUTE ON FUNCTION dogadopt.get_user_info TO authenticated;
