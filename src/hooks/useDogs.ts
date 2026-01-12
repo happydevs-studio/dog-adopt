@@ -101,24 +101,24 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
   return useQuery({
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
+      // Use API layer function instead of direct table access
       const { data, error } = await (supabase as any)
-        .from('dogs')
-        .select(`
-          *,
-          rescues(id, name, region, website, latitude, longitude),
-          dogs_breeds(display_order, breed_id, breeds(id, name))
-        `)
-        .order('created_at', { ascending: false });
+        .rpc('get_dogs');
 
       if (error) {
         throw error;
       }
 
-      let dogs = (data as unknown as DogRow[]).map((dog) => {
-        // Get breeds from many-to-many relationship
-        const breeds = dog.dogs_breeds
-          ?.sort((a, b) => a.display_order - b.display_order)
-          .map((db) => db.breeds.name) || [];
+      // The API function returns data in JSONB format for rescue and breeds
+      let dogs = (data as any[]).map((dog) => {
+        // Parse rescue from JSONB (API layer returns it as an object)
+        const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
+        
+        // Parse breeds from JSONB array (API layer returns sorted array)
+        const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds) : dog.breeds;
+        const breeds = (breedsArray || [])
+          .sort((a: any, b: any) => a.display_order - b.display_order)
+          .map((b: any) => b.name);
 
         // Calculate computed age if birth date is available
         const computedAge = calculateAgeCategory(dog.birth_year, dog.birth_month, dog.birth_day);
@@ -138,9 +138,9 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
           gender: dog.gender as 'Male' | 'Female',
           status: dog.status as 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn',
           statusNotes: dog.status_notes,
-          location: dog.rescues?.region || 'Unknown', // Use rescue region as location
-          rescue: dog.rescues?.name || 'Unknown',
-          rescueWebsite: dog.rescues?.website,
+          location: rescue?.region || 'Unknown', // Use rescue region as location
+          rescue: rescue?.name || 'Unknown',
+          rescueWebsite: rescue?.website,
           image: dog.image || DEFAULT_DOG_IMAGE,
           profileUrl: dog.profile_url ?? undefined,
           goodWithKids: dog.good_with_kids,
@@ -150,12 +150,12 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
         };
 
         // Calculate distance if user location is provided and rescue has coordinates
-        if (userLocation && dog.rescues?.latitude && dog.rescues?.longitude) {
+        if (userLocation && rescue?.latitude && rescue?.longitude) {
           dogData.distance = calculateDistance(
             userLocation.latitude,
             userLocation.longitude,
-            dog.rescues.latitude,
-            dog.rescues.longitude
+            rescue.latitude,
+            rescue.longitude
           );
         }
 
