@@ -23,6 +23,8 @@ import {
 type ViewMode = 'text-only' | 'with-images';
 
 const ITEMS_PER_PAGE = 10;
+// Feature flag: Hide View Mode selector until images feature is ready
+const SHOW_VIEW_MODE_SELECTOR = false;
 
 const DogGrid = () => {
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('All');
@@ -156,21 +158,23 @@ const DogGrid = () => {
           </div>
 
         <div className="flex-1">
-            <div className="mb-6 p-4 bg-card rounded-lg shadow-soft">
-              <Label className="text-base font-semibold mb-3 block">View Mode</Label>
-              <RadioGroup value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="text-only" id="text-only" />
-                  <Label htmlFor="text-only" className="cursor-pointer">Text Only</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="with-images" id="with-images" disabled />
-                  <Label htmlFor="with-images" className="cursor-not-allowed opacity-50">
-                    With Images <span className="text-xs text-muted-foreground">(Coming Soon)</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+            {SHOW_VIEW_MODE_SELECTOR && (
+              <div className="mb-6 p-4 bg-card rounded-lg shadow-soft">
+                <Label className="text-base font-semibold mb-3 block">View Mode</Label>
+                <RadioGroup value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="text-only" id="text-only" />
+                    <Label htmlFor="text-only" className="cursor-pointer">Text Only</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="with-images" id="with-images" disabled />
+                    <Label htmlFor="with-images" className="cursor-not-allowed opacity-50">
+                      With Images <span className="text-xs text-muted-foreground">(Coming Soon)</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
               <div className="relative w-full sm:w-80">
