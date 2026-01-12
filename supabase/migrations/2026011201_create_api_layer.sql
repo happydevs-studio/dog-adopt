@@ -384,12 +384,21 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = dogadopt_api, dogadopt, public
+SET search_path = dogadopt, public
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT * FROM dogadopt_api.rescues
-  WHERE dogadopt_api.rescues.id = p_rescue_id;
+  SELECT 
+    r.id,
+    r.name,
+    r.type,
+    r.region,
+    r.website,
+    r.latitude,
+    r.longitude,
+    r.created_at
+  FROM dogadopt.rescues r
+  WHERE r.id = p_rescue_id;
 END;
 $$;
 
