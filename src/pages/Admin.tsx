@@ -290,7 +290,9 @@ const Admin = () => {
 
       if (editingDog) {
         // Use API layer update function
-        const { error } = await (supabase as any).rpc('update_dog', {
+        const { error } = await supabase
+          .schema('dogadopt_api')
+          .rpc('update_dog', {
           p_dog_id: editingDog.id,
           p_name: dogData.name,
           p_age: dogData.age,
@@ -316,7 +318,9 @@ const Admin = () => {
         if (error) throw error;
       } else {
         // Use API layer create function
-        const { data: newDogId, error } = await (supabase as any).rpc('create_dog', {
+        const { data: newDogId, error } = await supabase
+          .schema('dogadopt_api')
+          .rpc('create_dog', {
           p_name: dogData.name,
           p_age: dogData.age,
           p_size: dogData.size,
@@ -362,7 +366,9 @@ const Admin = () => {
   const handleDelete = async (dogId: string) => {
     try {
       // Use API layer delete function
-      const { error } = await (supabase as any).rpc('delete_dog', {
+      const { error } = await supabase
+        .schema('dogadopt_api')
+        .rpc('delete_dog', {
         p_dog_id: dogId
       });
 

@@ -102,7 +102,9 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
       // Use API layer function instead of direct table access
-      const { data, error } = await (supabase as any)
+      // Call RPC function from dogadopt_api schema
+      const { data, error } = await supabase
+        .schema('dogadopt_api')
         .rpc('get_dogs');
 
       if (error) {
