@@ -14,61 +14,96 @@ GRANT USAGE ON SCHEMA dogadopt_api TO anon, authenticated;
 -- DOGS API
 -- =====================================================
 
--- View: Get all dogs with full relationships
-CREATE OR REPLACE VIEW dogadopt_api.dogs AS
-SELECT 
-  d.id,
-  d.name,
-  d.age,
-  d.birth_year,
-  d.birth_month,
-  d.birth_day,
-  d.rescue_since_date,
-  d.size,
-  d.gender,
-  d.status,
-  d.status_notes,
-  d.image,
-  d.profile_url,
-  d.description,
-  d.good_with_kids,
-  d.good_with_dogs,
-  d.good_with_cats,
-  d.rescue_id,
-  d.location_id,
-  d.created_at,
-  d.last_updated_at,
-  
-  -- Rescue information (flattened for easy access)
-  jsonb_build_object(
-    'id', r.id,
-    'name', r.name,
-    'region', r.region,
-    'website', r.website,
-    'latitude', r.latitude,
-    'longitude', r.longitude
-  ) AS rescue,
-  
-  -- Breeds array (sorted by display_order)
-  COALESCE(
-    (
-      SELECT jsonb_agg(
-        jsonb_build_object(
-          'id', b.id,
-          'name', b.name,
-          'display_order', db.display_order
-        ) ORDER BY db.display_order
-      )
-      FROM dogadopt.dogs_breeds db
-      JOIN dogadopt.breeds b ON b.id = db.breed_id
-      WHERE db.dog_id = d.id
-    ),
-    '[]'::jsonb
-  ) AS breeds
+-- Function: Get all dogs with full relationships
+CREATE OR REPLACE FUNCTION dogadopt_api.get_dogs()
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  age TEXT,
+  birth_year INT,
+  birth_month INT,
+  birth_day INT,
+  rescue_since_date DATE,
+  size TEXT,
+  gender TEXT,
+  status TEXT,
+  status_notes TEXT,
+  image TEXT,
+  profile_url TEXT,
+  description TEXT,
+  good_with_kids BOOLEAN,
+  good_with_dogs BOOLEAN,
+  good_with_cats BOOLEAN,
+  rescue_id UUID,
+  location_id UUID,
+  created_at TIMESTAMPTZ,
+  last_updated_at TIMESTAMPTZ,
+  rescue JSONB,
+  breeds JSONB
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = dogadopt, public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    d.id,
+    d.name,
+    d.age,
+    d.birth_year,
+    d.birth_month,
+    d.birth_day,
+    d.rescue_since_date,
+    d.size,
+    d.gender,
+    d.status::TEXT,
+    d.status_notes,
+    d.image,
+    d.profile_url,
+    d.description,
+    d.good_with_kids,
+    d.good_with_dogs,
+    d.good_with_cats,
+    d.rescue_id,
+    d.location_id,
+    d.created_at,
+    d.last_updated_at,
+    
+    -- Rescue information (flattened for easy access)
+    jsonb_build_object(
+      'id', r.id,
+      'name', r.name,
+      'region', r.region,
+      'website', r.website,
+      'latitude', r.latitude,
+      'longitude', r.longitude
+    ) AS rescue,
+    
+    -- Breeds array (sorted by display_order)
+    COALESCE(
+      (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'id', b.id,
+            'name', b.name,
+            'display_order', db.display_order
+          ) ORDER BY db.display_order
+        )
+        FROM dogadopt.dogs_breeds db
+        JOIN dogadopt.breeds b ON b.id = db.breed_id
+        WHERE db.dog_id = d.id
+      ),
+      '[]'::jsonb
+    ) AS breeds
 
-FROM dogadopt.dogs d
-LEFT JOIN dogadopt.rescues r ON r.id = d.rescue_id
-WHERE d.status IN ('available', 'reserved', 'fostered', 'on_hold'); -- Only show adoptable dogs to public
+  FROM dogadopt.dogs d
+  LEFT JOIN dogadopt.rescues r ON r.id = d.rescue_id
+  WHERE d.status IN ('available', 'reserved', 'fostered', 'on_hold')  -- Only show adoptable dogs to public
+  ORDER BY d.created_at DESC;
+END;
+$$;
 
 -- Function: Get single dog by ID
 CREATE OR REPLACE FUNCTION dogadopt_api.get_dog(p_dog_id UUID)
@@ -100,12 +135,63 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = dogadopt_api, dogadopt, public
+SET search_path = dogadopt, public
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT * FROM dogadopt_api.dogs
-  WHERE dogadopt_api.dogs.id = p_dog_id;
+  SELECT 
+    d.id,
+    d.name,
+    d.age,
+    d.birth_year,
+    d.birth_month,
+    d.birth_day,
+    d.rescue_since_date,
+    d.size,
+    d.gender,
+    d.status::TEXT,
+    d.status_notes,
+    d.image,
+    d.profile_url,
+    d.description,
+    d.good_with_kids,
+    d.good_with_dogs,
+    d.good_with_cats,
+    d.rescue_id,
+    d.location_id,
+    d.created_at,
+    d.last_updated_at,
+    
+    -- Rescue information
+    jsonb_build_object(
+      'id', r.id,
+      'name', r.name,
+      'region', r.region,
+      'website', r.website,
+      'latitude', r.latitude,
+      'longitude', r.longitude
+    ) AS rescue,
+    
+    -- Breeds array
+    COALESCE(
+      (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'id', b.id,
+            'name', b.name,
+            'display_order', db.display_order
+          ) ORDER BY db.display_order
+        )
+        FROM dogadopt.dogs_breeds db
+        JOIN dogadopt.breeds b ON b.id = db.breed_id
+        WHERE db.dog_id = d.id
+      ),
+      '[]'::jsonb
+    ) AS breeds
+    
+  FROM dogadopt.dogs d
+  LEFT JOIN dogadopt.rescues r ON r.id = d.rescue_id
+  WHERE d.id = p_dog_id;
 END;
 $$;
 
@@ -250,19 +336,38 @@ $$;
 -- RESCUES API
 -- =====================================================
 
--- View: Get all rescues
-CREATE OR REPLACE VIEW dogadopt_api.rescues AS
-SELECT 
-  id,
-  name,
-  type,
-  region,
-  website,
-  latitude,
-  longitude,
-  created_at
-FROM dogadopt.rescues
-ORDER BY name;
+-- Function: Get all rescues
+CREATE OR REPLACE FUNCTION dogadopt_api.get_rescues()
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  type TEXT,
+  region TEXT,
+  website TEXT,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = dogadopt, public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    r.id,
+    r.name,
+    r.type,
+    r.region,
+    r.website,
+    r.latitude,
+    r.longitude,
+    r.created_at
+  FROM dogadopt.rescues r
+  ORDER BY r.name;
+END;
+$$;
 
 -- Function: Get single rescue by ID
 CREATE OR REPLACE FUNCTION dogadopt_api.get_rescue(p_rescue_id UUID)
@@ -292,14 +397,28 @@ $$;
 -- BREEDS API
 -- =====================================================
 
--- View: Get all breeds
-CREATE OR REPLACE VIEW dogadopt_api.breeds AS
-SELECT 
-  id,
-  name,
-  created_at
-FROM dogadopt.breeds
-ORDER BY name;
+-- Function: Get all breeds
+CREATE OR REPLACE FUNCTION dogadopt_api.get_breeds()
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = dogadopt, public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    b.id,
+    b.name,
+    b.created_at
+  FROM dogadopt.breeds b
+  ORDER BY b.name;
+END;
+$$;
 
 -- =====================================================
 -- USER/AUTH API
@@ -338,17 +457,15 @@ $$;
 -- GRANT PERMISSIONS
 -- =====================================================
 
--- Grant select on all views
-GRANT SELECT ON dogadopt_api.dogs TO anon, authenticated;
-GRANT SELECT ON dogadopt_api.rescues TO anon, authenticated;
-GRANT SELECT ON dogadopt_api.breeds TO anon, authenticated;
-
 -- Grant execute on all functions
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_dogs TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.get_dog TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.create_dog TO authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.update_dog TO authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.delete_dog TO authenticated;
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescues TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescue TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_breeds TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.check_user_role TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION dogadopt_api.get_user_roles TO authenticated;
 
@@ -381,10 +498,10 @@ REVOKE ALL ON dogadopt.user_roles FROM authenticated;
 -- DOCUMENTATION
 -- =====================================================
 
-COMMENT ON SCHEMA dogadopt_api IS 'API layer for UI access. Contains only functions, procedures, and views. Direct table access is prohibited.';
-COMMENT ON VIEW dogadopt_api.dogs IS 'Public API for accessing dog data. Filters to show only adoptable dogs.';
-COMMENT ON VIEW dogadopt_api.rescues IS 'Public API for accessing rescue organization data.';
-COMMENT ON VIEW dogadopt_api.breeds IS 'Public API for accessing available dog breeds.';
+COMMENT ON SCHEMA dogadopt_api IS 'API layer for UI access. Contains only functions and procedures. Direct table access is prohibited.';
+COMMENT ON FUNCTION dogadopt_api.get_dogs IS 'Public API for accessing dog data. Filters to show only adoptable dogs.';
+COMMENT ON FUNCTION dogadopt_api.get_rescues IS 'Public API for accessing rescue organization data.';
+COMMENT ON FUNCTION dogadopt_api.get_breeds IS 'Public API for accessing available dog breeds.';
 COMMENT ON FUNCTION dogadopt_api.get_dog IS 'Get detailed information for a single dog by ID.';
 COMMENT ON FUNCTION dogadopt_api.create_dog IS 'Create a new dog record. Requires admin role.';
 COMMENT ON FUNCTION dogadopt_api.update_dog IS 'Update an existing dog record. Requires admin role.';

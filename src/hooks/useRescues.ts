@@ -17,11 +17,9 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
   return useQuery({
     queryKey: ['rescues', userLocation],
     queryFn: async (): Promise<Rescue[]> => {
-      // Use API layer view instead of direct table access
+      // Use API layer function instead of direct table access
       const { data, error } = await (supabase as any)
-        .from('dogadopt_api.rescues')
-        .select('*')
-        .order('name', { ascending: true });
+        .rpc('get_rescues');
 
       if (error) {
         throw error;

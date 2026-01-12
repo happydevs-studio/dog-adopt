@@ -101,17 +101,15 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
   return useQuery({
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
-      // Use API layer view instead of direct table access
+      // Use API layer function instead of direct table access
       const { data, error } = await (supabase as any)
-        .from('dogadopt_api.dogs')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_dogs');
 
       if (error) {
         throw error;
       }
 
-      // The API view returns data in a different format (rescue and breeds are JSONB)
+      // The API function returns data in JSONB format for rescue and breeds
       let dogs = (data as any[]).map((dog) => {
         // Parse rescue from JSONB (API layer returns it as an object)
         const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;

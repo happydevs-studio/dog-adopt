@@ -58,13 +58,13 @@ The Adopt-a-Dog UK application uses a **two-layer database architecture** that s
 **Purpose:** Public interface for the UI. All frontend code interacts with this schema only.
 
 **Contains:**
-- **Views** - Read-only data with proper joins and filtering
-- **Functions** - Operations like create, update, delete with built-in authorization
+- **Functions** - Read operations with proper joins and filtering
+- **Functions** - Write operations like create, update, delete with built-in authorization
 - **Procedures** - Complex operations that may span multiple tables
 
 **Access:**
-- `anon` role: Can read views and call select functions
-- `authenticated` role: Can read views and call mutation functions (which check admin role internally)
+- `anon` role: Can call read functions
+- `authenticated` role: Can call read and write functions (write functions check admin role internally)
 
 ### dogadopt (Data Layer)
 **Purpose:** Internal data storage with audit logging and business logic.
@@ -83,14 +83,13 @@ The Adopt-a-Dog UK application uses a **two-layer database architecture** that s
 
 ### Dogs API
 
-#### View: `dogadopt_api.dogs`
+#### Function: `dogadopt_api.get_dogs()`
 Returns all adoptable dogs with full relationship data (rescue info, breeds).
 
 **Usage:**
 ```typescript
 const { data } = await supabase
-  .from('dogadopt_api.dogs')  // Note: schema prefix
-  .select('*');
+  .rpc('get_dogs');
 ```
 
 **Returns:**
@@ -180,14 +179,13 @@ await supabase
 
 ### Rescues API
 
-#### View: `dogadopt_api.rescues`
+#### Function: `dogadopt_api.get_rescues()`
 Returns all rescue organizations.
 
 **Usage:**
 ```typescript
 const { data } = await supabase
-  .from('dogadopt_api.rescues')
-  .select('*');
+  .rpc('get_rescues');
 ```
 
 **Returns:**
@@ -204,14 +202,13 @@ const { data } = await supabase
 
 ### Breeds API
 
-#### View: `dogadopt_api.breeds`
+#### Function: `dogadopt_api.get_breeds()`
 Returns all available dog breeds.
 
 **Usage:**
 ```typescript
 const { data } = await supabase
-  .from('dogadopt_api.breeds')
-  .select('*');
+  .rpc('get_breeds');
 ```
 
 **Returns:**
@@ -243,19 +240,17 @@ const { data: roles } = await supabase
 
 ## Frontend Integration
 
-### Pattern 1: Querying Views
+### Pattern 1: Calling Read Functions
 
-For read operations, query views directly:
+For read operations, call RPC functions:
 
 ```typescript
 // hooks/useDogs.ts
 const { data, error } = await supabase
-  .from('dogadopt_api.dogs')
-  .select('*')
-  .order('created_at', { ascending: false });
+  .rpc('get_dogs');
 ```
 
-### Pattern 2: Calling Functions
+### Pattern 2: Calling Write Functions
 
 For write operations or complex queries, use RPC:
 
@@ -269,7 +264,7 @@ const { data: dogId, error } = await supabase
   });
 ```
 
-### Pattern 3: Error Handling
+### Pattern 2: Error Handling
 
 API functions throw exceptions for authorization failures:
 
@@ -287,9 +282,9 @@ try {
 
 When this API layer was introduced, the following changes were made:
 
-1. **Created** `dogadopt_api` schema with views and functions
+1. **Created** `dogadopt_api` schema with functions
 2. **Revoked** direct table access from `anon` and `authenticated` roles
-3. **Updated** frontend code to use API layer instead of direct table queries
+3. **Updated** frontend code to use API layer functions instead of direct table queries
 4. **Maintained** backward compatibility for existing triggers and internal functions
 
 ### Direct Table Access → API Layer
@@ -301,7 +296,7 @@ await supabase.from('dogs').select('*');
 
 **After:**
 ```typescript
-await supabase.from('dogadopt_api.dogs').select('*');
+await supabase.rpc('get_dogs');
 ```
 
 **Before:**
