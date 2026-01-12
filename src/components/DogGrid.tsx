@@ -156,7 +156,8 @@ const DogGrid = () => {
           </div>
 
         <div className="flex-1">
-            <div className="mb-6 p-4 bg-card rounded-lg shadow-soft">
+            {/* View Mode section hidden until images feature is ready - saves space on mobile */}
+            {/* <div className="mb-6 p-4 bg-card rounded-lg shadow-soft">
               <Label className="text-base font-semibold mb-3 block">View Mode</Label>
               <RadioGroup value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
                 <div className="flex items-center space-x-2">
@@ -170,7 +171,7 @@ const DogGrid = () => {
                   </Label>
                 </div>
               </RadioGroup>
-            </div>
+            </div> */}
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
               <div className="relative w-full sm:w-80">
