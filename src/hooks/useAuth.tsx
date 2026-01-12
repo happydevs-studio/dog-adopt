@@ -38,12 +38,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(!DEV_BYPASS_AUTH);
 
   const checkAdminRole = async (userId: string) => {
+    // Use API layer function instead of direct table access
     const { data, error } = await (supabase as any)
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
+      .rpc('check_user_role', { p_role: 'admin' });
     
     if (error) {
       console.error('Error checking admin role:', error);

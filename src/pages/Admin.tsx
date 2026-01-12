@@ -279,6 +279,7 @@ const Admin = () => {
         status: formData.status,
         status_notes: formData.status_notes || null,
         rescue_id: formData.rescue_id || null,
+        location_id: null, // TODO: Add location support when needed
         image: imageUrl,
         profile_url: formData.profileUrl || null,
         description: formData.description,
@@ -287,37 +288,58 @@ const Admin = () => {
         good_with_cats: formData.good_with_cats,
       };
 
-      let dogId: string;
-
       if (editingDog) {
-        const { error } = await (supabase as any)
-          .from('dogs')
-          .update(dogData)
-          .eq('id', editingDog.id);
+        // Use API layer update function
+        const { error } = await (supabase as any).rpc('update_dog', {
+          p_dog_id: editingDog.id,
+          p_name: dogData.name,
+          p_age: dogData.age,
+          p_size: dogData.size,
+          p_gender: dogData.gender,
+          p_status: dogData.status,
+          p_rescue_id: dogData.rescue_id,
+          p_image: dogData.image,
+          p_description: dogData.description,
+          p_good_with_kids: dogData.good_with_kids,
+          p_good_with_dogs: dogData.good_with_dogs,
+          p_good_with_cats: dogData.good_with_cats,
+          p_breed_names: formData.breeds,
+          p_birth_year: dogData.birth_year,
+          p_birth_month: dogData.birth_month,
+          p_birth_day: dogData.birth_day,
+          p_rescue_since_date: dogData.rescue_since_date,
+          p_profile_url: dogData.profile_url,
+          p_status_notes: dogData.status_notes,
+          p_location_id: dogData.location_id
+        });
 
         if (error) throw error;
-        dogId = editingDog.id;
       } else {
-        const { data: newDog, error } = await (supabase as any)
-          .from('dogs')
-          .insert([dogData])
-          .select()
-          .single();
+        // Use API layer create function
+        const { data: newDogId, error } = await (supabase as any).rpc('create_dog', {
+          p_name: dogData.name,
+          p_age: dogData.age,
+          p_size: dogData.size,
+          p_gender: dogData.gender,
+          p_status: dogData.status,
+          p_rescue_id: dogData.rescue_id,
+          p_image: dogData.image,
+          p_description: dogData.description,
+          p_good_with_kids: dogData.good_with_kids,
+          p_good_with_dogs: dogData.good_with_dogs,
+          p_good_with_cats: dogData.good_with_cats,
+          p_breed_names: formData.breeds,
+          p_birth_year: dogData.birth_year,
+          p_birth_month: dogData.birth_month,
+          p_birth_day: dogData.birth_day,
+          p_rescue_since_date: dogData.rescue_since_date,
+          p_profile_url: dogData.profile_url,
+          p_status_notes: dogData.status_notes,
+          p_location_id: dogData.location_id
+        });
 
         if (error) throw error;
-        dogId = newDog.id;
       }
-
-      // Update breeds using the helper function
-      const { error: breedsError } = await (supabase as any).rpc(
-        'set_dog_breeds',
-        {
-          p_dog_id: dogId,
-          p_breed_names: formData.breeds
-        }
-      );
-
-      if (breedsError) throw breedsError;
 
       toast({ 
         title: 'Success', 
@@ -339,10 +361,10 @@ const Admin = () => {
 
   const handleDelete = async (dogId: string) => {
     try {
-      const { error } = await (supabase as any)
-        .from('dogs')
-        .delete()
-        .eq('id', dogId);
+      // Use API layer delete function
+      const { error } = await (supabase as any).rpc('delete_dog', {
+        p_dog_id: dogId
+      });
 
       if (error) throw error;
       toast({ title: 'Success', description: 'Dog removed successfully' });

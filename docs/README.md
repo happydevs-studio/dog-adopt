@@ -20,6 +20,7 @@ Documentation for developers working on the codebase:
 - **[Combobox Refactoring](COMBOBOX_REFACTORING.md)** - Reusable UI component patterns
 
 ### Database & Auditing
+- **[Database API Layer](DATABASE_API_LAYER.md)** - API layer architecture separating data from presentation
 - **[Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md)** - Complete audit logging for dogs
 - **[Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md)** - Audit logging for rescue organizations
 
@@ -58,6 +59,7 @@ Documentation about specific features and how they work:
 
 ### Database & Architecture
 Technical documentation about database structure and design:
+- DATABASE_API_LAYER.md
 - UNIFIED_DOG_AUDIT_SYSTEM.md
 - RESCUES_LOCATIONS_AUDIT.md
 
