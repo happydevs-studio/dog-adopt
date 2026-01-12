@@ -89,8 +89,11 @@ Returns all adoptable dogs with full relationship data (rescue info, breeds).
 **Usage:**
 ```typescript
 const { data } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_dogs');
 ```
+
+**Note:** Must use `.schema('dogadopt_api')` to access functions in the API layer schema.
 
 **Returns:**
 - All dog fields
@@ -105,6 +108,7 @@ Get detailed information for a single dog.
 **Usage:**
 ```typescript
 const { data } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_dog', { p_dog_id: dogId });
 ```
 
@@ -127,6 +131,7 @@ Create a new dog record. **Requires admin role.**
 **Usage:**
 ```typescript
 const { data: dogId } = await supabase
+  .schema('dogadopt_api')
   .rpc('create_dog', {
     p_name: 'Max',
     p_age: 'Adult',
@@ -155,6 +160,7 @@ Update an existing dog record. **Requires admin role.**
 **Usage:**
 ```typescript
 await supabase
+  .schema('dogadopt_api')
   .rpc('update_dog', {
     p_dog_id: dogId,
     p_name: 'Max',
@@ -172,6 +178,7 @@ Delete a dog record. **Requires admin role.**
 **Usage:**
 ```typescript
 await supabase
+  .schema('dogadopt_api')
   .rpc('delete_dog', { p_dog_id: dogId });
 ```
 
@@ -185,6 +192,7 @@ Returns all rescue organizations.
 **Usage:**
 ```typescript
 const { data } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_rescues');
 ```
 
@@ -197,6 +205,7 @@ Get detailed information for a single rescue.
 **Usage:**
 ```typescript
 const { data } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_rescue', { p_rescue_id: rescueId });
 ```
 
@@ -208,6 +217,7 @@ Returns all available dog breeds.
 **Usage:**
 ```typescript
 const { data } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_breeds');
 ```
 
@@ -222,6 +232,7 @@ Check if the current user has a specific role.
 **Usage:**
 ```typescript
 const { data: isAdmin } = await supabase
+  .schema('dogadopt_api')
   .rpc('check_user_role', { p_role: 'admin' });
 ```
 
@@ -233,6 +244,7 @@ Get all roles for the current authenticated user.
 **Usage:**
 ```typescript
 const { data: roles } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_user_roles');
 ```
 
@@ -247,6 +259,7 @@ For read operations, call RPC functions:
 ```typescript
 // hooks/useDogs.ts
 const { data, error } = await supabase
+  .schema('dogadopt_api')
   .rpc('get_dogs');
 ```
 
@@ -257,6 +270,7 @@ For write operations or complex queries, use RPC:
 ```typescript
 // pages/Admin.tsx
 const { data: dogId, error } = await supabase
+  .schema('dogadopt_api')
   .rpc('create_dog', {
     p_name: formData.name,
     p_age: formData.age,
@@ -270,7 +284,9 @@ API functions throw exceptions for authorization failures:
 
 ```typescript
 try {
-  await supabase.rpc('delete_dog', { p_dog_id: dogId });
+  await supabase
+    .schema('dogadopt_api')
+    .rpc('delete_dog', { p_dog_id: dogId });
 } catch (error) {
   if (error.message.includes('Unauthorized')) {
     // Handle permission denied
@@ -296,7 +312,9 @@ await supabase.from('dogs').select('*');
 
 **After:**
 ```typescript
-await supabase.rpc('get_dogs');
+await supabase
+  .schema('dogadopt_api')
+  .rpc('get_dogs');
 ```
 
 **Before:**
@@ -306,7 +324,9 @@ await supabase.from('dogs').insert(dogData);
 
 **After:**
 ```typescript
-await supabase.rpc('create_dog', { p_name: ..., p_age: ..., ... });
+await supabase
+  .schema('dogadopt_api')
+  .rpc('create_dog', { p_name: ..., p_age: ..., ... });
 ```
 
 ## Security Benefits
