@@ -93,9 +93,10 @@ Documentation for deploying and running the application:
 1. Follow [Quick Start API Collector](QUICK_START_API_COLLECTOR.md)
 2. Or see full guide: [Rescue Contact Collection](RESCUE_CONTACT_COLLECTION.md)
 
-**Understanding the audit system:**
-1. Read [Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md) for dogs
-2. Read [Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md) for rescues
+**Understanding the database architecture:**
+1. Read [Database API Layer](DATABASE_API_LAYER.md) for architecture overview
+2. Read [Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md) for dogs
+3. Read [Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md) for rescues
 
 ## 📝 Contributing to Documentation
 
