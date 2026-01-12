@@ -112,7 +112,7 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
       }
 
       // The API function returns data in JSONB format for rescue and breeds
-      let dogs = (data as any[]).map((dog) => {
+      const dogs = (data as any[]).map((dog) => {
         // Parse rescue from JSONB (API layer returns it as an object)
         const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
         
