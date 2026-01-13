@@ -30,7 +30,7 @@ const FilterSidebar = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <aside className="bg-card rounded-2xl p-4 md:p-6 shadow-soft space-y-3 md:space-y-6 sticky top-24">
+      <aside className="bg-card rounded-2xl p-3 md:p-6 shadow-soft sticky top-24">
         <div className="flex items-center justify-between">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 p-0 hover:bg-transparent">
@@ -54,7 +54,7 @@ const FilterSidebar = ({
           )}
         </div>
 
-        <CollapsibleContent className="space-y-3 md:space-y-4">
+        <CollapsibleContent className="space-y-3 md:space-y-4 pt-3 md:pt-6">
           <div>
             <Label className="text-xs md:text-sm font-medium text-foreground mb-2 md:mb-3 block">Size</Label>
             <RadioGroup value={sizeFilter} onValueChange={(value) => onSizeChange(value as SizeFilter)}>
