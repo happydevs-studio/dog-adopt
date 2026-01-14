@@ -34,7 +34,7 @@ test.describe('Smoke Tests - Production Site', () => {
 
   test('key pages are accessible', async ({ page }) => {
     // Test homepage
-    await page.goto('/');
+    const response = await page.goto('/');
     await expect(page).toHaveURL(/dogadopt\.co\.uk/);
     
     // Check for common page elements
@@ -42,7 +42,6 @@ test.describe('Smoke Tests - Production Site', () => {
     await expect(body).toBeVisible();
     
     // Verify page loaded without server errors
-    const response = await page.goto('/');
     expect(response?.status()).toBeLessThan(400);
   });
 
@@ -66,7 +65,7 @@ test.describe('Smoke Tests - Production Site', () => {
     
     // Filter out known acceptable errors (if any)
     const criticalErrors = consoleErrors.filter(
-      error => !error.includes('favicon') // Ignore favicon errors
+      error => !(error.includes('favicon') && (error.includes('404') || error.includes('Failed to load')))
     );
     
     // Assert no critical JavaScript errors

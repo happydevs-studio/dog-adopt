@@ -63,7 +63,7 @@ jobs:
             
             Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
             
-            View the [test report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) artifact for more information.`;
+            Download the test report artifact from the [workflow run page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) to view detailed test results.`;
             
             // Check if there's already an open issue
             const issues = await github.rest.issues.listForRepo({
