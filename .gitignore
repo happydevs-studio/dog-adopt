@@ -36,5 +36,11 @@ supabase/.temp
 
 # Test scripts
 test-age-calculation.js
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
 # TypeScript
 *.tsbuildinfo
