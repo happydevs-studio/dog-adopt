@@ -2,6 +2,26 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateDistance } from '@/lib/geolocation';
 
+// API response interface (matches database schema with snake_case)
+interface RescueApiResponse {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  postcode: string | null;
+  charity_number: string | null;
+  contact_notes: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string;
+  dog_count: number; // Note: snake_case from database
+}
+
+// Client-side interface (uses camelCase for TypeScript conventions)
 export interface Rescue {
   id: string;
   name: string;
@@ -39,11 +59,24 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
         throw error;
       }
 
-      // Transform snake_case fields from API to camelCase for TypeScript
-      let rescues = (data as any[]).map(rescue => ({
-        ...rescue,
-        dogCount: rescue.dog_count ?? 0, // Map dog_count to dogCount
-      })) as Rescue[];
+      // Transform API response from snake_case to camelCase
+      const apiData = data as RescueApiResponse[];
+      let rescues: Rescue[] = apiData.map(rescue => ({
+        id: rescue.id,
+        name: rescue.name,
+        type: rescue.type,
+        region: rescue.region,
+        website: rescue.website,
+        phone: rescue.phone,
+        email: rescue.email,
+        address: rescue.address,
+        postcode: rescue.postcode,
+        charity_number: rescue.charity_number,
+        contact_notes: rescue.contact_notes,
+        latitude: rescue.latitude,
+        longitude: rescue.longitude,
+        dogCount: rescue.dog_count, // Map snake_case to camelCase
+      }));
 
       // Calculate distances if user location is provided
       if (userLocation) {
