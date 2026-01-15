@@ -75,7 +75,7 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
         contact_notes: rescue.contact_notes,
         latitude: rescue.latitude,
         longitude: rescue.longitude,
-        dogCount: rescue.dog_count, // Map snake_case to camelCase
+        dogCount: rescue.dog_count, // Critical fix: Map snake_case to camelCase for display
       }));
 
       // Calculate distances if user location is provided
