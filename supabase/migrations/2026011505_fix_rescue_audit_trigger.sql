@@ -13,6 +13,7 @@ CREATE OR REPLACE FUNCTION dogadopt.get_rescue_resolved_snapshot(p_rescue_id UUI
 RETURNS JSONB
 LANGUAGE plpgsql
 STABLE
+SECURITY INVOKER  -- Explicit security model, consistent with audit trigger functions
 AS $$
 DECLARE
   v_snapshot JSONB;
