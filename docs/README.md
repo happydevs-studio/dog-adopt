@@ -34,6 +34,9 @@ Documentation for deploying and maintaining the application:
 - **[GitHub Pages SPA Fix](GITHUB_PAGES_SPA_FIX.md)** - Handling SPA routing on GitHub Pages
 - **[Base Path Configuration](BASE_PATH_CONFIGURATION.md)** - Configuring deployment paths
 
+### Monitoring & Troubleshooting
+- **[Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md)** - Diagnosing and fixing smoke test failures
+
 ## 📊 Data Management
 
 Documentation for managing rescue and dog data:
@@ -67,6 +70,7 @@ Technical documentation about database structure and design:
 Documentation for deploying and running the application:
 - CI_CD_SETUP.md
 - GITHUB_PAGES_SPA_FIX.md
+- SMOKE_TEST_TROUBLESHOOTING.md
 - RESCUE_CONTACT_COLLECTION.md
 - QUICK_START_API_COLLECTOR.md
 
@@ -114,6 +118,7 @@ When adding new documentation:
 - Search the docs directory for keywords: `grep -r "search term" docs/`
 - Review the [Main README](../README.md) for general project information
 - Check [CI/CD Setup](CI_CD_SETUP.md) for deployment issues
+- See [Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md) for production site issues
 
 ## 📋 Documentation Standards
 
