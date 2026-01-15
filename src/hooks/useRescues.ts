@@ -44,23 +44,68 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
   return useQuery({
     queryKey: ['rescues', userLocation],
     queryFn: async (): Promise<Rescue[]> => {
-      // Use API layer function instead of direct table access
+      // Try using API layer function first
       // Call RPC function from dogadopt_api schema
+      let apiData;
+      let useApiLayer = true;
+      
       const { data, error } = await supabase
         .rpc('dogadopt_api.get_rescues');
 
       if (error) {
-        console.error('Error fetching rescues:', error);
-        // Provide more helpful error message for common issues
+        console.error('Error fetching rescues via API layer:', error);
+        // If API function doesn't exist, fall back to direct table access
         if (error.message?.includes('does not exist') || error.code === '42883') {
-          throw new Error('Database migration required: The get_rescues API function is not available. Please run database migrations.');
+          console.warn('API layer not available, falling back to direct table access. Please apply database migrations to enable the API layer.');
+          useApiLayer = false;
+        } else {
+          // For other errors, throw to show the error to the user
+          throw error;
         }
-        throw error;
+      } else {
+        apiData = data;
+      }
+
+      // Fallback: Direct table access (legacy method)
+      if (!useApiLayer) {
+        // Query rescues with dog count
+        const { data: rescuesData, error: rescuesError } = await supabase
+          .from('rescues')
+          .select('*');
+
+        if (rescuesError) {
+          console.error('Error fetching rescues via fallback:', rescuesError);
+          throw rescuesError;
+        }
+
+        // Count dogs per rescue
+        const { data: dogsData, error: dogsError } = await supabase
+          .from('dogs')
+          .select('rescue_id, status')
+          .eq('status', 'available');
+
+        if (dogsError) {
+          console.error('Error counting dogs:', dogsError);
+        }
+
+        // Build dog count map
+        const dogCountMap: Record<string, number> = {};
+        dogsData?.forEach((dog: any) => {
+          if (dog.rescue_id) {
+            dogCountMap[dog.rescue_id] = (dogCountMap[dog.rescue_id] || 0) + 1;
+          }
+        });
+
+        // Transform to match API format
+        apiData = rescuesData?.map((rescue: any) => ({
+          ...rescue,
+          dog_count: dogCountMap[rescue.id] || 0,
+        }));
       }
 
       // Transform API response from snake_case to camelCase
-      const apiData = data as RescueApiResponse[];
-      let rescues: Rescue[] = apiData.map(rescue => ({
+      const transformedData = apiData as RescueApiResponse[];
+      let rescues: Rescue[] = transformedData.map(rescue => ({
         id: rescue.id,
         name: rescue.name,
         type: rescue.type,
