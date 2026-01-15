@@ -90,14 +90,14 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
 
         // Build dog count map
         const dogCountMap: Record<string, number> = {};
-        dogsData?.forEach((dog: any) => {
+        dogsData?.forEach((dog: { rescue_id: string | null; status: string }) => {
           if (dog.rescue_id) {
             dogCountMap[dog.rescue_id] = (dogCountMap[dog.rescue_id] || 0) + 1;
           }
         });
 
         // Transform to match API format
-        apiData = rescuesData?.map((rescue: any) => ({
+        apiData = rescuesData?.map((rescue: { id: string; [key: string]: unknown }) => ({
           ...rescue,
           dog_count: dogCountMap[rescue.id] || 0,
         }));

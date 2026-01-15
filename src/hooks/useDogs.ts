@@ -158,15 +158,15 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
       }
 
       // The API function returns data in JSONB format for rescue and breeds
-      const dogs = (apiData as any[]).map((dog) => {
+      const dogs = (apiData as Array<Record<string, unknown>>).map((dog) => {
         // Parse rescue from JSONB (API layer returns it as an object)
         const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
         
         // Parse breeds from JSONB array (API layer returns sorted array)
         const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds) : dog.breeds;
         const breeds = (breedsArray || [])
-          .sort((a: any, b: any) => a.display_order - b.display_order)
-          .map((b: any) => b.name);
+          .sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order)
+          .map((b: { name: string }) => b.name);
 
         // Calculate computed age if birth date is available
         const computedAge = calculateAgeCategory(dog.birth_year, dog.birth_month, dog.birth_day);
