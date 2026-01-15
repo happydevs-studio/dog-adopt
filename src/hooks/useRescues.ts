@@ -8,6 +8,12 @@ export interface Rescue {
   type: string;
   region: string;
   website: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  postcode: string | null;
+  charity_number: string | null;
+  contact_notes: string | null;
   latitude: number | null;
   longitude: number | null;
   distance?: number; // Distance in km from user's location
