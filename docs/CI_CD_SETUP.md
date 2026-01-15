@@ -4,7 +4,7 @@
 
 This repository uses GitHub Actions for continuous integration and deployment. The pipeline automatically builds, tests, and deploys the application to GitHub Pages, while also managing Supabase database migrations—all in a single unified workflow.
 
-## Workflow
+## Workflows
 
 ### Deploy Workflow (`deploy.yml`)
 
@@ -63,9 +63,45 @@ The workflow consists of three sequential jobs:
 - Pages: write
 - ID token: write
 
+### Smoke Tests Workflow (`smoke-tests.yml`)
+
+**Trigger:** 
+- Runs every 6 hours on a schedule (`0 */6 * * *` cron)
+- After Deploy workflow completes
+- Manual workflow dispatch
+
+**Purpose:** Validates that the production site (www.dogadopt.co.uk) is up and functioning correctly
+
+**Steps:**
+- Checkout code
+- Install Node.js and dependencies
+- Install Playwright browsers (Chromium)
+- Run smoke tests against production site
+- Upload test reports as artifacts
+- Create GitHub issue on failure
+
+**Features:**
+- **Automated Monitoring:** Runs every 6 hours to catch issues quickly
+- **Post-Deployment Verification:** Runs after each deployment automatically
+- **Issue Creation:** Creates a GitHub issue with label `smoke-test-failure` when tests fail
+- **Test Reports:** Uploads Playwright HTML reports as artifacts for debugging
+
+**Test Coverage:**
+The smoke tests verify:
+1. Homepage loads successfully
+2. Site is responsive and accessible
+3. Key pages are accessible
+4. No JavaScript errors on page load
+5. Site loads within acceptable time (< 5 seconds)
+6. Dogs are displayed on the homepage (core functionality)
+7. Rescues are displayed on the rescues page (core functionality)
+
+For more details, see `tests/smoke/README.md`.
+
 ## Execution Flow
 
-The workflow executes in this order:
+### Deploy Workflow
+The deployment workflow executes in this order:
 1. **CI Job** runs first (lint, typecheck, build)
 2. **Migrations Job** runs only if CI succeeds
    - Applies database schema migrations and seeds reference data in one command
@@ -73,6 +109,14 @@ The workflow executes in this order:
 3. **Deploy Job** runs only if migrations succeed
 
 This ensures code quality is validated before migrations are applied, reference data is synchronized via MERGE, and migrations are complete before deployment.
+
+### Smoke Tests Workflow
+The smoke tests workflow runs independently:
+- **Scheduled:** Every 6 hours automatically
+- **Post-Deployment:** After deploy workflow completes
+- **On-Demand:** Can be triggered manually
+
+Tests run against the live production site and create issues automatically if failures are detected.
 
 ## Setup Instructions
 

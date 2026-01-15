@@ -1,0 +1,93 @@
+name: Smoke Tests
+
+on:
+  # Run on a schedule - every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+  
+  # Run after deployment
+  workflow_run:
+    workflows: ["Deploy to GitHub Pages"]
+    types:
+      - completed
+
+jobs:
+  smoke-test:
+    name: Run Playwright Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Run smoke tests
+        run: npm run test:smoke
+        env:
+          CI: true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+      
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Smoke Tests Failed';
+            const body = `The scheduled smoke tests have failed.
+            
+            **Run ID:** ${{ github.run_id }}
+            **Triggered by:** ${{ github.event_name }}
+            **Time:** ${new Date().toISOString()}
+            
+            Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+            
+            Download the test report artifact from the [workflow run page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) to view detailed test results.`;
+            
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'smoke-test-failure'
+            });
+            
+            if (issues.data.length === 0) {
+              // Create new issue if none exists
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['smoke-test-failure', 'bug']
+              });
+            } else {
+              // Comment on existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `Another smoke test failure detected:\n\n${body}`
+              });
+            }
