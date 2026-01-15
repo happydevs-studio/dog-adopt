@@ -15,17 +15,17 @@ The `rescues` table was initially created with only basic columns:
 - created_at
 
 However, subsequent migrations added additional columns:
-- phone (2025123101)
-- email (2025123101)
-- address (2025123101)
-- postcode (2025123101)
-- charity_number (2025123101)
-- contact_notes (2025123101)
-- contact_verified_at (2025123101)
-- latitude (2025123102)
-- longitude (2025123102)
-- coordinates_updated_at (2025123102)
-- coordinates_source (2025123102)
+- phone (2025123101_add_rescue_contact_fields.sql)
+- email (2025123101_add_rescue_contact_fields.sql)
+- address (2025123101_add_rescue_contact_fields.sql)
+- postcode (2025123101_add_rescue_contact_fields.sql)
+- charity_number (2025123101_add_rescue_contact_fields.sql)
+- contact_notes (2025123101_add_rescue_contact_fields.sql)
+- contact_verified_at (2025123101_add_rescue_contact_fields.sql)
+- latitude (2025123102_add_rescue_coordinates.sql)
+- longitude (2025123102_add_rescue_coordinates.sql)
+- coordinates_updated_at (2025123102_add_rescue_coordinates.sql)
+- coordinates_source (2025123102_add_rescue_coordinates.sql)
 
 The audit trigger function was never updated to include these new columns. This caused the trigger to fail when building the JSONB snapshots during UPDATE operations, which blocked rescue updates from succeeding.
 
@@ -35,30 +35,19 @@ Migration `2026011505_fix_rescue_audit_trigger.sql` was created to update the `a
 
 ### Changes Made
 
-The trigger function now includes all columns in the JSONB snapshot building:
+The trigger function now uses `row_to_json()` to automatically include ALL columns when building snapshots:
 
 **For UPDATE operations:**
 ```sql
-old_rescue_record := jsonb_build_object(
-  'id', OLD.id,
-  'name', OLD.name,
-  'type', OLD.type,
-  'region', OLD.region,
-  'website', OLD.website,
-  'phone', OLD.phone,
-  'email', OLD.email,
-  'address', OLD.address,
-  'postcode', OLD.postcode,
-  'charity_number', OLD.charity_number,
-  'contact_notes', OLD.contact_notes,
-  'contact_verified_at', OLD.contact_verified_at,
-  'latitude', OLD.latitude,
-  'longitude', OLD.longitude,
-  'coordinates_updated_at', OLD.coordinates_updated_at,
-  'coordinates_source', OLD.coordinates_source,
-  'created_at', OLD.created_at
-);
+-- Get full resolved snapshots using row_to_json which includes ALL columns
+old_snapshot := row_to_json(OLD)::jsonb;
+new_snapshot := row_to_json(NEW)::jsonb;
 ```
+
+This approach is:
+- **Automatic**: Includes all columns without manual enumeration
+- **Maintainable**: Future column additions don't require trigger updates
+- **Consistent**: Uses the same pattern as `get_rescue_resolved_snapshot()`
 
 Similar updates were made for DELETE operations.
 
@@ -72,8 +61,8 @@ After applying this migration:
 ## Prevention
 
 When adding new columns to a table that has an audit trigger:
-1. Always update the corresponding audit trigger function in the same migration
-2. Ensure all columns are included in the JSONB snapshot building
+1. Use `row_to_json()` in audit triggers instead of manual `jsonb_build_object()` to automatically include all columns
+2. This approach is future-proof and doesn't require trigger updates when adding new columns
 3. Test the complete CRUD cycle (Create, Read, Update, Delete) after adding columns
 
 ## Related Files

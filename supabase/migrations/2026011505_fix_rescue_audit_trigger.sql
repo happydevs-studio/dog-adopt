@@ -18,8 +18,6 @@ DECLARE
   old_snapshot JSONB;
   new_snapshot JSONB;
   changed_fields_array TEXT[];
-  old_rescue_record JSONB;
-  new_rescue_record JSONB;
 BEGIN
   BEGIN  -- Add exception handling to prevent blocking operations
     -- Handle INSERT
@@ -47,54 +45,9 @@ BEGIN
 
     -- Handle UPDATE
     IF (TG_OP = 'UPDATE') THEN
-      -- Convert OLD and NEW to JSONB - include ALL columns
-      old_rescue_record := jsonb_build_object(
-        'id', OLD.id,
-        'name', OLD.name,
-        'type', OLD.type,
-        'region', OLD.region,
-        'website', OLD.website,
-        'phone', OLD.phone,
-        'email', OLD.email,
-        'address', OLD.address,
-        'postcode', OLD.postcode,
-        'charity_number', OLD.charity_number,
-        'contact_notes', OLD.contact_notes,
-        'contact_verified_at', OLD.contact_verified_at,
-        'latitude', OLD.latitude,
-        'longitude', OLD.longitude,
-        'coordinates_updated_at', OLD.coordinates_updated_at,
-        'coordinates_source', OLD.coordinates_source,
-        'created_at', OLD.created_at
-      );
-      
-      new_rescue_record := jsonb_build_object(
-        'id', NEW.id,
-        'name', NEW.name,
-        'type', NEW.type,
-        'region', NEW.region,
-        'website', NEW.website,
-        'phone', NEW.phone,
-        'email', NEW.email,
-        'address', NEW.address,
-        'postcode', NEW.postcode,
-        'charity_number', NEW.charity_number,
-        'contact_notes', NEW.contact_notes,
-        'contact_verified_at', NEW.contact_verified_at,
-        'latitude', NEW.latitude,
-        'longitude', NEW.longitude,
-        'coordinates_updated_at', NEW.coordinates_updated_at,
-        'coordinates_source', NEW.coordinates_source,
-        'created_at', NEW.created_at
-      );
-      
-      -- Get full resolved snapshots
-      old_snapshot := dogadopt.get_rescue_resolved_snapshot(OLD.id);
-      new_snapshot := dogadopt.get_rescue_resolved_snapshot(NEW.id);
-      
-      -- Merge the rescue-specific changes
-      old_snapshot := old_snapshot || old_rescue_record;
-      new_snapshot := new_snapshot || new_rescue_record;
+      -- Get full resolved snapshots using row_to_json which includes ALL columns
+      old_snapshot := row_to_json(OLD)::jsonb;
+      new_snapshot := row_to_json(NEW)::jsonb;
       
       -- Identify changed fields
       SELECT ARRAY_AGG(key)
@@ -137,27 +90,8 @@ BEGIN
 
     -- Handle DELETE
     IF (TG_OP = 'DELETE') THEN
-      -- Build snapshot from OLD record since the record is already deleted
-      -- Include ALL columns
-      old_snapshot := jsonb_build_object(
-        'id', OLD.id,
-        'name', OLD.name,
-        'type', OLD.type,
-        'region', OLD.region,
-        'website', OLD.website,
-        'phone', OLD.phone,
-        'email', OLD.email,
-        'address', OLD.address,
-        'postcode', OLD.postcode,
-        'charity_number', OLD.charity_number,
-        'contact_notes', OLD.contact_notes,
-        'contact_verified_at', OLD.contact_verified_at,
-        'latitude', OLD.latitude,
-        'longitude', OLD.longitude,
-        'coordinates_updated_at', OLD.coordinates_updated_at,
-        'coordinates_source', OLD.coordinates_source,
-        'created_at', OLD.created_at
-      );
+      -- Build snapshot from OLD record using row_to_json which includes ALL columns
+      old_snapshot := row_to_json(OLD)::jsonb;
       
       INSERT INTO dogadopt.rescues_audit_logs (
         rescue_id,
