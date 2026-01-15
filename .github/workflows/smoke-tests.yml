@@ -14,6 +14,10 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   smoke-test:
     name: Run Playwright Smoke Tests
