@@ -9,7 +9,7 @@ test.describe('Smoke Tests - Production Site', () => {
     await page.waitForLoadState('networkidle');
     
     // Check that the page title is correct
-    await expect(page).toHaveTitle(/Dog Adopt|Adopt a Dog UK/i);
+    await expect(page).toHaveTitle(/DogAdopt|Adopt Don't Shop/i);
     
     // Check that the main content is visible
     const mainContent = page.locator('body');
