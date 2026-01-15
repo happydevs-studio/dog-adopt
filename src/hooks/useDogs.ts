@@ -101,72 +101,31 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
   return useQuery({
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
-      // Try using API layer function first
+      // Use API layer function instead of direct table access
       // Call RPC function from dogadopt_api schema
-      let apiData;
-      let useApiLayer = true;
-      
       const { data, error } = await supabase
-        .rpc('dogadopt_api.get_dogs');
+        .schema('dogadopt_api')
+        .rpc('get_dogs');
 
       if (error) {
-        console.error('Error fetching dogs via API layer:', error);
-        // If API function doesn't exist, fall back to direct table access
+        console.error('Error fetching dogs:', error);
+        // Provide more helpful error message for common issues
         if (error.message?.includes('does not exist') || error.code === '42883') {
-          console.warn('API layer not available, falling back to direct table access. Please apply database migrations to enable the API layer.');
-          useApiLayer = false;
-        } else {
-          // For other errors, throw to show the error to the user
-          throw error;
+          throw new Error('Database migration required: The get_dogs API function is not available. Please run database migrations.');
         }
-      } else {
-        apiData = data;
-      }
-
-      // Fallback: Direct table access (legacy method)
-      if (!useApiLayer) {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('dogs')
-          .select(`
-            *,
-            rescues(id, name, region, website, latitude, longitude),
-            dogs_breeds(display_order, breeds(id, name))
-          `);
-
-        if (fallbackError) {
-          console.error('Error fetching dogs via fallback:', fallbackError);
-          throw fallbackError;
-        }
-        
-        // Transform fallback data to match API layer format
-        apiData = fallbackData?.map((dog: DogRow) => ({
-          ...dog,
-          rescue: dog.rescues ? {
-            id: dog.rescues.id,
-            name: dog.rescues.name,
-            region: dog.rescues.region,
-            website: dog.rescues.website,
-            latitude: dog.rescues.latitude,
-            longitude: dog.rescues.longitude,
-          } : null,
-          breeds: dog.dogs_breeds?.map(db => ({
-            id: db.breeds.id,
-            name: db.breeds.name,
-            display_order: db.display_order,
-          })) || [],
-        }));
+        throw error;
       }
 
       // The API function returns data in JSONB format for rescue and breeds
-      const dogs = (apiData as Array<Record<string, unknown>>).map((dog) => {
+      const dogs = (data as any[]).map((dog) => {
         // Parse rescue from JSONB (API layer returns it as an object)
         const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
         
         // Parse breeds from JSONB array (API layer returns sorted array)
         const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds) : dog.breeds;
         const breeds = (breedsArray || [])
-          .sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order)
-          .map((b: { name: string }) => b.name);
+          .sort((a: any, b: any) => a.display_order - b.display_order)
+          .map((b: any) => b.name);
 
         // Calculate computed age if birth date is available
         const computedAge = calculateAgeCategory(dog.birth_year, dog.birth_month, dog.birth_day);
