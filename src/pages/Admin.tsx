@@ -430,6 +430,10 @@ const Admin = () => {
         type: rescue.type,
         region: rescue.region,
         website: rescue.website || '',
+        // Note: Contact fields (phone, email, address, etc.) are not currently
+        // included in the Rescue type from get_rescues() API call.
+        // These fields exist in the database but need to be added to the API.
+        // For now, they default to empty strings when editing.
         phone: '',
         email: '',
         address: '',
