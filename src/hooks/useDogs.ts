@@ -108,6 +108,11 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
         .rpc('get_dogs');
 
       if (error) {
+        console.error('Error fetching dogs:', error);
+        // Provide more helpful error message for common issues
+        if (error.message?.includes('does not exist') || error.code === '42883') {
+          throw new Error('Database migration required: The get_dogs API function is not available. Please run database migrations.');
+        }
         throw error;
       }
 

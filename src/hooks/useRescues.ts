@@ -31,6 +31,11 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
         .rpc('get_rescues');
 
       if (error) {
+        console.error('Error fetching rescues:', error);
+        // Provide more helpful error message for common issues
+        if (error.message?.includes('does not exist') || error.code === '42883') {
+          throw new Error('Database migration required: The get_rescues API function is not available. Please run database migrations.');
+        }
         throw error;
       }
 
