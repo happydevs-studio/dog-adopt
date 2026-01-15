@@ -39,7 +39,11 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
         throw error;
       }
 
-      let rescues = data as unknown as Rescue[];
+      // Transform snake_case fields from API to camelCase for TypeScript
+      let rescues = (data as any[]).map(rescue => ({
+        ...rescue,
+        dogCount: rescue.dog_count ?? 0, // Map dog_count to dogCount
+      })) as Rescue[];
 
       // Calculate distances if user location is provided
       if (userLocation) {
