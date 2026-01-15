@@ -83,4 +83,40 @@ test.describe('Smoke Tests - Production Site', () => {
     // Site should load in less than 5 seconds
     expect(loadTime).toBeLessThan(5000);
   });
+
+  test('homepage displays dogs available for adoption', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for dogs to load - look for dog cards (article elements with dog info)
+    // DogCard renders as <article> with dog name in <h3> and breed info
+    const dogCards = page.locator('article h3');
+    
+    // Should have at least one dog displayed
+    await expect(dogCards.first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify multiple dogs are present (key feature of the site)
+    const dogCount = await dogCards.count();
+    expect(dogCount).toBeGreaterThan(0);
+    
+    console.log(`Found ${dogCount} dogs on homepage`);
+  });
+
+  test('rescues page displays rescue organizations', async ({ page }) => {
+    await page.goto('/rescues');
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for rescues to load - look for rescue cards (article elements with rescue info)
+    // RescueCard renders as <article> with rescue name in <h3>
+    const rescueCards = page.locator('article h3');
+    
+    // Should have at least one rescue displayed
+    await expect(rescueCards.first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify multiple rescues are present
+    const rescueCount = await rescueCards.count();
+    expect(rescueCount).toBeGreaterThan(0);
+    
+    console.log(`Found ${rescueCount} rescue organizations on rescues page`);
+  });
 });

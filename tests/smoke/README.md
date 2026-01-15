@@ -55,6 +55,8 @@ Current smoke tests verify:
 3. Key pages are accessible
 4. No JavaScript errors on page load
 5. Site loads within acceptable time (< 5 seconds)
+6. **Dogs are displayed on the homepage** (key site functionality)
+7. **Rescues are displayed on the rescues page** (key site functionality)
 
 ## Adding New Tests
 
