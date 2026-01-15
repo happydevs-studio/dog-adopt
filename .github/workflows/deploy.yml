@@ -114,17 +114,23 @@ jobs:
     name: Create Issue on Deploy Failure
     runs-on: ubuntu-latest
     needs: [ci, migrate, deploy]
-    if: always() && (needs.ci.result == 'failure' || needs.migrate.result == 'failure' || needs.deploy.result == 'failure')
+    if: always() && contains(needs.*.result, 'failure')
     
     steps:
       - name: Create issue on failure
         uses: actions/github-script@v7
         with:
           script: |
+            const jobNames = {
+              ci: 'CI (Lint, Type Check, Build)',
+              migrate: 'Supabase Migrations',
+              deploy: 'GitHub Pages Deploy'
+            };
+            
             const failedJobs = [];
-            if ('${{ needs.ci.result }}' === 'failure') failedJobs.push('CI (Lint, Type Check, Build)');
-            if ('${{ needs.migrate.result }}' === 'failure') failedJobs.push('Supabase Migrations');
-            if ('${{ needs.deploy.result }}' === 'failure') failedJobs.push('GitHub Pages Deploy');
+            if ('${{ needs.ci.result }}' === 'failure') failedJobs.push(jobNames.ci);
+            if ('${{ needs.migrate.result }}' === 'failure') failedJobs.push(jobNames.migrate);
+            if ('${{ needs.deploy.result }}' === 'failure') failedJobs.push(jobNames.deploy);
             
             const title = '🚨 Deployment Failed';
             const body = `The deployment workflow has failed.\n\n` +
