@@ -26,7 +26,7 @@ export const useRescues = (userLocation?: { latitude: number; longitude: number 
     queryFn: async (): Promise<Rescue[]> => {
       // Use API layer function instead of direct table access
       // Call RPC function from dogadopt_api schema
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .schema('dogadopt_api')
         .rpc('get_rescues');
 
