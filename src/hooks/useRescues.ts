@@ -11,6 +11,7 @@ export interface Rescue {
   latitude: number | null;
   longitude: number | null;
   distance?: number; // Distance in km from user's location
+  dogCount: number; // Number of available dogs
 }
 
 export const useRescues = (userLocation?: { latitude: number; longitude: number }) => {
