@@ -9,6 +9,26 @@ The Adopt-a-Dog UK application uses a **two-layer database architecture** that s
 3. **Flexibility** - Change underlying schema without breaking the API
 4. **Control** - Enforce business logic and permissions at the database level
 
+## Configuration Requirements
+
+**IMPORTANT:** The `dogadopt_api` schema must be exposed in the Supabase configuration for the API layer to work correctly.
+
+In `supabase/config.toml`:
+```toml
+[api]
+enabled = true
+port = 54321
+schemas = ["dogadopt", "dogadopt_api"]
+extra_search_path = ["dogadopt", "dogadopt_api"]
+max_rows = 1000
+```
+
+Both schemas must be included:
+- `dogadopt` - The data layer (tables, triggers, RLS)
+- `dogadopt_api` - The API layer (functions accessible from the UI)
+
+Without exposing `dogadopt_api`, RPC calls will fail with 400 Bad Request errors.
+
 ## Architecture Diagram
 
 ```
