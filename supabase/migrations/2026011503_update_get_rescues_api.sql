@@ -112,8 +112,8 @@ $$;
 -- GRANT PERMISSIONS
 -- =====================================================
 
-GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescues TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescue TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescues() TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescue(UUID) TO anon, authenticated;
 
 -- =====================================================
 -- DOCUMENTATION
