@@ -22,7 +22,8 @@ BEGIN
   BEGIN  -- Add exception handling to prevent blocking operations
     -- Handle INSERT
     IF (TG_OP = 'INSERT') THEN
-      new_snapshot := dogadopt.get_rescue_resolved_snapshot(NEW.id);
+      -- Use row_to_json for consistency with UPDATE and DELETE operations
+      new_snapshot := row_to_json(NEW)::jsonb;
       
       INSERT INTO dogadopt.rescues_audit_logs (
         rescue_id,
@@ -113,8 +114,11 @@ BEGIN
     END IF;
 
   EXCEPTION WHEN OTHERS THEN
-    -- Log error but don't block the operation
-    RAISE WARNING 'audit_rescue_changes failed: %', SQLERRM;
+    -- Log error with context but don't block the operation
+    RAISE WARNING 'audit_rescue_changes failed for % on rescue %: %', 
+      TG_OP, 
+      COALESCE(NEW.id, OLD.id), 
+      SQLERRM;
     IF (TG_OP = 'DELETE') THEN
       RETURN OLD;
     ELSE
