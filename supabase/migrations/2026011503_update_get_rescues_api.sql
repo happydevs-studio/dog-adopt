@@ -5,6 +5,10 @@
 -- UPDATE GET_RESCUES TO INCLUDE CONTACT FIELDS
 -- =====================================================
 
+-- Drop existing functions first to allow signature changes
+DROP FUNCTION IF EXISTS dogadopt_api.get_rescues();
+DROP FUNCTION IF EXISTS dogadopt_api.get_rescue(UUID);
+
 -- Function: Get all rescues (updated to include contact fields)
 CREATE OR REPLACE FUNCTION dogadopt_api.get_rescues()
 RETURNS TABLE (
@@ -21,7 +25,8 @@ RETURNS TABLE (
   contact_notes TEXT,
   latitude DECIMAL,
   longitude DECIMAL,
-  created_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ,
+  dog_count BIGINT
 )
 LANGUAGE plpgsql
 STABLE
@@ -44,8 +49,16 @@ BEGIN
     r.contact_notes,
     r.latitude,
     r.longitude,
-    r.created_at
+    r.created_at,
+    -- Count of available dogs for this rescue using JOIN
+    COALESCE(dog_counts.count, 0) AS dog_count
   FROM dogadopt.rescues r
+  LEFT JOIN (
+    SELECT rescue_id, COUNT(*) as count
+    FROM dogadopt.dogs
+    WHERE status = 'available'
+    GROUP BY rescue_id
+  ) dog_counts ON r.id = dog_counts.rescue_id
   ORDER BY r.name;
 END;
 $$;
@@ -94,6 +107,13 @@ BEGIN
   WHERE r.id = p_rescue_id;
 END;
 $$;
+
+-- =====================================================
+-- GRANT PERMISSIONS
+-- =====================================================
+
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescues TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION dogadopt_api.get_rescue TO anon, authenticated;
 
 -- =====================================================
 -- DOCUMENTATION
