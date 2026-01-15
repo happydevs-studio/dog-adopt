@@ -127,16 +127,14 @@ jobs:
             if ('${{ needs.deploy.result }}' === 'failure') failedJobs.push('GitHub Pages Deploy');
             
             const title = '🚨 Deployment Failed';
-            const body = `The deployment workflow has failed.
-            
-            **Failed Jobs:** ${failedJobs.join(', ')}
-            **Run ID:** ${{ github.run_id }}
-            **Commit:** ${{ github.sha }}
-            **Branch:** ${{ github.ref_name }}
-            **Triggered by:** ${{ github.actor }}
-            **Time:** ${new Date().toISOString()}
-            
-            Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
+            const body = `The deployment workflow has failed.\n\n` +
+              `**Failed Jobs:** ${failedJobs.join(', ')}\n` +
+              `**Run ID:** ${{ github.run_id }}\n` +
+              `**Commit:** ${{ github.sha }}\n` +
+              `**Branch:** ${{ github.ref_name }}\n` +
+              `**Triggered by:** ${{ github.actor }}\n` +
+              `**Time:** ${new Date().toISOString()}\n\n` +
+              `Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
             
             // Check if there's already an open issue
             const issues = await github.rest.issues.listForRepo({
@@ -156,11 +154,19 @@ jobs:
                 labels: ['deployment-failure', 'bug']
               });
             } else {
-              // Comment on existing issue
+              // Comment on existing issue with concise update
+              const commentBody = `**Another deployment failure detected**\n\n` +
+                `**Failed Jobs:** ${failedJobs.join(', ')}\n` +
+                `**Run ID:** ${{ github.run_id }}\n` +
+                `**Commit:** ${{ github.sha }}\n` +
+                `**Branch:** ${{ github.ref_name }}\n` +
+                `**Time:** ${new Date().toISOString()}\n\n` +
+                `[View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+              
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issues.data[0].number,
-                body: `Another deployment failure detected:\n\n${body}`
+                body: commentBody
               });
             }
