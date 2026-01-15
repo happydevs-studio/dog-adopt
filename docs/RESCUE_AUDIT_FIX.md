@@ -6,7 +6,7 @@ The `audit_rescue_changes()` trigger function was not tracking all columns in th
 
 ## Root Cause
 
-The `rescues` table was initially created with only basic columns:
+The `get_rescue_resolved_snapshot()` helper function was created when the `rescues` table had only basic columns:
 - id
 - name
 - type
@@ -27,29 +27,41 @@ However, subsequent migrations added additional columns:
 - coordinates_updated_at (2025123102_add_rescue_coordinates.sql)
 - coordinates_source (2025123102_add_rescue_coordinates.sql)
 
-The audit trigger function was never updated to include these new columns. This caused the trigger to fail when building the JSONB snapshots during UPDATE operations, which blocked rescue updates from succeeding.
+The `get_rescue_resolved_snapshot()` function uses `row_to_json()` which *should* automatically include all columns, but the function definition may have been cached or needed to be explicitly recreated to pick up the new table structure. This caused the trigger to fail when building JSONB snapshots during UPDATE operations, which blocked rescue updates from succeeding.
 
 ## Solution
 
-Migration `2026011505_fix_rescue_audit_trigger.sql` was created to update the `audit_rescue_changes()` function to include all columns when building the OLD and NEW snapshots.
+Migration `2026011505_fix_rescue_audit_trigger.sql` recreates the `get_rescue_resolved_snapshot()` function to ensure it picks up the current table structure with all columns.
 
 ### Changes Made
 
-The trigger function now uses `row_to_json()` to automatically include ALL columns when building snapshots:
+The migration recreates the snapshot function:
 
-**For UPDATE operations:**
 ```sql
--- Get full resolved snapshots using row_to_json which includes ALL columns
-old_snapshot := row_to_json(OLD)::jsonb;
-new_snapshot := row_to_json(NEW)::jsonb;
+CREATE OR REPLACE FUNCTION dogadopt.get_rescue_resolved_snapshot(p_rescue_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+  v_snapshot JSONB;
+BEGIN
+  -- Use row_to_json to automatically include all columns
+  -- This is future-proof and doesn't require updates when new columns are added
+  SELECT row_to_json(r)::jsonb
+  INTO v_snapshot
+  FROM dogadopt.rescues r
+  WHERE r.id = p_rescue_id;
+  
+  RETURN v_snapshot;
+END;
+$$;
 ```
 
 This approach is:
-- **Automatic**: Includes all columns without manual enumeration
-- **Maintainable**: Future column additions don't require trigger updates
-- **Consistent**: Uses the same pattern as `get_rescue_resolved_snapshot()`
-
-Similar updates were made for DELETE operations.
+- **Automatic**: Uses `row_to_json()` which includes all columns without manual enumeration
+- **Maintainable**: Future column additions don't require function updates
+- **Consistent**: Matches the pattern used by other snapshot functions
 
 ## Impact
 
@@ -61,14 +73,15 @@ After applying this migration:
 ## Prevention
 
 When adding new columns to a table that has an audit trigger:
-1. Use `row_to_json()` in audit triggers instead of manual `jsonb_build_object()` to automatically include all columns
-2. This approach is future-proof and doesn't require trigger updates when adding new columns
-3. Test the complete CRUD cycle (Create, Read, Update, Delete) after adding columns
+1. The `row_to_json()` approach in snapshot functions should automatically include new columns
+2. If issues persist, recreate the snapshot function to ensure it picks up the current table structure
+3. Always test the complete CRUD cycle (Create, Read, Update, Delete) after adding columns
 
 ## Related Files
 
 - Migration: `/supabase/migrations/2026011505_fix_rescue_audit_trigger.sql`
-- Original trigger: `/supabase/migrations/2025122802_dogadopt_rescues_and_locations.sql`
+- Original snapshot function: `/supabase/migrations/2025122802_dogadopt_rescues_and_locations.sql`
+- Audit trigger (fixed in security update): `/supabase/migrations/20260106203900_fix_security_definer_issue.sql`
 - Contact fields migration: `/supabase/migrations/2025123101_add_rescue_contact_fields.sql`
 - Coordinates migration: `/supabase/migrations/2025123102_add_rescue_coordinates.sql`
 - Admin UI: `/src/pages/Admin.tsx` (lines 450-514 for rescue form handling)
