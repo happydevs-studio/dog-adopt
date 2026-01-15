@@ -33,17 +33,15 @@ BEGIN
     r.latitude,
     r.longitude,
     r.created_at,
-    -- Count of available dogs for this rescue
-    COALESCE(
-      (
-        SELECT COUNT(*)
-        FROM dogadopt.dogs d
-        WHERE d.rescue_id = r.id
-        AND d.status = 'available'
-      ),
-      0
-    ) AS dog_count
+    -- Count of available dogs for this rescue using JOIN
+    COALESCE(dog_counts.count, 0) AS dog_count
   FROM dogadopt.rescues r
+  LEFT JOIN (
+    SELECT rescue_id, COUNT(*) as count
+    FROM dogadopt.dogs
+    WHERE status = 'available'
+    GROUP BY rescue_id
+  ) dog_counts ON r.id = dog_counts.rescue_id
   ORDER BY r.name;
 END;
 $$;
