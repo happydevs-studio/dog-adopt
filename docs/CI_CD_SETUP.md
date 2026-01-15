@@ -62,6 +62,7 @@ The workflow consists of three sequential jobs:
 - Contents: read
 - Pages: write
 - ID token: write
+- Issues: write (for automatic issue creation on failure)
 
 ### Smoke Tests Workflow (`smoke-tests.yml`)
 
@@ -107,8 +108,12 @@ The deployment workflow executes in this order:
    - Applies database schema migrations and seeds reference data in one command
    - Uses `supabase db push --include-seed` to apply both migrations and seed data
 3. **Deploy Job** runs only if migrations succeed
+4. **Create Issue on Failure Job** runs if any of the above jobs fail
+   - Automatically creates a GitHub issue with label `deployment-failure` when any deployment step fails
+   - If an open issue with this label already exists, adds a comment instead of creating a new issue
+   - Includes details about which jobs failed and links to the workflow run
 
-This ensures code quality is validated before migrations are applied, reference data is synchronized via MERGE, and migrations are complete before deployment.
+This ensures code quality is validated before migrations are applied, reference data is synchronized via MERGE, and migrations are complete before deployment. If any step fails, an issue is automatically created for tracking.
 
 ### Smoke Tests Workflow
 The smoke tests workflow runs independently:
@@ -182,6 +187,16 @@ Update the value in your `.env` file for local development, and in GitHub Secret
 No other changes are needed in your development workflow.
 
 ## Troubleshooting
+
+### Deployment Failures - Automatic Issue Creation
+
+When any deployment job fails (CI, Migrations, or Deploy), an issue is automatically created with:
+- Label: `deployment-failure`
+- Details about which job(s) failed
+- Link to the workflow run
+- Commit and branch information
+
+This helps track deployment issues without manual intervention. Check the automatically created issue for details and links to debug the failure.
 
 ### Build Failures (CI Job)
 
