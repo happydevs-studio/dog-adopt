@@ -187,7 +187,7 @@ await supabase
 ### Rescues API
 
 #### Function: `dogadopt_api.get_rescues()`
-Returns all rescue organizations.
+Returns all rescue organizations with contact information and dog counts.
 
 **Usage:**
 ```typescript
@@ -197,10 +197,14 @@ const { data } = await supabase
 ```
 
 **Returns:**
-- `id`, `name`, `type`, `region`, `website`, `latitude`, `longitude`, `created_at`
+- `id`, `name`, `type`, `region`, `website`
+- `phone`, `email`, `address`, `postcode`, `charity_number`, `contact_notes` - Contact information
+- `latitude`, `longitude` - Geographic coordinates
+- `created_at`
+- `dog_count` - Number of available dogs at this rescue
 
 #### Function: `dogadopt_api.get_rescue(rescue_id UUID)`
-Get detailed information for a single rescue.
+Get detailed information for a single rescue including contact information.
 
 **Usage:**
 ```typescript
@@ -208,6 +212,81 @@ const { data } = await supabase
   .schema('dogadopt_api')
   .rpc('get_rescue', { p_rescue_id: rescueId });
 ```
+
+**Returns:**
+- `id`, `name`, `type`, `region`, `website`
+- `phone`, `email`, `address`, `postcode`, `charity_number`, `contact_notes` - Contact information
+- `latitude`, `longitude` - Geographic coordinates
+- `created_at`
+
+#### Function: `dogadopt_api.create_rescue(...)`
+Create a new rescue organization. **Requires admin role.**
+
+**Parameters:**
+- `p_name` - Rescue name (required)
+- `p_type` - Rescue type (required)
+- `p_region` - Geographic region (required)
+- `p_website` - Website URL (optional)
+- `p_phone` - Contact phone (optional)
+- `p_email` - Contact email (optional)
+- `p_address` - Full postal address (optional)
+- `p_postcode` - UK postcode (optional)
+- `p_charity_number` - UK Charity Commission number (optional)
+- `p_contact_notes` - Internal contact notes (optional)
+- `p_latitude`, `p_longitude` - Coordinates (optional)
+
+**Usage:**
+```typescript
+const { data: rescueId } = await supabase
+  .schema('dogadopt_api')
+  .rpc('create_rescue', {
+    p_name: 'Happy Tails Rescue',
+    p_type: 'Full',
+    p_region: 'London',
+    p_website: 'https://example.com',
+    p_phone: '020 1234 5678',
+    p_email: 'info@example.com',
+    // ... other optional fields
+  });
+```
+
+**Returns:** UUID of created rescue
+
+**Throws:** Exception if user is not admin
+
+#### Function: `dogadopt_api.update_rescue(rescue_id, ...)`
+Update an existing rescue organization. **Requires admin role.**
+
+**Parameters:** Same as `create_rescue` plus `p_rescue_id` as first parameter
+
+**Usage:**
+```typescript
+await supabase
+  .schema('dogadopt_api')
+  .rpc('update_rescue', {
+    p_rescue_id: rescueId,
+    p_name: 'Happy Tails Rescue',
+    // ... other fields
+  });
+```
+
+**Returns:** Void
+
+**Throws:** Exception if user is not admin
+
+#### Function: `dogadopt_api.delete_rescue(rescue_id UUID)`
+Delete a rescue organization. **Requires admin role.**
+
+**Usage:**
+```typescript
+await supabase
+  .schema('dogadopt_api')
+  .rpc('delete_rescue', { p_rescue_id: rescueId });
+```
+
+**Throws:** 
+- Exception if user is not admin
+- Exception if rescue has associated dogs
 
 ### Breeds API
 
