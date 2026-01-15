@@ -40,7 +40,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkAdminRole = async (userId: string) => {
     // Use API layer function instead of direct table access
     const { data, error } = await supabase
-      .rpc('dogadopt_api.check_user_role', { p_role: 'admin' });
+      .schema('dogadopt_api')
+      .rpc('check_user_role', { p_role: 'admin' });
     
     if (error) {
       console.error('Error checking admin role:', error);

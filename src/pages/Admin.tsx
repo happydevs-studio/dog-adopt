@@ -329,7 +329,8 @@ const Admin = () => {
       if (editingDog) {
         // Use API layer update function
         const { error } = await supabase
-          .rpc('dogadopt_api.update_dog', {
+          .schema('dogadopt_api')
+          .rpc('update_dog', {
           p_dog_id: editingDog.id,
           p_name: dogData.name,
           p_age: dogData.age,
@@ -356,7 +357,8 @@ const Admin = () => {
       } else {
         // Use API layer create function
         const { data: newDogId, error } = await supabase
-          .rpc('dogadopt_api.create_dog', {
+          .schema('dogadopt_api')
+          .rpc('create_dog', {
           p_name: dogData.name,
           p_age: dogData.age,
           p_size: dogData.size,
@@ -403,7 +405,8 @@ const Admin = () => {
     try {
       // Use API layer delete function
       const { error } = await supabase
-        .rpc('dogadopt_api.delete_dog', {
+        .schema('dogadopt_api')
+        .rpc('delete_dog', {
         p_dog_id: dogId
       });
 
@@ -452,7 +455,8 @@ const Admin = () => {
       if (editingRescue) {
         // Update existing rescue
         const { error } = await supabase
-          .rpc('dogadopt_api.update_rescue', {
+          .schema('dogadopt_api')
+          .rpc('update_rescue', {
             p_rescue_id: editingRescue.id,
             p_name: rescueFormData.name,
             p_type: rescueFormData.type,
@@ -472,7 +476,8 @@ const Admin = () => {
       } else {
         // Create new rescue
         const { error } = await supabase
-          .rpc('dogadopt_api.create_rescue', {
+          .schema('dogadopt_api')
+          .rpc('create_rescue', {
             p_name: rescueFormData.name,
             p_type: rescueFormData.type,
             p_region: rescueFormData.region,
@@ -511,7 +516,8 @@ const Admin = () => {
   const handleRescueDelete = async (rescueId: string) => {
     try {
       const { error } = await supabase
-        .rpc('dogadopt_api.delete_rescue', {
+        .schema('dogadopt_api')
+        .rpc('delete_rescue', {
           p_rescue_id: rescueId
         });
 
