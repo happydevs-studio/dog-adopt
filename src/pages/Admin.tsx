@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, Loader2, Plus, Pencil, Trash2, LogOut, ArrowLeft, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -580,15 +581,22 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground">Manage Dogs</h1>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Dog
-              </Button>
-            </DialogTrigger>
+        <Tabs defaultValue="dogs" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+            <TabsTrigger value="dogs">Dogs</TabsTrigger>
+            <TabsTrigger value="rescues">Rescues</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dogs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+              <h1 className="font-display text-3xl font-bold text-foreground">Manage Dogs</h1>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Dog
+                  </Button>
+                </DialogTrigger>
             <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingDog ? 'Edit Dog' : 'Add New Dog'}</DialogTitle>
@@ -945,11 +953,12 @@ const Admin = () => {
             ))
           )}
         </div>
+      </TabsContent>
 
+      <TabsContent value="rescues">
         {/* Rescue Management Section */}
-        <div className="mt-16">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <h1 className="font-display text-3xl font-bold text-foreground">Manage Rescues</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <h1 className="font-display text-3xl font-bold text-foreground">Manage Rescues</h1>
             <Dialog open={isRescueDialogOpen} onOpenChange={setIsRescueDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => handleOpenRescueDialog()} className="w-full sm:w-auto">
@@ -1168,10 +1177,11 @@ const Admin = () => {
               ))
             )}
           </div>
-        </div>
-      </main>
-    </div>
-  );
+        </TabsContent>
+      </Tabs>
+    </main>
+  </div>
+);
 };
 
 export default Admin;
