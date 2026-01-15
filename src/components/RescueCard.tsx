@@ -57,6 +57,14 @@ const RescueCard = ({ rescue, showDistance = false }: RescueCardProps) => {
           <span>{rescue.region}</span>
         </div>
 
+        <div className="text-sm font-medium text-foreground">
+          {rescue.dogCount === 0 ? (
+            <span>See website for available dogs</span>
+          ) : (
+            <span>{rescue.dogCount} available {rescue.dogCount === 1 ? 'dog' : 'dogs'}</span>
+          )}
+        </div>
+
         <Button 
           variant="default" 
           className="w-full"
