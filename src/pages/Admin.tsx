@@ -20,6 +20,7 @@ import { BreedCombobox } from '@/components/BreedCombobox';
 import { RescueCombobox } from '@/components/RescueCombobox';
 import { LocationCombobox } from '@/components/LocationCombobox';
 import type { Dog } from '@/types/dog';
+import type { Rescue } from '@/hooks/useRescues';
 import { DevBypassBanner } from '@/components/auth/DevBypassBanner';
 import { DEFAULT_DOG_IMAGE } from '@/lib/constants';
 
@@ -67,6 +68,36 @@ const initialFormData: DogFormData = {
   good_with_cats: false,
 };
 
+interface RescueFormData {
+  name: string;
+  type: string;
+  region: string;
+  website: string;
+  phone: string;
+  email: string;
+  address: string;
+  postcode: string;
+  charity_number: string;
+  contact_notes: string;
+  latitude: string;
+  longitude: string;
+}
+
+const initialRescueFormData: RescueFormData = {
+  name: '',
+  type: 'Full',
+  region: '',
+  website: '',
+  phone: '',
+  email: '',
+  address: '',
+  postcode: '',
+  charity_number: '',
+  contact_notes: '',
+  latitude: '',
+  longitude: '',
+};
+
 const Admin = () => {
   const { user, isAdmin, isLoading: authLoading, signOut, isDevBypass } = useAuth();
   const { data: dogs = [], isLoading: dogsLoading, refetch } = useDogs();
@@ -83,6 +114,12 @@ const Admin = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Rescue management state
+  const [isRescueDialogOpen, setIsRescueDialogOpen] = useState(false);
+  const [editingRescue, setEditingRescue] = useState<Rescue | null>(null);
+  const [rescueFormData, setRescueFormData] = useState<RescueFormData>(initialRescueFormData);
+  const [isRescueSubmitting, setIsRescueSubmitting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -379,6 +416,117 @@ const Admin = () => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete dog',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Rescue management handlers
+  const handleOpenRescueDialog = (rescue?: Rescue) => {
+    if (rescue) {
+      setEditingRescue(rescue);
+      setRescueFormData({
+        name: rescue.name,
+        type: rescue.type,
+        region: rescue.region,
+        website: rescue.website || '',
+        phone: '',
+        email: '',
+        address: '',
+        postcode: '',
+        charity_number: '',
+        contact_notes: '',
+        latitude: rescue.latitude ? String(rescue.latitude) : '',
+        longitude: rescue.longitude ? String(rescue.longitude) : '',
+      });
+    } else {
+      setEditingRescue(null);
+      setRescueFormData(initialRescueFormData);
+    }
+    setIsRescueDialogOpen(true);
+  };
+
+  const handleRescueSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsRescueSubmitting(true);
+
+    try {
+      if (editingRescue) {
+        // Update existing rescue
+        const { error } = await supabase
+          .schema('dogadopt_api')
+          .rpc('update_rescue', {
+            p_rescue_id: editingRescue.id,
+            p_name: rescueFormData.name,
+            p_type: rescueFormData.type,
+            p_region: rescueFormData.region,
+            p_website: rescueFormData.website || null,
+            p_phone: rescueFormData.phone || null,
+            p_email: rescueFormData.email || null,
+            p_address: rescueFormData.address || null,
+            p_postcode: rescueFormData.postcode || null,
+            p_charity_number: rescueFormData.charity_number || null,
+            p_contact_notes: rescueFormData.contact_notes || null,
+            p_latitude: rescueFormData.latitude ? parseFloat(rescueFormData.latitude) : null,
+            p_longitude: rescueFormData.longitude ? parseFloat(rescueFormData.longitude) : null,
+          });
+
+        if (error) throw error;
+      } else {
+        // Create new rescue
+        const { error } = await supabase
+          .schema('dogadopt_api')
+          .rpc('create_rescue', {
+            p_name: rescueFormData.name,
+            p_type: rescueFormData.type,
+            p_region: rescueFormData.region,
+            p_website: rescueFormData.website || null,
+            p_phone: rescueFormData.phone || null,
+            p_email: rescueFormData.email || null,
+            p_address: rescueFormData.address || null,
+            p_postcode: rescueFormData.postcode || null,
+            p_charity_number: rescueFormData.charity_number || null,
+            p_contact_notes: rescueFormData.contact_notes || null,
+            p_latitude: rescueFormData.latitude ? parseFloat(rescueFormData.latitude) : null,
+            p_longitude: rescueFormData.longitude ? parseFloat(rescueFormData.longitude) : null,
+          });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: 'Success',
+        description: editingRescue ? 'Rescue updated successfully' : 'Rescue added successfully'
+      });
+
+      setIsRescueDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['rescues'] });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Something went wrong',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsRescueSubmitting(false);
+    }
+  };
+
+  const handleRescueDelete = async (rescueId: string) => {
+    try {
+      const { error } = await supabase
+        .schema('dogadopt_api')
+        .rpc('delete_rescue', {
+          p_rescue_id: rescueId
+        });
+
+      if (error) throw error;
+      toast({ title: 'Success', description: 'Rescue removed successfully' });
+      queryClient.invalidateQueries({ queryKey: ['rescues'] });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete rescue',
         variant: 'destructive'
       });
     }
@@ -796,6 +944,230 @@ const Admin = () => {
               </Card>
             ))
           )}
+        </div>
+
+        {/* Rescue Management Section */}
+        <div className="mt-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h1 className="font-display text-3xl font-bold text-foreground">Manage Rescues</h1>
+            <Dialog open={isRescueDialogOpen} onOpenChange={setIsRescueDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleOpenRescueDialog()} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Rescue
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingRescue ? 'Edit Rescue' : 'Add New Rescue'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleRescueSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rescue_name">Name</Label>
+                    <Input
+                      id="rescue_name"
+                      value={rescueFormData.name}
+                      onChange={(e) => setRescueFormData({ ...rescueFormData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_type">Type</Label>
+                      <Select 
+                        value={rescueFormData.type} 
+                        onValueChange={(v) => setRescueFormData({ ...rescueFormData, type: v })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Full">Full</SelectItem>
+                          <SelectItem value="Foster">Foster</SelectItem>
+                          <SelectItem value="Sanctuary">Sanctuary</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_region">Region</Label>
+                      <Input
+                        id="rescue_region"
+                        value={rescueFormData.region}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, region: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rescue_website">Website (Optional)</Label>
+                    <Input
+                      id="rescue_website"
+                      type="url"
+                      value={rescueFormData.website}
+                      onChange={(e) => setRescueFormData({ ...rescueFormData, website: e.target.value })}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_phone">Phone (Optional)</Label>
+                      <Input
+                        id="rescue_phone"
+                        type="tel"
+                        value={rescueFormData.phone}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_email">Email (Optional)</Label>
+                      <Input
+                        id="rescue_email"
+                        type="email"
+                        value={rescueFormData.email}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rescue_address">Address (Optional)</Label>
+                    <Textarea
+                      id="rescue_address"
+                      value={rescueFormData.address}
+                      onChange={(e) => setRescueFormData({ ...rescueFormData, address: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_postcode">Postcode (Optional)</Label>
+                      <Input
+                        id="rescue_postcode"
+                        value={rescueFormData.postcode}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, postcode: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_charity_number">Charity Number (Optional)</Label>
+                      <Input
+                        id="rescue_charity_number"
+                        value={rescueFormData.charity_number}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, charity_number: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_latitude">Latitude (Optional)</Label>
+                      <Input
+                        id="rescue_latitude"
+                        type="number"
+                        step="any"
+                        value={rescueFormData.latitude}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, latitude: e.target.value })}
+                        placeholder="51.5074"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rescue_longitude">Longitude (Optional)</Label>
+                      <Input
+                        id="rescue_longitude"
+                        type="number"
+                        step="any"
+                        value={rescueFormData.longitude}
+                        onChange={(e) => setRescueFormData({ ...rescueFormData, longitude: e.target.value })}
+                        placeholder="-0.1278"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rescue_contact_notes">Contact Notes (Optional)</Label>
+                    <Textarea
+                      id="rescue_contact_notes"
+                      value={rescueFormData.contact_notes}
+                      onChange={(e) => setRescueFormData({ ...rescueFormData, contact_notes: e.target.value })}
+                      rows={2}
+                      placeholder="Internal notes about contact information..."
+                    />
+                  </div>
+
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsRescueDialogOpen(false)} className="w-full sm:w-auto">
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isRescueSubmitting} className="w-full sm:w-auto">
+                      {isRescueSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      {editingRescue ? 'Save Changes' : 'Add Rescue'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid gap-4">
+            {rescues.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No rescues yet. Click "Add Rescue" to get started.
+                </CardContent>
+              </Card>
+            ) : (
+              rescues.map((rescue) => (
+                <Card key={rescue.id}>
+                  <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-semibold text-foreground">{rescue.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {rescue.type} • {rescue.region}
+                      </p>
+                      {rescue.website && (
+                        <a 
+                          href={rescue.website.startsWith('http') ? rescue.website : `https://${rescue.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          {rescue.website}
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto justify-end">
+                      <Button variant="outline" size="icon" onClick={() => handleOpenRescueDialog(rescue)}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {rescue.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently remove {rescue.name} from the database.
+                              {' '}Note: Rescues with associated dogs cannot be deleted.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleRescueDelete(rescue.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
       </main>
     </div>
