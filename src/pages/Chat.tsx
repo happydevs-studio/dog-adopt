@@ -6,14 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { useDogs } from '@/hooks/useDogs';
 import { useRescues } from '@/hooks/useRescues';
-import { getChatResponse, getStarterQuestions, resetConversationState, type ChatMessage, type ChatResponse } from '@/services/chatService';
-import { cn } from '@/lib/utils';
+import { getChatResponse, getStarterQuestions, resetConversationState, type ChatMessage as ChatMessageType } from '@/services/chatService';
+import { ChatMessage } from './Chat/ChatMessage';
+import { QuickFilters } from './Chat/QuickFilters';
+import { StarterQuestions } from './Chat/StarterQuestions';
 
 const Chat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ const Chat = () => {
   // Initial greeting
   useEffect(() => {
     if (!dataLoading && messages.length === 0) {
-      const greeting: ChatMessage = {
+      const greeting: ChatMessageType = {
         id: '0',
         role: 'assistant',
         content: `Hello! 👋 I'm here to help you find information about dogs available for adoption and rescue organizations in the UK. What would you like to know?`,
@@ -47,7 +48,7 @@ const Chat = () => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading || dataLoading) return;
     
-    const userMessage: ChatMessage = {
+    const userMessage: ChatMessageType = {
       id: crypto.randomUUID(),
       role: 'user',
       content: inputValue.trim(),
@@ -61,7 +62,7 @@ const Chat = () => {
     try {
       const response = await getChatResponse(inputValue.trim(), { dogs, rescues });
       
-      const assistantMessage: ChatMessage = {
+      const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: response.content,
@@ -71,9 +72,7 @@ const Chat = () => {
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error getting chat response:', error);
-      
-      const errorMessage: ChatMessage = {
+      const errorMessage: ChatMessageType = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: "I'm sorry, I encountered an error processing your message. Please try again.",
@@ -110,30 +109,7 @@ const Chat = () => {
       timestamp: new Date(),
     }]);
   };
-  
-  // Format message content with basic markdown-like formatting
-  const formatMessage = (content: string) => {
-    // Split by lines and process
-    const lines = content.split('\n');
-    return lines.map((line, idx) => {
-      // Bold text **text**
-      const parts = line.split(/(\*\*[^*]+\*\*)/g);
-      const formatted = parts.map((part, partIdx) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={partIdx}>{part.slice(2, -2)}</strong>;
-        }
-        return part;
-      });
-      
-      return (
-        <span key={idx}>
-          {formatted}
-          {idx < lines.length - 1 && <br />}
-        </span>
-      );
-    });
-  };
-  
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -177,58 +153,11 @@ const Chat = () => {
             <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {messages.map((message) => (
-                  <div
+                  <ChatMessage
                     key={message.id}
-                    className={cn(
-                      'flex',
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'max-w-[80%] rounded-lg px-4 py-3',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground ml-12'
-                          : 'bg-muted mr-12'
-                      )}
-                    >
-                      <div className="text-sm whitespace-pre-wrap">
-                        {formatMessage(message.content)}
-                      </div>
-                      <div
-                        className={cn(
-                          'text-xs mt-1',
-                          message.role === 'user'
-                            ? 'text-primary-foreground/70'
-                            : 'text-muted-foreground'
-                        )}
-                      >
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </div>
-                      
-                      {/* Suggested follow-up questions */}
-                      {message.role === 'assistant' && message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-border/50">
-                          <p className="text-xs text-muted-foreground mb-2">You might also ask:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {message.suggestedQuestions.map((question, idx) => (
-                              <Badge
-                                key={idx}
-                                variant="secondary"
-                                className="cursor-pointer hover:bg-secondary/80 text-xs"
-                                onClick={() => handleStarterQuestion(question)}
-                              >
-                                {question}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    message={message}
+                    onQuestionClick={handleStarterQuestion}
+                  />
                 ))}
                 
                 {isLoading && (
@@ -248,60 +177,16 @@ const Chat = () => {
             
             {/* Starter questions */}
             {messages.length <= 1 && !isLoading && (
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">Try asking:</p>
-                <div className="flex flex-wrap gap-2">
-                  {starterQuestions.map((question, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStarterQuestion(question)}
-                      disabled={dataLoading}
-                      className="text-xs"
-                    >
-                      {question}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <StarterQuestions
+                questions={starterQuestions}
+                dataLoading={dataLoading}
+                onQuestionClick={handleStarterQuestion}
+              />
             )}
             
             {/* Quick filter buttons - show when conversation has started */}
             {messages.length > 1 && !isLoading && (
-              <div className="mb-4">
-                <p className="text-xs text-muted-foreground mb-2">Quick filters:</p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                    variant="outline"
-                    className="cursor-pointer hover:bg-secondary text-xs"
-                    onClick={() => handleStarterQuestion('Show me small dogs')}
-                  >
-                    Small Dogs
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="cursor-pointer hover:bg-secondary text-xs"
-                    onClick={() => handleStarterQuestion('Show me puppies')}
-                  >
-                    Puppies
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="cursor-pointer hover:bg-secondary text-xs"
-                    onClick={() => handleStarterQuestion('Dogs good with kids')}
-                  >
-                    Good with Kids
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="cursor-pointer hover:bg-secondary text-xs"
-                    onClick={() => handleStarterQuestion('Dogs good with cats')}
-                  >
-                    Good with Cats
-                  </Badge>
-                </div>
-              </div>
+              <QuickFilters onFilterClick={handleStarterQuestion} />
             )}
             
             {/* Input area */}
