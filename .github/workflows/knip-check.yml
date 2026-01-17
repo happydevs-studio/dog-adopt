@@ -32,22 +32,33 @@ jobs:
       - name: Run knip
         id: knip
         run: |
-          npm run knip > knip-output.txt 2>&1 || true
+          set +e
+          npm run knip > knip-output.txt 2>&1
+          KNIP_EXIT_CODE=$?
           cat knip-output.txt
-        continue-on-error: true
+          echo "exit_code=$KNIP_EXIT_CODE" >> $GITHUB_OUTPUT
+          exit 0
       
       - name: Check knip results
         id: check_results
         run: |
-          if grep -q "Unused files\|Unused dependencies\|Unused exports" knip-output.txt; then
+          EXIT_CODE=${{ steps.knip.outputs.exit_code }}
+          
+          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+            echo "✅ No unused code detected!" >> $GITHUB_STEP_SUMMARY
+          elif [ "$EXIT_CODE" -eq 1 ]; then
             echo "has_issues=true" >> $GITHUB_OUTPUT
             echo "⚠️ Knip found unused code. See details below." >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             cat knip-output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
-            echo "has_issues=false" >> $GITHUB_OUTPUT
-            echo "✅ No unused code detected!" >> $GITHUB_STEP_SUMMARY
+            echo "has_issues=error" >> $GITHUB_OUTPUT
+            echo "❌ Knip encountered an error (exit code: $EXIT_CODE)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat knip-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: Comment on PR
