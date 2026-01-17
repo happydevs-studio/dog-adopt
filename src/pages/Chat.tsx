@@ -94,10 +94,7 @@ const Chat = () => {
   
   const handleStarterQuestion = (question: string) => {
     setInputValue(question);
-    // Auto-send the question
-    setTimeout(() => {
-      handleSendMessage();
-    }, 100);
+    setTimeout(() => handleSendMessage(), 0);
   };
   
   const handleResetConversation = () => {
