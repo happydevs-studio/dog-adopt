@@ -6,15 +6,7 @@ import { Search, Loader2, MapPin, Navigation, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { PaginationControls } from '@/components/PaginationControls';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -191,92 +183,11 @@ const RescuesSection = () => {
             
             {totalPages > 1 && (
               <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                    
-                    {/* First page */}
-                    <PaginationItem>
-                      <PaginationLink
-                        {...(currentPage !== 1 && { onClick: () => setCurrentPage(1) })}
-                        isActive={currentPage === 1}
-                        className={currentPage !== 1 ? 'cursor-pointer' : ''}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    
-                    {/* Left ellipsis */}
-                    {currentPage > 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Pages around current */}
-                    {currentPage > 2 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(currentPage - 1)}
-                          className="cursor-pointer"
-                        >
-                          {currentPage - 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {currentPage !== 1 && currentPage !== totalPages && (
-                      <PaginationItem>
-                        <PaginationLink
-                          isActive
-                        >
-                          {currentPage}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {currentPage < totalPages - 1 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                          className="cursor-pointer"
-                        >
-                          {currentPage + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Right ellipsis */}
-                    {currentPage < totalPages - 2 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Last page */}
-                    <PaginationItem>
-                      <PaginationLink
-                        {...(currentPage !== totalPages && { onClick: () => setCurrentPage(totalPages) })}
-                        isActive={currentPage === totalPages}
-                        className={currentPage !== totalPages ? 'cursor-pointer' : ''}
-                      >
-                        {totalPages}
-                      </PaginationLink>
-                    </PaginationItem>
-                    
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             )}
           </>

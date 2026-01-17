@@ -24,80 +24,17 @@ import type { Dog } from '@/types/dog';
 import type { Rescue } from '@/hooks/useRescues';
 import { DevBypassBanner } from '@/components/auth/DevBypassBanner';
 import { DEFAULT_DOG_IMAGE } from '@/lib/constants';
-
-interface DogFormData {
-  name: string;
-  breeds: string[];
-  age: string;
-  birthYear: string;
-  birthMonth: string;
-  birthDay: string;
-  rescueSinceDate: string;
-  size: string;
-  gender: string;
-  status: 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn';
-  status_notes: string;
-  location: string;
-  rescue_id: string;
-  image: string;
-  profileUrl: string;
-  description: string;
-  good_with_kids: boolean;
-  good_with_dogs: boolean;
-  good_with_cats: boolean;
-}
-
-const initialFormData: DogFormData = {
-  name: '',
-  breeds: [],
-  age: 'Adult',
-  birthYear: '',
-  birthMonth: '',
-  birthDay: '',
-  rescueSinceDate: '',
-  size: 'Medium',
-  gender: 'Male',
-  status: 'available',
-  status_notes: '',
-  location: '',
-  rescue_id: '',
-  image: '',
-  profileUrl: '',
-  description: '',
-  good_with_kids: false,
-  good_with_dogs: false,
-  good_with_cats: false,
-};
-
-interface RescueFormData {
-  name: string;
-  type: string;
-  region: string;
-  website: string;
-  phone: string;
-  email: string;
-  address: string;
-  postcode: string;
-  charity_number: string;
-  contact_notes: string;
-  latitude: string;
-  longitude: string;
-}
-
-const initialRescueFormData: RescueFormData = {
-  name: '',
-  type: 'Full',
-  region: '',
-  website: '',
-  phone: '',
-  email: '',
-  address: '',
-  postcode: '',
-  charity_number: '',
-  contact_notes: '',
-  latitude: '',
-  longitude: '',
-};
+import type { DogFormData, RescueFormData } from './Admin.types';
+import { initialFormData, initialRescueFormData } from './Admin.types';
+import {
+  validateDogForm,
+  validateImageFile,
+  buildDogDataPayload,
+  buildCreateDogParams,
+  buildUpdateDogParams,
+  buildCreateRescueParams,
+  buildUpdateRescueParams,
+} from './Admin.helpers';
 
 const Admin = () => {
   const { user, isAdmin, isLoading: authLoading, signOut, isDevBypass } = useAuth();
@@ -180,12 +117,9 @@ const Admin = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' });
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        toast({ title: 'Error', description: validation.error, variant: 'destructive' });
         return;
       }
       setImageFile(file);
@@ -218,63 +152,7 @@ const Admin = () => {
     }
   };
 
-  const validateDogForm = (data: DogFormData): { isValid: boolean; error?: string } => {
-    if (data.breeds.length === 0) {
-      return { isValid: false, error: 'Please select at least one breed' };
-    }
-    
-    // Validate birth date fields
-    const hasYear = data.birthYear !== '';
-    const hasMonth = data.birthMonth !== '';
-    const hasDay = data.birthDay !== '';
-    
-    if (hasMonth && !hasYear) {
-      return { isValid: false, error: 'Birth year is required when birth month is provided' };
-    }
-    
-    if (hasDay && (!hasYear || !hasMonth)) {
-      return { isValid: false, error: 'Birth year and month are required when birth day is provided' };
-    }
-    
-    // Validate ranges if values are provided
-    if (hasYear) {
-      const year = parseInt(data.birthYear);
-      const currentYear = new Date().getFullYear();
-      if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-        return { isValid: false, error: `Birth year must be between 1900 and ${currentYear + 1}` };
-      }
-    }
-    
-    if (hasMonth) {
-      const month = parseInt(data.birthMonth);
-      if (isNaN(month) || month < 1 || month > 12) {
-        return { isValid: false, error: 'Birth month must be between 1 and 12' };
-      }
-    }
-    
-    if (hasDay) {
-      const day = parseInt(data.birthDay);
-      const year = parseInt(data.birthYear);
-      const month = parseInt(data.birthMonth);
-      
-      if (isNaN(day) || day < 1 || day > 31) {
-        return { isValid: false, error: 'Birth day must be between 1 and 31' };
-      }
-      
-      // Validate year and month are valid numbers before creating date
-      if (isNaN(year) || isNaN(month)) {
-        return { isValid: false, error: 'Valid year and month are required for birth day' };
-      }
-      
-      // Validate actual date exists
-      const testDate = new Date(year, month - 1, day);
-      if (testDate.getMonth() !== month - 1 || testDate.getDate() !== day) {
-        return { isValid: false, error: 'Invalid date (e.g., February 30th doesn\'t exist)' };
-      }
-    }
-    
-    return { isValid: true };
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,82 +181,20 @@ const Admin = () => {
         return;
       }
 
-      const rescue = rescues.find(r => r.id === formData.rescue_id);
-      
-      const dogData = {
-        name: formData.name,
-        age: formData.age,
-        birth_year: formData.birthYear ? parseInt(formData.birthYear) : null,
-        birth_month: formData.birthMonth ? parseInt(formData.birthMonth) : null,
-        birth_day: formData.birthDay ? parseInt(formData.birthDay) : null,
-        rescue_since_date: formData.rescueSinceDate || null,
-        size: formData.size,
-        gender: formData.gender,
-        status: formData.status,
-        status_notes: formData.status_notes || null,
-        rescue_id: formData.rescue_id || null,
-        location_id: null, // TODO: Add location support when needed
-        image: imageUrl,
-        profile_url: formData.profileUrl || null,
-        description: formData.description,
-        good_with_kids: formData.good_with_kids,
-        good_with_dogs: formData.good_with_dogs,
-        good_with_cats: formData.good_with_cats,
-      };
+      const dogData = buildDogDataPayload(formData, imageUrl);
 
       if (editingDog) {
-        // Use API layer update function
+        const params = buildUpdateDogParams(editingDog.id, dogData, formData.breeds);
         const { error } = await supabase
           .schema('dogadopt_api')
-          .rpc('update_dog', {
-          p_dog_id: editingDog.id,
-          p_name: dogData.name,
-          p_age: dogData.age,
-          p_size: dogData.size,
-          p_gender: dogData.gender,
-          p_status: dogData.status,
-          p_rescue_id: dogData.rescue_id,
-          p_image: dogData.image,
-          p_description: dogData.description,
-          p_good_with_kids: dogData.good_with_kids,
-          p_good_with_dogs: dogData.good_with_dogs,
-          p_good_with_cats: dogData.good_with_cats,
-          p_breed_names: formData.breeds,
-          p_birth_year: dogData.birth_year,
-          p_birth_month: dogData.birth_month,
-          p_birth_day: dogData.birth_day,
-          p_rescue_since_date: dogData.rescue_since_date,
-          p_profile_url: dogData.profile_url,
-          p_status_notes: dogData.status_notes,
-          p_location_id: dogData.location_id
-        });
+          .rpc('update_dog', params);
 
         if (error) throw error;
       } else {
-        // Use API layer create function
-        const { data: newDogId, error } = await supabase
+        const params = buildCreateDogParams(dogData, formData.breeds);
+        const { error } = await supabase
           .schema('dogadopt_api')
-          .rpc('create_dog', {
-          p_name: dogData.name,
-          p_age: dogData.age,
-          p_size: dogData.size,
-          p_gender: dogData.gender,
-          p_status: dogData.status,
-          p_rescue_id: dogData.rescue_id,
-          p_image: dogData.image,
-          p_description: dogData.description,
-          p_good_with_kids: dogData.good_with_kids,
-          p_good_with_dogs: dogData.good_with_dogs,
-          p_good_with_cats: dogData.good_with_cats,
-          p_breed_names: formData.breeds,
-          p_birth_year: dogData.birth_year,
-          p_birth_month: dogData.birth_month,
-          p_birth_day: dogData.birth_day,
-          p_rescue_since_date: dogData.rescue_since_date,
-          p_profile_url: dogData.profile_url,
-          p_status_notes: dogData.status_notes,
-          p_location_id: dogData.location_id
-        });
+          .rpc('create_dog', params);
 
         if (error) throw error;
       }
@@ -390,10 +206,11 @@ const Admin = () => {
 
       setIsDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['dogs'] });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       toast({
         title: 'Error',
-        description: error.message || 'Something went wrong',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -413,10 +230,11 @@ const Admin = () => {
       if (error) throw error;
       toast({ title: 'Success', description: 'Dog removed successfully' });
       queryClient.invalidateQueries({ queryKey: ['dogs'] });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete dog';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete dog',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -453,44 +271,17 @@ const Admin = () => {
 
     try {
       if (editingRescue) {
-        // Update existing rescue
+        const params = buildUpdateRescueParams(editingRescue.id, rescueFormData);
         const { error } = await supabase
           .schema('dogadopt_api')
-          .rpc('update_rescue', {
-            p_rescue_id: editingRescue.id,
-            p_name: rescueFormData.name,
-            p_type: rescueFormData.type,
-            p_region: rescueFormData.region,
-            p_website: rescueFormData.website || null,
-            p_phone: rescueFormData.phone || null,
-            p_email: rescueFormData.email || null,
-            p_address: rescueFormData.address || null,
-            p_postcode: rescueFormData.postcode || null,
-            p_charity_number: rescueFormData.charity_number || null,
-            p_contact_notes: rescueFormData.contact_notes || null,
-            p_latitude: rescueFormData.latitude ? parseFloat(rescueFormData.latitude) : null,
-            p_longitude: rescueFormData.longitude ? parseFloat(rescueFormData.longitude) : null,
-          });
+          .rpc('update_rescue', params);
 
         if (error) throw error;
       } else {
-        // Create new rescue
+        const params = buildCreateRescueParams(rescueFormData);
         const { error } = await supabase
           .schema('dogadopt_api')
-          .rpc('create_rescue', {
-            p_name: rescueFormData.name,
-            p_type: rescueFormData.type,
-            p_region: rescueFormData.region,
-            p_website: rescueFormData.website || null,
-            p_phone: rescueFormData.phone || null,
-            p_email: rescueFormData.email || null,
-            p_address: rescueFormData.address || null,
-            p_postcode: rescueFormData.postcode || null,
-            p_charity_number: rescueFormData.charity_number || null,
-            p_contact_notes: rescueFormData.contact_notes || null,
-            p_latitude: rescueFormData.latitude ? parseFloat(rescueFormData.latitude) : null,
-            p_longitude: rescueFormData.longitude ? parseFloat(rescueFormData.longitude) : null,
-          });
+          .rpc('create_rescue', params);
 
         if (error) throw error;
       }
@@ -502,10 +293,11 @@ const Admin = () => {
 
       setIsRescueDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['rescues'] });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       toast({
         title: 'Error',
-        description: error.message || 'Something went wrong',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -524,10 +316,11 @@ const Admin = () => {
       if (error) throw error;
       toast({ title: 'Success', description: 'Rescue removed successfully' });
       queryClient.invalidateQueries({ queryKey: ['rescues'] });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete rescue';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete rescue',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
