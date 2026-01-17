@@ -117,43 +117,49 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
       }
 
       // The API function returns data in JSONB format for rescue and breeds
-      const dogs = (data as any[]).map((dog) => {
+      const dogs = (data as Array<Record<string, unknown>>).map((dog) => {
         // Parse rescue from JSONB (API layer returns it as an object)
-        const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
+        const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue as string) : dog.rescue;
         
         // Parse breeds from JSONB array (API layer returns sorted array)
-        const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds) : dog.breeds;
+        const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds as string) : dog.breeds;
+        
+        interface BreedItem {
+          display_order: number;
+          name: string;
+        }
+        
         const breeds = (breedsArray || [])
-          .sort((a: any, b: any) => a.display_order - b.display_order)
-          .map((b: any) => b.name);
+          .sort((a: BreedItem, b: BreedItem) => a.display_order - b.display_order)
+          .map((b: BreedItem) => b.name);
 
         // Calculate computed age if birth date is available
         const computedAge = calculateAgeCategory(dog.birth_year, dog.birth_month, dog.birth_day);
 
         const dogData: Dog = {
-          id: dog.id,
-          name: dog.name,
+          id: dog.id as string,
+          name: dog.name as string,
           breed: breeds.join(', '), // Display string
           breeds: breeds, // Array for filtering/editing
-          age: dog.age,
-          birthYear: dog.birth_year,
-          birthMonth: dog.birth_month,
-          birthDay: dog.birth_day,
-          rescueSinceDate: dog.rescue_since_date,
-          computedAge: computedAge || dog.age, // Use computed age if available, otherwise fall back to manual age
+          age: dog.age as string,
+          birthYear: dog.birth_year as number | undefined,
+          birthMonth: dog.birth_month as number | undefined,
+          birthDay: dog.birth_day as number | undefined,
+          rescueSinceDate: dog.rescue_since_date as string | undefined,
+          computedAge: computedAge || (dog.age as string), // Use computed age if available, otherwise fall back to manual age
           size: dog.size as 'Small' | 'Medium' | 'Large',
           gender: dog.gender as 'Male' | 'Female',
           status: dog.status as 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn',
-          statusNotes: dog.status_notes,
+          statusNotes: dog.status_notes as string | undefined,
           location: rescue?.region || 'Unknown', // Use rescue region as location
           rescue: rescue?.name || 'Unknown',
           rescueWebsite: rescue?.website,
-          image: dog.image || DEFAULT_DOG_IMAGE,
-          profileUrl: dog.profile_url ?? undefined,
-          goodWithKids: dog.good_with_kids,
-          goodWithDogs: dog.good_with_dogs,
-          goodWithCats: dog.good_with_cats,
-          description: dog.description,
+          image: (dog.image as string | null) || DEFAULT_DOG_IMAGE,
+          profileUrl: (dog.profile_url as string | null) ?? undefined,
+          goodWithKids: dog.good_with_kids as boolean,
+          goodWithDogs: dog.good_with_dogs as boolean,
+          goodWithCats: dog.good_with_cats as boolean,
+          description: dog.description as string,
         };
 
         // Calculate distance if user location is provided and rescue has coordinates

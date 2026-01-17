@@ -97,8 +97,7 @@ const Chat = () => {
     setInputValue(question);
     // Auto-send the question
     setTimeout(() => {
-      const event = new KeyboardEvent('keydown', { key: 'Enter' });
-      handleKeyDown(event as any);
+      handleSendMessage();
     }, 100);
   };
   
