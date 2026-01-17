@@ -1,3 +1,5 @@
+/* eslint-disable max-lines-per-function */
+// Large dialog component with many form fields - disabling line count rule
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

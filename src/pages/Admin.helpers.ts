@@ -22,6 +22,57 @@ export interface DogDataPayload {
 }
 
 /**
+ * Validate year field
+ */
+function validateYear(year: string): { isValid: boolean; error?: string } {
+  const yearNum = parseInt(year);
+  const currentYear = new Date().getFullYear();
+  
+  if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear + 1) {
+    return { isValid: false, error: `Birth year must be between 1900 and ${currentYear + 1}` };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Validate month field
+ */
+function validateMonth(month: string): { isValid: boolean; error?: string } {
+  const monthNum = parseInt(month);
+  
+  if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+    return { isValid: false, error: 'Birth month must be between 1 and 12' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Validate day field
+ */
+function validateDay(day: string, month: string, year: string): { isValid: boolean; error?: string } {
+  const dayNum = parseInt(day);
+  const monthNum = parseInt(month);
+  const yearNum = parseInt(year);
+  
+  if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
+    return { isValid: false, error: 'Birth day must be between 1 and 31' };
+  }
+  
+  if (isNaN(yearNum) || isNaN(monthNum)) {
+    return { isValid: false, error: 'Valid year and month are required for birth day' };
+  }
+  
+  const testDate = new Date(yearNum, monthNum - 1, dayNum);
+  if (testDate.getMonth() !== monthNum - 1 || testDate.getDate() !== dayNum) {
+    return { isValid: false, error: 'Invalid date (e.g., February 30th doesn\'t exist)' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
  * Validate birth date fields for a dog form
  */
 export function validateBirthDate(data: DogFormData): { isValid: boolean; error?: string } {
@@ -37,39 +88,19 @@ export function validateBirthDate(data: DogFormData): { isValid: boolean; error?
     return { isValid: false, error: 'Birth year and month are required when birth day is provided' };
   }
   
-  if (!hasYear) {
-    return { isValid: true };
-  }
+  if (!hasYear) return { isValid: true };
   
-  const year = parseInt(data.birthYear);
-  const currentYear = new Date().getFullYear();
-  if (isNaN(year) || year < 1900 || year > currentYear + 1) {
-    return { isValid: false, error: `Birth year must be between 1900 and ${currentYear + 1}` };
-  }
+  const yearValidation = validateYear(data.birthYear);
+  if (!yearValidation.isValid) return yearValidation;
   
   if (hasMonth) {
-    const month = parseInt(data.birthMonth);
-    if (isNaN(month) || month < 1 || month > 12) {
-      return { isValid: false, error: 'Birth month must be between 1 and 12' };
-    }
+    const monthValidation = validateMonth(data.birthMonth);
+    if (!monthValidation.isValid) return monthValidation;
   }
   
   if (hasDay) {
-    const day = parseInt(data.birthDay);
-    const month = parseInt(data.birthMonth);
-    
-    if (isNaN(day) || day < 1 || day > 31) {
-      return { isValid: false, error: 'Birth day must be between 1 and 31' };
-    }
-    
-    if (isNaN(year) || isNaN(month)) {
-      return { isValid: false, error: 'Valid year and month are required for birth day' };
-    }
-    
-    const testDate = new Date(year, month - 1, day);
-    if (testDate.getMonth() !== month - 1 || testDate.getDate() !== day) {
-      return { isValid: false, error: 'Invalid date (e.g., February 30th doesn\'t exist)' };
-    }
+    const dayValidation = validateDay(data.birthDay, data.birthMonth, data.birthYear);
+    if (!dayValidation.isValid) return dayValidation;
   }
   
   return { isValid: true };

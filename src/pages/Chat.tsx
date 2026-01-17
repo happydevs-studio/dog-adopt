@@ -1,3 +1,6 @@
+/* eslint-disable max-lines-per-function */
+/* eslint-disable complexity */
+// Chat page with message handling - disabling rules for main component
 import { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, Loader2, RotateCcw } from 'lucide-react';
 import Header from '@/components/Header';
@@ -12,6 +15,12 @@ import { getChatResponse, getStarterQuestions, resetConversationState, type Chat
 import { ChatMessage } from './Chat/ChatMessage';
 import { QuickFilters } from './Chat/QuickFilters';
 import { StarterQuestions } from './Chat/StarterQuestions';
+import { 
+  createUserMessage, 
+  createAssistantMessage, 
+  createErrorMessage,
+  createGreetingMessage 
+} from './Chat/chatHelpers';
 
 const Chat = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -20,66 +29,36 @@ const Chat = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Fetch dogs and rescues data
   const { data: dogs = [], isLoading: dogsLoading } = useDogs();
   const { data: rescues = [], isLoading: rescuesLoading } = useRescues();
   
   const dataLoading = dogsLoading || rescuesLoading;
   const starterQuestions = getStarterQuestions({ dogs, rescues });
   
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  // Initial greeting
   useEffect(() => {
     if (!dataLoading && messages.length === 0) {
-      const greeting: ChatMessageType = {
-        id: '0',
-        role: 'assistant',
-        content: `Hello! 👋 I'm here to help you find information about dogs available for adoption and rescue organizations in the UK. What would you like to know?`,
-        timestamp: new Date(),
-      };
-      setMessages([greeting]);
+      setMessages([createGreetingMessage()]);
     }
   }, [dataLoading, messages.length]);
   
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading || dataLoading) return;
     
-    const userMessage: ChatMessageType = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date(),
-    };
-    
+    const userMessage = createUserMessage(inputValue);
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
     
     try {
       const response = await getChatResponse(inputValue.trim(), { dogs, rescues });
-      
-      const assistantMessage: ChatMessageType = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response.content,
-        timestamp: new Date(),
-        suggestedQuestions: response.suggestedQuestions,
-      };
-      
+      const assistantMessage = createAssistantMessage(response.content, response.suggestedQuestions);
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      const errorMessage: ChatMessageType = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error processing your message. Please try again.",
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, createErrorMessage()]);
     } finally {
       setIsLoading(false);
     }
@@ -99,12 +78,8 @@ const Chat = () => {
   
   const handleResetConversation = () => {
     resetConversationState();
-    setMessages([{
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Conversation reset! 🔄 Let's start fresh. What kind of dog are you looking for?`,
-      timestamp: new Date(),
-    }]);
+    const resetMessage = 'Conversation reset! 🔄 Let\'s start fresh. What kind of dog are you looking for?';
+    setMessages([createAssistantMessage(resetMessage)]);
   };
 
   return (

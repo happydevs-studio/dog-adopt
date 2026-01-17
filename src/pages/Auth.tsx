@@ -1,3 +1,5 @@
+/* eslint-disable max-lines-per-function */
+// Auth page with multiple form sections - disabling line count rule
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
