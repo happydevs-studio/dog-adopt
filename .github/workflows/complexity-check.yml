@@ -35,34 +35,41 @@ jobs:
         run: |
           echo "Running complexity analysis..."
           
-          # Run ESLint with complexity rules
+          # Run ESLint with complexity rules and capture exit code
+          set +e
           npx eslint . \
             --rule 'complexity: ["error", { "max": 15 }]' \
             --rule 'max-depth: ["error", 4]' \
             --rule 'max-lines-per-function: ["error", { "max": 150, "skipBlankLines": true, "skipComments": true }]' \
             --rule 'max-nested-callbacks: ["error", 3]' \
             --format json \
-            --output-file complexity-report.json || true
+            --output-file complexity-report.json
           
-          # Also run with standard format for console output
+          ESLINT_EXIT_CODE=$?
+          set -e
+          
+          # Check if complexity report was created
+          if [ ! -f complexity-report.json ]; then
+            echo "❌ Failed to generate complexity report"
+            exit 1
+          fi
+          
+          # Display human-readable output for console
+          echo "Generating human-readable report..."
           npx eslint . \
             --rule 'complexity: ["error", { "max": 15 }]' \
             --rule 'max-depth: ["error", 4]' \
             --rule 'max-lines-per-function: ["error", { "max": 150, "skipBlankLines": true, "skipComments": true }]' \
             --rule 'max-nested-callbacks: ["error", 3]' \
-            || echo "Complexity issues found"
+            || echo "Complexity issues found (see JSON report for details)"
           
-          # Check if there are any complexity issues
-          if [ -f complexity-report.json ]; then
-            ISSUE_COUNT=$(jq '[.[] | select(.errorCount > 0 or .warningCount > 0)] | length' complexity-report.json)
-            echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
-            
-            if [ "$ISSUE_COUNT" -gt 0 ]; then
-              echo "❌ Found $ISSUE_COUNT files with complexity issues"
-              exit 1
-            else
-              echo "✅ No complexity issues found"
-            fi
+          # Count files with complexity issues
+          ISSUE_COUNT=$(jq '[.[] | select(.errorCount > 0 or .warningCount > 0)] | length' complexity-report.json)
+          echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$ISSUE_COUNT" -gt 0 ]; then
+            echo "❌ Found $ISSUE_COUNT files with complexity issues"
+            exit 1
           else
             echo "✅ No complexity issues found"
           fi
@@ -137,21 +144,23 @@ jobs:
         with:
           script: |
             const title = '⚠️ Code Complexity Issues in Main Branch';
-            const body = `Code complexity issues have been detected in the main branch.
-            
-            **Commit:** ${{ github.sha }}
-            **Run ID:** ${{ github.run_id }}
-            **Time:** ${new Date().toISOString()}
-            
-            Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
-            
-            Download the complexity report artifact to see all issues.
-            
-            ### Complexity Guidelines:
-            - **Cyclomatic Complexity**: Maximum 15 per function
-            - **Max Depth**: Maximum 4 levels of nesting
-            - **Max Lines per Function**: Maximum 150 lines
-            - **Max Nested Callbacks**: Maximum 3 levels`;
+            const body = [
+              'Code complexity issues have been detected in the main branch.',
+              '',
+              '**Commit:** ${{ github.sha }}',
+              '**Run ID:** ${{ github.run_id }}',
+              '**Time:** ' + new Date().toISOString(),
+              '',
+              'Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.',
+              '',
+              'Download the complexity report artifact to see all issues.',
+              '',
+              '### Complexity Guidelines:',
+              '- **Cyclomatic Complexity**: Maximum 15 per function',
+              '- **Max Depth**: Maximum 4 levels of nesting',
+              '- **Max Lines per Function**: Maximum 150 lines',
+              '- **Max Nested Callbacks**: Maximum 3 levels'
+            ].join('\n');
             
             // Check if there's already an open issue
             const issues = await github.rest.issues.listForRepo({
@@ -176,6 +185,6 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issues.data[0].number,
-                body: `Another complexity issue detected:\n\n${body}`
+                body: 'Another complexity issue detected:\n\n' + body
               });
             }
