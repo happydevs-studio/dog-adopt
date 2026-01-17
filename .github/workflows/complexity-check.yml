@@ -54,7 +54,10 @@ jobs:
             exit 1
           fi
           
-          # Display human-readable output for console
+          # Display human-readable output for console (intentionally runs twice)
+          # Note: We run ESLint twice because we need both JSON format for processing
+          # and human-readable format for console output. ESLint doesn't support
+          # multiple output formats in a single run.
           echo "Generating human-readable report..."
           npx eslint . \
             --rule 'complexity: ["error", { "max": 15 }]' \
@@ -101,14 +104,14 @@ jobs:
                 reportContent += '|------|--------|----------|\n';
                 
                 filesWithIssues.forEach(file => {
-                  const relativePath = file.filePath.replace(process.env.GITHUB_WORKSPACE + '/', '');
+                  const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
                   reportContent += `| ${relativePath} | ${file.errorCount} | ${file.warningCount} |\n`;
                 });
                 
                 reportContent += '\n### Issues Found:\n\n';
                 
                 filesWithIssues.slice(0, 5).forEach(file => {
-                  const relativePath = file.filePath.replace(process.env.GITHUB_WORKSPACE + '/', '');
+                  const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
                   reportContent += `\n**${relativePath}**\n`;
                   
                   file.messages.forEach(msg => {
