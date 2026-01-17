@@ -110,20 +110,50 @@ Knip suggests refining the configuration file to be more specific about entry pa
 
 ### Immediate Actions (Safe)
 
-1. ✅ **Keep knip installed** - Add it as a regular CI check
-2. ✅ **Add knip scripts** to package.json (already done)
-3. ✅ **Document findings** (this file)
+1. ✅ **Keep knip installed** - Add it as a regular CI check (DONE)
+2. ✅ **Add knip scripts** to package.json (DONE)
+3. ✅ **Document findings** (DONE)
+4. ✅ **Add GitHub Actions workflow** (DONE)
+5. ✅ **Update README** (DONE)
 
 ### Short-term Actions (Requires Review)
 
 1. **Remove unused dependencies** - This would reduce the package size significantly
-   - Review each dependency to ensure it's truly unused
-   - Some might be used in ways knip doesn't detect (e.g., CSS imports, dynamic imports)
+   - All 21 unused dependencies are legitimately unused
+   - They correspond to shadcn/ui components that haven't been used yet
+   - Safe to remove, can reinstall if needed later
+   - **Estimated savings:** ~15-20MB in node_modules
    
 2. **Clean up unused shadcn/ui components** - These are auto-generated and can be safely removed
+   - 26 unused UI components found
    - Can always re-generate if needed later using `npx shadcn-ui add <component>`
+   - Reduces clutter in the codebase
+   
+3. **Remove unused files** - ConfigurationCheck.tsx, NavLink.tsx, dogs.ts, use-mobile.tsx, BasicInfoSection.tsx
+   - Review each to ensure they're not planned for future use
+   - Safe to remove if truly unused
 
-3. **Remove unused files** - ConfigurationCheck.tsx, NavLink.tsx, etc.
+### Example: Removing Unused Dependencies
+
+To remove all unused dependencies found by knip:
+
+```bash
+# Remove unused production dependencies
+npm uninstall @hookform/resolvers @radix-ui/react-accordion @radix-ui/react-aspect-ratio \
+  @radix-ui/react-avatar @radix-ui/react-context-menu @radix-ui/react-hover-card \
+  @radix-ui/react-menubar @radix-ui/react-navigation-menu @radix-ui/react-progress \
+  @radix-ui/react-slider @radix-ui/react-switch @radix-ui/react-toggle \
+  @radix-ui/react-toggle-group date-fns embla-carousel-react input-otp \
+  react-day-picker react-hook-form react-resizable-panels recharts vaul
+
+# Remove unused dev dependency
+npm uninstall -D @tailwindcss/typography
+
+# Verify build still works
+npm run build
+```
+
+**Before removing:** Always ensure your application still builds and runs correctly!
 
 ### Long-term Actions
 
