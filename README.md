@@ -108,9 +108,11 @@ This project uses GitHub Actions for automated CI/CD:
 
 1. **GitHub Pages Deployment**: Automatically deploys to GitHub Pages when code is pushed to the `main` branch
 2. **Supabase Migrations**: Automatically applies database migrations when migration files are updated
+3. **Code Complexity Check**: Automatically analyzes code complexity on PRs and pushes to main
 
 **Setup Instructions:**
 See [CI/CD Setup Documentation](docs/CI_CD_SETUP.md) for detailed configuration steps.
+See [Complexity Check Documentation](docs/COMPLEXITY_CHECK.md) for code quality guidelines.
 
 **Quick Setup:**
 1. Enable GitHub Pages in repository settings (set source to "GitHub Actions")

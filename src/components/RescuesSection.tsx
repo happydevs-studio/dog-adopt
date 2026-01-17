@@ -1,20 +1,11 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import RescueCard from './RescueCard';
 import { useRescues } from '@/hooks/useRescues';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { Search, Loader2, MapPin, Navigation, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { Loader2 } from 'lucide-react';
+import { PaginationControls } from '@/components/PaginationControls';
+import { SearchBar, LocationControls } from '@/components/SearchAndLocationControls';
+import { useRescueFilters } from '@/hooks/useRescueFilters';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -61,17 +52,7 @@ const RescuesSection = () => {
     requestLocation();
   };
 
-  const filteredRescues = useMemo(() => {
-    return rescues.filter((rescue) => {
-      const matchesSearch =
-        searchQuery === '' ||
-        rescue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rescue.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rescue.type.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchesSearch;
-    });
-  }, [rescues, searchQuery]);
+  const filteredRescues = useRescueFilters({ rescues, searchQuery });
 
   // Calculate pagination values
   const totalPages = Math.ceil(filteredRescues.length / ITEMS_PER_PAGE);
@@ -96,75 +77,21 @@ const RescuesSection = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by name, region, or type..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {hasLocation ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearLocation}
-                className="gap-2"
-              >
-                <MapPin className="w-4 h-4" />
-                Near Me
-                <X className="w-3 h-3" />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLocationRequest}
-                disabled={locationLoading}
-                className="gap-2"
-              >
-                {locationLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Navigation className="w-4 h-4" />
-                )}
-                Find Near Me
-              </Button>
-            )}
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">{filteredRescues.length}</span> rescues
-            </p>
-          </div>
+        <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+
+        <LocationControls
+          hasLocation={hasLocation}
+          locationLoading={locationLoading}
+          locationError={locationError}
+          onRequestLocation={handleLocationRequest}
+          onClearLocation={clearLocation}
+        />
+
+        <div className="flex items-center justify-end mb-6">
+          <p className="text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredRescues.length}</span> organizations found
+          </p>
         </div>
-
-        {locationError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-semibold">{locationError}</p>
-                {window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && (
-                  <p className="text-sm">Note: This site must use HTTPS for location features to work.</p>
-                )}
-                <p className="text-sm">
-                  To enable location: Click the lock icon in your browser's address bar and allow location access.
-                </p>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {hasLocation && (
-          <Alert className="mb-6 border-primary/50 bg-primary/5">
-            <MapPin className="w-4 h-4" />
-            <AlertDescription>
-              Showing rescues sorted by distance from your location
-            </AlertDescription>
-          </Alert>
-        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
@@ -191,92 +118,11 @@ const RescuesSection = () => {
             
             {totalPages > 1 && (
               <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                    
-                    {/* First page */}
-                    <PaginationItem>
-                      <PaginationLink
-                        {...(currentPage !== 1 && { onClick: () => setCurrentPage(1) })}
-                        isActive={currentPage === 1}
-                        className={currentPage !== 1 ? 'cursor-pointer' : ''}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    
-                    {/* Left ellipsis */}
-                    {currentPage > 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Pages around current */}
-                    {currentPage > 2 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(currentPage - 1)}
-                          className="cursor-pointer"
-                        >
-                          {currentPage - 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {currentPage !== 1 && currentPage !== totalPages && (
-                      <PaginationItem>
-                        <PaginationLink
-                          isActive
-                        >
-                          {currentPage}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {currentPage < totalPages - 1 && (
-                      <PaginationItem>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                          className="cursor-pointer"
-                        >
-                          {currentPage + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Right ellipsis */}
-                    {currentPage < totalPages - 2 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    
-                    {/* Last page */}
-                    <PaginationItem>
-                      <PaginationLink
-                        {...(currentPage !== totalPages && { onClick: () => setCurrentPage(totalPages) })}
-                        isActive={currentPage === totalPages}
-                        className={currentPage !== totalPages ? 'cursor-pointer' : ''}
-                      >
-                        {totalPages}
-                      </PaginationLink>
-                    </PaginationItem>
-                    
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             )}
           </>

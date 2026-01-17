@@ -1,24 +1,13 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import DogCard from './DogCard';
+import { useState, useEffect, useRef } from 'react';
 import FilterSidebar from './FilterSidebar';
 import { useDogs } from '@/hooks/useDogs';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useDogFilters } from '@/hooks/useDogFilters';
 import type { SizeFilter, AgeFilter, StatusFilter } from '@/types/dog';
-import { Search, Loader2, MapPin, Navigation, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { PaginationControls } from '@/components/PaginationControls';
+import { SearchBar, LocationControls } from '@/components/SearchAndLocationControls';
+import { DogGridResults } from '@/components/DogGridResults';
+import { ViewModeSelector } from '@/components/ViewModeSelector';
 
 type ViewMode = 'text-only' | 'with-images';
 
@@ -74,22 +63,13 @@ const DogGrid = () => {
     requestLocation();
   };
 
-  const filteredDogs = useMemo(() => {
-    return dogs.filter((dog) => {
-      const matchesSize = sizeFilter === 'All' || dog.size === sizeFilter;
-      // Use computedAge (from birth date if available) for filtering
-      const effectiveAge = dog.computedAge || dog.age;
-      const matchesAge = ageFilter === 'All' || effectiveAge === ageFilter;
-      const matchesStatus = dog.status === statusFilter;
-      const matchesSearch =
-        searchQuery === '' ||
-        dog.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dog.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dog.location.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchesSize && matchesAge && matchesStatus && matchesSearch;
-    });
-  }, [dogs, sizeFilter, ageFilter, statusFilter, searchQuery]);
+  const filteredDogs = useDogFilters({
+    dogs,
+    sizeFilter,
+    ageFilter,
+    statusFilter,
+    searchQuery
+  });
 
   // Calculate pagination values
   const totalPages = Math.ceil(filteredDogs.length / ITEMS_PER_PAGE);
@@ -159,211 +139,44 @@ const DogGrid = () => {
 
         <div className="flex-1">
             {SHOW_VIEW_MODE_SELECTOR && (
-              <div className="mb-6 p-4 bg-card rounded-lg shadow-soft">
-                <Label className="text-base font-semibold mb-3 block">View Mode</Label>
-                <RadioGroup value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="text-only" id="text-only" />
-                    <Label htmlFor="text-only" className="cursor-pointer">Text Only</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="with-images" id="with-images" disabled />
-                    <Label htmlFor="with-images" className="cursor-not-allowed opacity-50">
-                      With Images <span className="text-xs text-muted-foreground">(Coming Soon)</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              <ViewModeSelector viewMode={viewMode} onChange={setViewMode} />
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search by name, breed, or location..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                {hasLocation ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearLocation}
-                    className="gap-2"
-                  >
-                    <MapPin className="w-4 h-4" />
-                    Near Me
-                    <X className="w-3 h-3" />
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLocationRequest}
-                    disabled={locationLoading}
-                    className="gap-2"
-                  >
-                    {locationLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Navigation className="w-4 h-4" />
-                    )}
-                    Find Near Me
-                  </Button>
-                )}
-                <p className="text-muted-foreground">
-                  <span className="font-semibold text-foreground">{filteredDogs.length}</span> dogs found
-                </p>
-              </div>
+            <SearchBar 
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+            />
+
+            <LocationControls
+              hasLocation={hasLocation}
+              locationLoading={locationLoading}
+              locationError={locationError}
+              onRequestLocation={handleLocationRequest}
+              onClearLocation={clearLocation}
+            />
+
+            <div className="flex items-center justify-end mb-6">
+              <p className="text-muted-foreground">
+                <span className="font-semibold text-foreground">{filteredDogs.length}</span> dogs found
+              </p>
             </div>
 
-            {locationError && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertDescription>
-                  <div className="space-y-2">
-                    <p className="font-semibold">{locationError}</p>
-                    {window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && (
-                      <p className="text-sm">Note: This site must use HTTPS for location features to work.</p>
-                    )}
-                    <p className="text-sm">
-                      To enable location: Click the lock icon in your browser's address bar and allow location access.
-                    </p>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
+            <DogGridResults
+              isLoading={isLoading}
+              error={error}
+              filteredDogs={filteredDogs}
+              paginatedDogs={paginatedDogs}
+              viewMode={viewMode}
+              hasLocation={hasLocation}
+            />
 
-            {hasLocation && (
-              <Alert className="mb-6 border-primary/50 bg-primary/5">
-                <MapPin className="w-4 h-4" />
-                <AlertDescription>
-                  Showing dogs sorted by distance from your location
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {isLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : error ? (
-              <div className="text-center py-16 bg-card rounded-2xl shadow-soft">
-                <p className="font-display text-xl text-foreground mb-2">Error loading dogs</p>
-                <p className="text-muted-foreground">Please try again later</p>
-              </div>
-            ) : filteredDogs.length > 0 ? (
-              <>
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {paginatedDogs.map((dog, index) => (
-                    <div
-                      key={dog.id}
-                      className="animate-fade-up"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <DogCard dog={dog} viewMode={viewMode} showDistance={hasLocation} />
-                    </div>
-                  ))}
-                </div>
-                
-                {totalPages > 1 && (
-                  <div className="mt-8">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                        
-                        {/* First page */}
-                        <PaginationItem>
-                          <PaginationLink
-                            {...(currentPage !== 1 && { onClick: () => setCurrentPage(1) })}
-                            isActive={currentPage === 1}
-                            className={currentPage !== 1 ? 'cursor-pointer' : ''}
-                          >
-                            1
-                          </PaginationLink>
-                        </PaginationItem>
-                        
-                        {/* Left ellipsis */}
-                        {currentPage > 3 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        
-                        {/* Pages around current */}
-                        {currentPage > 2 && (
-                          <PaginationItem>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(currentPage - 1)}
-                              className="cursor-pointer"
-                            >
-                              {currentPage - 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )}
-                        
-                        {currentPage !== 1 && currentPage !== totalPages && (
-                          <PaginationItem>
-                            <PaginationLink
-                              isActive
-                            >
-                              {currentPage}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )}
-                        
-                        {currentPage < totalPages - 1 && (
-                          <PaginationItem>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(currentPage + 1)}
-                              className="cursor-pointer"
-                            >
-                              {currentPage + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )}
-                        
-                        {/* Right ellipsis */}
-                        {currentPage < totalPages - 2 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        
-                        {/* Last page */}
-                        <PaginationItem>
-                          <PaginationLink
-                            {...(currentPage !== totalPages && { onClick: () => setCurrentPage(totalPages) })}
-                            isActive={currentPage === totalPages}
-                            className={currentPage !== totalPages ? 'cursor-pointer' : ''}
-                          >
-                            {totalPages}
-                          </PaginationLink>
-                        </PaginationItem>
-                        
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-16 bg-card rounded-2xl shadow-soft">
-                <p className="font-display text-xl text-foreground mb-2">No dogs found</p>
-                <p className="text-muted-foreground">Try adjusting your filters or search query</p>
+            {!isLoading && !error && filteredDogs.length > 0 && totalPages > 1 && (
+              <div className="mt-8">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             )}
           </div>

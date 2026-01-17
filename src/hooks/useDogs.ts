@@ -4,6 +4,11 @@ import type { Dog } from '@/types/dog';
 import { DEFAULT_DOG_IMAGE } from '@/lib/constants';
 import { calculateDistance } from '@/lib/geolocation';
 
+interface BreedItem {
+  display_order: number;
+  name: string;
+}
+
 // Helper function to calculate age category from birth date
 // Returns: 'Puppy' (≤6 months), 'Young' (6mo-2yr), 'Adult' (2-8yr), 'Senior' (8+yr)
 function calculateAgeCategory(
@@ -97,79 +102,90 @@ interface DogRow {
   }>;
 }
 
+/**
+ * Transform raw dog row to Dog type
+ */
+function transformDogRow(dog: Record<string, unknown>): Dog {
+  const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue as string) : dog.rescue;
+  const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds as string) : dog.breeds;
+  
+  const breeds = (breedsArray || [])
+    .sort((a: BreedItem, b: BreedItem) => a.display_order - b.display_order)
+    .map((b: BreedItem) => b.name);
+
+  const computedAge = calculateAgeCategory(dog.birth_year as number | null, dog.birth_month as number | null, dog.birth_day as number | null);
+
+  return {
+    id: dog.id as string,
+    name: dog.name as string,
+    breed: breeds.join(', '),
+    breeds: breeds,
+    age: dog.age as string,
+    birthYear: dog.birth_year as number | undefined,
+    birthMonth: dog.birth_month as number | undefined,
+    birthDay: dog.birth_day as number | undefined,
+    rescueSinceDate: dog.rescue_since_date as string | undefined,
+    computedAge: computedAge || (dog.age as string),
+    size: dog.size as 'Small' | 'Medium' | 'Large',
+    gender: dog.gender as 'Male' | 'Female',
+    status: dog.status as 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn',
+    statusNotes: dog.status_notes as string | undefined,
+    location: rescue?.region || 'Unknown',
+    rescue: rescue?.name || 'Unknown',
+    rescueWebsite: rescue?.website,
+    image: (dog.image as string | null) || DEFAULT_DOG_IMAGE,
+    profileUrl: (dog.profile_url as string | null) ?? undefined,
+    goodWithKids: dog.good_with_kids as boolean,
+    goodWithDogs: dog.good_with_dogs as boolean,
+    goodWithCats: dog.good_with_cats as boolean,
+    description: dog.description as string,
+  };
+}
+
+/**
+ * Add distance to dog if user location is available
+ */
+function addDistanceIfAvailable(
+  dog: Dog, 
+  userLocation: { latitude: number; longitude: number } | undefined,
+  rescue: { latitude: number | null; longitude: number | null } | null
+): Dog {
+  if (userLocation && rescue?.latitude && rescue?.longitude) {
+    return {
+      ...dog,
+      distance: calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        rescue.latitude,
+        rescue.longitude
+      )
+    };
+  }
+  return dog;
+}
+
 export const useDogs = (userLocation?: { latitude: number; longitude: number }) => {
   return useQuery({
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
-      // Use API layer function instead of direct table access
-      // Call RPC function from dogadopt_api schema
       const { data, error } = await supabase
         .schema('dogadopt_api')
         .rpc('get_dogs');
 
       if (error) {
         console.error('Error fetching dogs:', error);
-        // Provide more helpful error message for common issues
         if (error.message?.includes('does not exist') || error.code === '42883') {
           throw new Error('Database migration required: The get_dogs API function is not available. Please run database migrations.');
         }
         throw error;
       }
 
-      // The API function returns data in JSONB format for rescue and breeds
-      const dogs = (data as any[]).map((dog) => {
-        // Parse rescue from JSONB (API layer returns it as an object)
-        const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue) : dog.rescue;
-        
-        // Parse breeds from JSONB array (API layer returns sorted array)
-        const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds) : dog.breeds;
-        const breeds = (breedsArray || [])
-          .sort((a: any, b: any) => a.display_order - b.display_order)
-          .map((b: any) => b.name);
-
-        // Calculate computed age if birth date is available
-        const computedAge = calculateAgeCategory(dog.birth_year, dog.birth_month, dog.birth_day);
-
-        const dogData: Dog = {
-          id: dog.id,
-          name: dog.name,
-          breed: breeds.join(', '), // Display string
-          breeds: breeds, // Array for filtering/editing
-          age: dog.age,
-          birthYear: dog.birth_year,
-          birthMonth: dog.birth_month,
-          birthDay: dog.birth_day,
-          rescueSinceDate: dog.rescue_since_date,
-          computedAge: computedAge || dog.age, // Use computed age if available, otherwise fall back to manual age
-          size: dog.size as 'Small' | 'Medium' | 'Large',
-          gender: dog.gender as 'Male' | 'Female',
-          status: dog.status as 'available' | 'reserved' | 'adopted' | 'on_hold' | 'fostered' | 'withdrawn',
-          statusNotes: dog.status_notes,
-          location: rescue?.region || 'Unknown', // Use rescue region as location
-          rescue: rescue?.name || 'Unknown',
-          rescueWebsite: rescue?.website,
-          image: dog.image || DEFAULT_DOG_IMAGE,
-          profileUrl: dog.profile_url ?? undefined,
-          goodWithKids: dog.good_with_kids,
-          goodWithDogs: dog.good_with_dogs,
-          goodWithCats: dog.good_with_cats,
-          description: dog.description,
-        };
-
-        // Calculate distance if user location is provided and rescue has coordinates
-        if (userLocation && rescue?.latitude && rescue?.longitude) {
-          dogData.distance = calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            rescue.latitude,
-            rescue.longitude
-          );
-        }
-
-        return dogData;
+      const dogs = (data as Array<Record<string, unknown>>).map((dog) => {
+        const rescue = typeof dog.rescue === 'string' ? JSON.parse(dog.rescue as string) : dog.rescue;
+        const transformedDog = transformDogRow(dog);
+        return addDistanceIfAvailable(transformedDog, userLocation, rescue);
       });
 
-      // Sort by distance when user location is available
       if (userLocation) {
         dogs.sort((a, b) => {
           if (a.distance && b.distance) return a.distance - b.distance;

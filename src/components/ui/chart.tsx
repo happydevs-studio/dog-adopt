@@ -1,3 +1,6 @@
+/* eslint-disable complexity */
+ 
+// Auto-generated shadcn/ui component - complexity rules disabled
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
