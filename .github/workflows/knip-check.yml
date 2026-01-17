@@ -1,0 +1,105 @@
+name: Check for Unused Code
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  knip:
+    name: Check for unused files, dependencies, and exports
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run knip
+        id: knip
+        run: |
+          npm run knip > knip-output.txt 2>&1 || true
+          cat knip-output.txt
+        continue-on-error: true
+      
+      - name: Check knip results
+        id: check_results
+        run: |
+          if grep -q "Unused files\|Unused dependencies\|Unused exports" knip-output.txt; then
+            echo "has_issues=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Knip found unused code. See details below." >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat knip-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+            echo "✅ No unused code detected!" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.check_results.outputs.has_issues == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('knip-output.txt', 'utf8');
+            
+            const body = `## 🔍 Knip Analysis Results
+            
+            Knip has detected some unused code in this PR. Please review the findings below:
+            
+            <details>
+            <summary>Click to view knip output</summary>
+            
+            \`\`\`
+            ${output}
+            \`\`\`
+            
+            </details>
+            
+            ### What is Knip?
+            
+            [Knip](https://knip.dev/) helps find:
+            - Unused files
+            - Unused dependencies
+            - Unused exports
+            - Unreachable code
+            
+            ### What should I do?
+            
+            Review the findings and consider:
+            1. Removing truly unused dependencies and files
+            2. Verifying that "unused" items aren't actually needed
+            3. Adding \`ignoreDependencies\` to \`knip.json\` for false positives
+            
+            This is informational and won't block the PR, but cleaning up unused code helps keep the codebase maintainable.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+      
+      - name: Upload knip results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knip-results
+          path: knip-output.txt
+          retention-days: 30
