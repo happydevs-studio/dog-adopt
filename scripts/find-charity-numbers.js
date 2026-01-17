@@ -102,6 +102,91 @@ async function searchCharityByName(name, retries = 3) {
 }
 
 /**
+ * Export results to CSV file
+ */
+function exportResultsToCSV(results, found, notFound) {
+  const csvPath = join(__dirname, '..', 'charity-numbers.csv');
+  const csvHeader = 'Rescue Name,Charity Number,Official Name,Status\n';
+  const csvRows = results.map(r => {
+    const name = `"${r.name.replace(/"/g, '""')}"`;
+    const charityNumber = r.charityNumber || '';
+    const officialName = r.officialName ? `"${r.officialName.replace(/"/g, '""')}"` : '';
+    const status = r.status;
+    return `${name},${charityNumber},${officialName},${status}`;
+  }).join('\n');
+  
+  writeFileSync(csvPath, csvHeader + csvRows, 'utf8');
+  console.log(`\n💾 Saved results to: charity-numbers.csv`);
+  console.log(`   ${found} charities found, ${notFound} not found`);
+  
+  // Show results that need manual review
+  const needsReview = results.filter(r => r.status !== 'found');
+  
+  if (needsReview.length > 0) {
+    console.log(`\n⚠️  The following rescues need manual lookup:\n`);
+    needsReview.forEach(r => {
+      console.log(`  • ${r.name}`);
+    });
+    console.log(`\n  Search manually at: https://register-of-charities.charitycommission.gov.uk/`);
+  }
+}
+
+/**
+ * Update seed.sql with found charity numbers
+ */
+function updateSeedSQL(results) {
+  console.log(`\n📝 Generating updated seed.sql...\n`);
+  
+  const seedPath = join(__dirname, '..', 'supabase', 'seed.sql');
+  let seedContent = readFileSync(seedPath, 'utf8');
+  
+  let updatedCount = 0;
+  
+  for (const result of results) {
+    if (result.status === 'found') {
+      // Find the line for this rescue and add charity number
+      const escapedName = result.name.replace(/'/g, "''");
+      
+      // Pattern: ('Name', 'Full', 'Region', 'website'),
+      // Should become: ('Name', 'Full', 'Region', 'website', 'charity_number'),
+      const regex = new RegExp(
+        `\\('${escapedName}'[^)]+\\),`,
+        'g'
+      );
+      
+      const match = seedContent.match(regex);
+      
+      if (match) {
+        const oldLine = match[0];
+        // Check if it already has a charity number (5th parameter)
+        const params = oldLine.match(/'\w+'/g);
+        
+        if (params && params.length === 4) {
+          // Add charity number before the closing ),
+          const newLine = oldLine.replace('),', `, '${result.charityNumber}'),`);
+          seedContent = seedContent.replace(oldLine, newLine);
+          updatedCount++;
+          console.log(`  ✓ Updated: ${result.name} → ${result.charityNumber}`);
+        }
+      }
+    }
+  }
+  
+  if (updatedCount > 0) {
+    writeFileSync(seedPath, seedContent, 'utf8');
+    console.log(`\n✅ Updated ${updatedCount} rescues in seed.sql`);
+    console.log(`\nNext steps:`);
+    console.log(`  1. Review the changes: git diff supabase/seed.sql`);
+    console.log(`  2. Apply changes: npm run supabase:reset`);
+    console.log(`  3. Collect contact data: npm run collect-contacts\n`);
+  } else {
+    console.log(`\n⚠️  No automatic updates possible`);
+    console.log(`   Check charity-numbers.csv for found charities`);
+    console.log(`   You can manually add them to seed.sql\n`);
+  }
+}
+
+/**
  * Main execution
  */
 async function main() {
@@ -183,81 +268,10 @@ async function main() {
   console.log(`  ⚠️  Not found: ${notFound}`);
   
   // Export results to CSV
-  const csvPath = join(__dirname, '..', 'charity-numbers.csv');
-  const csvHeader = 'Rescue Name,Charity Number,Official Name,Status\n';
-  const csvRows = results.map(r => {
-    const name = `"${r.name.replace(/"/g, '""')}"`;
-    const charityNumber = r.charityNumber || '';
-    const officialName = r.officialName ? `"${r.officialName.replace(/"/g, '""')}"` : '';
-    const status = r.status;
-    return `${name},${charityNumber},${officialName},${status}`;
-  }).join('\n');
-  
-  writeFileSync(csvPath, csvHeader + csvRows, 'utf8');
-  console.log(`\n💾 Saved results to: charity-numbers.csv`);
-  console.log(`   ${found} charities found, ${notFound} not found`);
-  
-  // Show results that need manual review
-  const needsReview = results.filter(r => r.status !== 'found');
-  
-  if (needsReview.length > 0) {
-    console.log(`\n⚠️  The following rescues need manual lookup:\n`);
-    needsReview.forEach(r => {
-      console.log(`  • ${r.name}`);
-    });
-    console.log(`\n  Search manually at: https://register-of-charities.charitycommission.gov.uk/`);
-  }
+  exportResultsToCSV(results, found, notFound);
   
   // Generate SQL output
-  console.log(`\n📝 Generating updated seed.sql...\n`);
-  
-  const seedPath = join(__dirname, '..', 'supabase', 'seed.sql');
-  let seedContent = readFileSync(seedPath, 'utf8');
-  
-  let updatedCount = 0;
-  
-  for (const result of results) {
-    if (result.status === 'found') {
-      // Find the line for this rescue and add charity number
-      const escapedName = result.name.replace(/'/g, "''");
-      
-      // Pattern: ('Name', 'Full', 'Region', 'website'),
-      // Should become: ('Name', 'Full', 'Region', 'website', 'charity_number'),
-      const regex = new RegExp(
-        `\\('${escapedName}'[^)]+\\),`,
-        'g'
-      );
-      
-      const match = seedContent.match(regex);
-      
-      if (match) {
-        const oldLine = match[0];
-        // Check if it already has a charity number (5th parameter)
-        const params = oldLine.match(/'\w+'/g);
-        
-        if (params && params.length === 4) {
-          // Add charity number before the closing ),
-          const newLine = oldLine.replace('),', `, '${result.charityNumber}'),`);
-          seedContent = seedContent.replace(oldLine, newLine);
-          updatedCount++;
-          console.log(`  ✓ Updated: ${result.name} → ${result.charityNumber}`);
-        }
-      }
-    }
-  }
-  
-  if (updatedCount > 0) {
-    writeFileSync(seedPath, seedContent, 'utf8');
-    console.log(`\n✅ Updated ${updatedCount} rescues in seed.sql`);
-    console.log(`\nNext steps:`);
-    console.log(`  1. Review the changes: git diff supabase/seed.sql`);
-    console.log(`  2. Apply changes: npm run supabase:reset`);
-    console.log(`  3. Collect contact data: npm run collect-contacts\n`);
-  } else {
-    console.log(`\n⚠️  No automatic updates possible`);
-    console.log(`   Check charity-numbers.csv for found charities`);
-    console.log(`   You can manually add them to seed.sql\n`);
-  }
+  updateSeedSQL(results);
 }
 
 main().catch(console.error);

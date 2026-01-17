@@ -66,8 +66,8 @@ jobs:
             --rule 'max-nested-callbacks: ["error", 3]' \
             || echo "Complexity issues found (see JSON report for details)"
           
-          # Count files with complexity issues
-          ISSUE_COUNT=$(jq '[.[] | select(.errorCount > 0 or .warningCount > 0)] | length' complexity-report.json)
+          # Count files with complexity issues (filter for only complexity-related rules)
+          ISSUE_COUNT=$(jq '[.[] | select(.messages[] | .ruleId | IN("complexity", "max-depth", "max-lines-per-function", "max-nested-callbacks"))] | length' complexity-report.json)
           echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
           
           if [ "$ISSUE_COUNT" -gt 0 ]; then
@@ -97,15 +97,20 @@ jobs:
             
             try {
               const report = JSON.parse(fs.readFileSync('complexity-report.json', 'utf8'));
-              const filesWithIssues = report.filter(file => file.errorCount > 0 || file.warningCount > 0);
+              // Filter for only complexity-related rules
+              const complexityRules = ['complexity', 'max-depth', 'max-lines-per-function', 'max-nested-callbacks'];
+              const filesWithIssues = report.filter(file => 
+                file.messages.some(msg => complexityRules.includes(msg.ruleId))
+              );
               
               if (filesWithIssues.length > 0) {
-                reportContent += '| File | Errors | Warnings |\n';
-                reportContent += '|------|--------|----------|\n';
+                reportContent += '| File | Issues |\n';
+                reportContent += '|------|--------|\n';
                 
                 filesWithIssues.forEach(file => {
                   const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
-                  reportContent += `| ${relativePath} | ${file.errorCount} | ${file.warningCount} |\n`;
+                  const complexityIssues = file.messages.filter(msg => complexityRules.includes(msg.ruleId));
+                  reportContent += `| ${relativePath} | ${complexityIssues.length} |\n`;
                 });
                 
                 reportContent += '\n### Issues Found:\n\n';
@@ -114,7 +119,8 @@ jobs:
                   const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
                   reportContent += `\n**${relativePath}**\n`;
                   
-                  file.messages.forEach(msg => {
+                  const complexityIssues = file.messages.filter(msg => complexityRules.includes(msg.ruleId));
+                  complexityIssues.forEach(msg => {
                     reportContent += `- Line ${msg.line}: ${msg.message} (${msg.ruleId})\n`;
                   });
                 });
