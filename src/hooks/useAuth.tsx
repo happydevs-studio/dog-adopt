@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (signInError) return { error: signInError };
         return { error: null };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Mock Google auth error:', error);
         return { error: new Error('Mock Google authentication failed') };
       }
