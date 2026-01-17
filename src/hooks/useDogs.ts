@@ -4,6 +4,11 @@ import type { Dog } from '@/types/dog';
 import { DEFAULT_DOG_IMAGE } from '@/lib/constants';
 import { calculateDistance } from '@/lib/geolocation';
 
+interface BreedItem {
+  display_order: number;
+  name: string;
+}
+
 // Helper function to calculate age category from birth date
 // Returns: 'Puppy' (≤6 months), 'Young' (6mo-2yr), 'Adult' (2-8yr), 'Senior' (8+yr)
 function calculateAgeCategory(
@@ -123,11 +128,6 @@ export const useDogs = (userLocation?: { latitude: number; longitude: number }) 
         
         // Parse breeds from JSONB array (API layer returns sorted array)
         const breedsArray = typeof dog.breeds === 'string' ? JSON.parse(dog.breeds as string) : dog.breeds;
-        
-        interface BreedItem {
-          display_order: number;
-          name: string;
-        }
         
         const breeds = (breedsArray || [])
           .sort((a: BreedItem, b: BreedItem) => a.display_order - b.display_order)

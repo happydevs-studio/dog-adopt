@@ -1,5 +1,26 @@
 import type { DogFormData, RescueFormData } from './Admin.types';
 
+export interface DogDataPayload {
+  name: string;
+  age: string;
+  birth_year: number | null;
+  birth_month: number | null;
+  birth_day: number | null;
+  rescue_since_date: string | null;
+  size: string;
+  gender: string;
+  status: string;
+  status_notes: string | null;
+  rescue_id: string | null;
+  location_id: null;
+  image: string;
+  profile_url: string | null;
+  description: string;
+  good_with_kids: boolean;
+  good_with_dogs: boolean;
+  good_with_cats: boolean;
+}
+
 /**
  * Validate birth date fields for a dog form
  */
@@ -68,7 +89,7 @@ export function validateDogForm(data: DogFormData): { isValid: boolean; error?: 
 /**
  * Build dog data payload for API submission
  */
-export function buildDogDataPayload(formData: DogFormData, imageUrl: string) {
+export function buildDogDataPayload(formData: DogFormData, imageUrl: string): DogDataPayload {
   return {
     name: formData.name,
     age: formData.age,
@@ -94,7 +115,7 @@ export function buildDogDataPayload(formData: DogFormData, imageUrl: string) {
 /**
  * Build API call parameters for creating a dog
  */
-export function buildCreateDogParams(dogData: ReturnType<typeof buildDogDataPayload>, breeds: string[]) {
+export function buildCreateDogParams(dogData: DogDataPayload, breeds: string[]) {
   return {
     p_name: dogData.name,
     p_age: dogData.age,
@@ -121,7 +142,7 @@ export function buildCreateDogParams(dogData: ReturnType<typeof buildDogDataPayl
 /**
  * Build API call parameters for updating a dog
  */
-export function buildUpdateDogParams(dogId: string, dogData: ReturnType<typeof buildDogDataPayload>, breeds: string[]) {
+export function buildUpdateDogParams(dogId: string, dogData: DogDataPayload, breeds: string[]) {
   return {
     p_dog_id: dogId,
     ...buildCreateDogParams(dogData, breeds)

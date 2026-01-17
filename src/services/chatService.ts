@@ -532,10 +532,11 @@ function generateFallbackResponse(
     }
     
     // Apply any existing conversation filters
-    const filtered = applyConversationFilters(dogs);
-    const dogsToShow = filtered.length === 0 ? dogs : filtered;
+    let filtered = applyConversationFilters(dogs);
+    // Fall back to all dogs if no results
+    if (filtered.length === 0) filtered = dogs;
     
-    return `I found ${dogsToShow.length} wonderful ${dogsToShow.length === 1 ? 'dog' : 'dogs'} available for adoption:\n\n${formatDogList(dogsToShow, 5, true)}`;
+    return `I found ${filtered.length} wonderful ${filtered.length === 1 ? 'dog' : 'dogs'} available for adoption:\n\n${formatDogList(filtered, 5, true)}`;
   }
   
   // Handle trait queries (good with kids/dogs/cats)
