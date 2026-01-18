@@ -87,5 +87,4 @@ cat dist/index.html | grep "src="
 
 ## See Also
 
-- [CI/CD Setup](./CI_CD_SETUP.md) - Complete deployment pipeline documentation
-- [GitHub Secrets Setup](./GITHUB_SECRETS_SETUP.md) - How to configure all secrets
+- [Setup and Deployment](./SETUP_AND_DEPLOYMENT.md) - Complete deployment pipeline and secrets configuration

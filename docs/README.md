@@ -1,106 +1,61 @@
 # Documentation Index
 
-This directory contains comprehensive documentation for the Adopt-a-Dog UK project. Documentation is organized by category for easy navigation.
+Concise, organized documentation for the Adopt-a-Dog UK project.
 
 ## 🚀 Getting Started
 
-Start here if you're new to the project:
-
-- **[Main README](../README.md)** - Project overview, quick start, and basic setup
-- **[Authentication Setup](AUTHENTICATION.md)** - User authentication and admin access
-- **[Post-Merge Setup](POST_MERGE_SETUP.md)** - Checklist for after merging PRs
+- **[Main README](../README.md)** - Project overview and quick start
+- **[Setup and Deployment](SETUP_AND_DEPLOYMENT.md)** - CI/CD pipeline, GitHub Pages, secrets configuration
+- **[Authentication](AUTHENTICATION.md)** - User authentication and admin access
 
 ## 🏗️ Development
 
-Documentation for developers working on the codebase:
-
 ### Core Features
-- **[Breed Features](BREED_FEATURES.md)** - Dog breed system with multi-breed support
-- **[Dog Age Improvements](DOG_AGE_IMPROVEMENTS.md)** - Birth date tracking and age calculation
-- **[Combobox Refactoring](COMBOBOX_REFACTORING.md)** - Reusable UI component patterns
+- **[Breed Features](BREED_FEATURES.md)** - Multi-breed support and autocomplete
+- **[Dog Age Improvements](DOG_AGE_IMPROVEMENTS.md)** - Birth date tracking
+- **[Combobox Refactoring](COMBOBOX_REFACTORING.md)** - Reusable UI components
 
-### Database & Auditing
-- **[Database API Layer](DATABASE_API_LAYER.md)** - API layer architecture separating data from presentation
-- **[Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md)** - Complete audit logging for dogs
-- **[Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md)** - Audit logging for rescue organizations
+### Architecture
+- **[Database API Layer](DATABASE_API_LAYER.md)** - Two-layer architecture and security patterns
+- **[Audit System](AUDIT_SYSTEM.md)** - Complete audit logging for dogs, rescues, and locations
+- **[Code Quality](CODE_QUALITY.md)** - Complexity checks and Knip analysis
 
-## 🚢 Deployment
+### Deployment
+- **[Base Path Configuration](BASE_PATH_CONFIGURATION.md)** - Configurable deployment paths
+- **[GitHub Pages SPA Fix](GITHUB_PAGES_SPA_FIX.md)** - SPA routing workaround
 
-Documentation for deploying and maintaining the application:
-
-### CI/CD Pipeline
-- **[CI/CD Setup](CI_CD_SETUP.md)** - Complete GitHub Actions workflow documentation
-- **[GitHub Secrets Setup](GITHUB_SECRETS_SETUP.md)** - How to configure repository secrets
-- **[GitHub Pages SPA Fix](GITHUB_PAGES_SPA_FIX.md)** - Handling SPA routing on GitHub Pages
-- **[Base Path Configuration](BASE_PATH_CONFIGURATION.md)** - Configuring deployment paths
-
-### Monitoring & Troubleshooting
-- **[Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md)** - Diagnosing and fixing smoke test failures
+### Troubleshooting
+- **[Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md)** - Production monitoring
 
 ## 📊 Data Management
 
-Documentation for managing rescue and dog data:
-
-### Rescue Data Collection
-- **[Rescue Contact Collection](RESCUE_CONTACT_COLLECTION.md)** - Collecting contact details via Charity Commission API (includes geocoding)
-- **[Quick Start: API Collector](QUICK_START_API_COLLECTOR.md)** - Quick guide to running the contact collector
-
-## 📚 Document Categories
-
-### Setup & Configuration
-Files that help you set up and configure the application:
-- AUTHENTICATION.md
-- POST_MERGE_SETUP.md
-- GITHUB_SECRETS_SETUP.md
-- BASE_PATH_CONFIGURATION.md
-
-### Feature Documentation
-Documentation about specific features and how they work:
-- BREED_FEATURES.md
-- DOG_AGE_IMPROVEMENTS.md
-- COMBOBOX_REFACTORING.md
-
-### Database & Architecture
-Technical documentation about database structure and design:
-- DATABASE_API_LAYER.md
-- UNIFIED_DOG_AUDIT_SYSTEM.md
-- RESCUES_LOCATIONS_AUDIT.md
-
-### Deployment & Operations
-Documentation for deploying and running the application:
-- CI_CD_SETUP.md
-- GITHUB_PAGES_SPA_FIX.md
-- SMOKE_TEST_TROUBLESHOOTING.md
-- RESCUE_CONTACT_COLLECTION.md
-- QUICK_START_API_COLLECTOR.md
+- **[Rescue Contact Collection](RESCUE_CONTACT_COLLECTION.md)** - Charity Commission API integration
 
 ## 🔍 Quick Reference
 
-### Common Tasks
+**Local development:**
+```bash
+task setup              # Full setup
+npm run dev             # Start server
+```
 
-**Setting up local development:**
-1. Follow [Main README](../README.md) setup instructions
-2. Configure [Authentication](AUTHENTICATION.md)
-3. Start developing!
-
-**Adding a new admin user:**
+**Add admin user:**
 ```bash
 ./scripts/make-admin.sh user@email.com
 ```
 
-**Deploying to production:**
-1. Configure [GitHub Secrets](GITHUB_SECRETS_SETUP.md)
-2. Follow [CI/CD Setup](CI_CD_SETUP.md)
-3. Push to main branch - automatic deployment!
+**Deploy:**
+1. Configure secrets (see [Setup and Deployment](SETUP_AND_DEPLOYMENT.md))
+2. Push to main branch
 
-**Collecting rescue contact data:**
-1. Follow [Quick Start API Collector](QUICK_START_API_COLLECTOR.md)
-2. Or see full guide: [Rescue Contact Collection](RESCUE_CONTACT_COLLECTION.md)
+**Collect rescue contacts:**
+```bash
+npm run collect-contacts
+```
 
-**Understanding the database architecture:**
-1. Read [Database API Layer](DATABASE_API_LAYER.md) for architecture overview
-2. Read [Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md) for dogs
-3. Read [Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md) for rescues
+## 📁 Archive
+
+Historical fixes and completed tasks: [archive/](archive/)
 
 ## 📝 Contributing to Documentation
 
@@ -117,7 +72,7 @@ When adding new documentation:
 - Check if there's documentation for your topic in the categories above
 - Search the docs directory for keywords: `grep -r "search term" docs/`
 - Review the [Main README](../README.md) for general project information
-- Check [CI/CD Setup](CI_CD_SETUP.md) for deployment issues
+- Check [Setup and Deployment](SETUP_AND_DEPLOYMENT.md) for deployment issues
 - See [Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md) for production site issues
 
 ## 📋 Documentation Standards

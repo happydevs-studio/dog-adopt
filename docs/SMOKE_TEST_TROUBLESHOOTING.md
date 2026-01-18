@@ -255,8 +255,7 @@ If smoke tests continue to fail after following this guide:
 ## Related Documentation
 
 - [Database API Layer](DATABASE_API_LAYER.md) - Understanding the API layer architecture
-- [CI/CD Setup](CI_CD_SETUP.md) - Deployment configuration
-- [Post-Merge Setup](POST_MERGE_SETUP.md) - Setting up environment after merging changes
+- [Setup and Deployment](SETUP_AND_DEPLOYMENT.md) - Deployment configuration and setup
 - [Authentication](AUTHENTICATION.md) - User authentication and roles
 
 ## Technical Details
