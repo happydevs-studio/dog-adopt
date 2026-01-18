@@ -155,7 +155,8 @@ export function validateDogForm(data: DogFormData): { isValid: boolean; error?: 
   if (data.profileUrl && data.profileUrl.trim() !== '') {
     try {
       new URL(data.profileUrl);
-    } catch {
+    } catch (error: unknown) {
+      // Invalid URL format
       return { isValid: false, error: 'Profile URL is invalid. Please enter a valid URL (e.g., https://example.com).' };
     }
   }

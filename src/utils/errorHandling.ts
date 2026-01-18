@@ -11,6 +11,30 @@ interface SupabaseError {
 }
 
 /**
+ * Map of database field names to user-friendly names
+ */
+const FIELD_NAME_MAP: Record<string, string> = {
+  'name': 'Name',
+  'age': 'Age',
+  'size': 'Size',
+  'gender': 'Gender',
+  'status': 'Adoption Status',
+  'rescue_id': 'Rescue Organization',
+  'location_id': 'Location',
+  'image': 'Image',
+  'description': 'Description',
+  'good_with_kids': 'Good with Kids',
+  'good_with_dogs': 'Good with Dogs',
+  'good_with_cats': 'Good with Cats',
+  'birth_year': 'Birth Year',
+  'birth_month': 'Birth Month',
+  'birth_day': 'Birth Day',
+  'profile_url': 'Profile URL',
+  'status_notes': 'Status Notes',
+  'rescue_since_date': 'Rescue Since Date',
+};
+
+/**
  * Extract user-friendly error message from Supabase error
  */
 export function getSupabaseErrorMessage(error: unknown): string {
@@ -141,29 +165,7 @@ function extractFieldName(message: string): string | null {
  * Format database field name to user-friendly name
  */
 function formatFieldName(fieldName: string): string {
-  // Map of database field names to user-friendly names
-  const fieldNameMap: Record<string, string> = {
-    'name': 'Name',
-    'age': 'Age',
-    'size': 'Size',
-    'gender': 'Gender',
-    'status': 'Adoption Status',
-    'rescue_id': 'Rescue Organization',
-    'location_id': 'Location',
-    'image': 'Image',
-    'description': 'Description',
-    'good_with_kids': 'Good with Kids',
-    'good_with_dogs': 'Good with Dogs',
-    'good_with_cats': 'Good with Cats',
-    'birth_year': 'Birth Year',
-    'birth_month': 'Birth Month',
-    'birth_day': 'Birth Day',
-    'profile_url': 'Profile URL',
-    'status_notes': 'Status Notes',
-    'rescue_since_date': 'Rescue Since Date',
-  };
-
-  return fieldNameMap[fieldName] || fieldName.replace(/_/g, ' ');
+  return FIELD_NAME_MAP[fieldName] || fieldName.replace(/_/g, ' ');
 }
 
 /**
