@@ -181,11 +181,28 @@ jobs:
                 labels: ['unused-dependencies', 'maintenance']
               });
             } else {
-              // Comment on existing issue
+              // Comment on existing issue with concise update
+              const commentBody = [
+                '🔔 Unused dependencies detected again',
+                '',
+                '**Commit:** ${{ github.sha }}',
+                '**Time:** ' + new Date().toISOString(),
+                '**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})',
+                '',
+                '<details>',
+                '<summary>Click to view knip output</summary>',
+                '',
+                '```',
+                output,
+                '```',
+                '',
+                '</details>'
+              ].join('\n');
+              
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issues.data[0].number,
-                body: 'Another unused dependencies issue detected:\n\n' + body
+                body: commentBody
               });
             }
