@@ -14,6 +14,7 @@ Concise, organized documentation for the Adopt-a-Dog UK project.
 - **[Breed Features](BREED_FEATURES.md)** - Multi-breed support and autocomplete
 - **[Dog Age Improvements](DOG_AGE_IMPROVEMENTS.md)** - Birth date tracking
 - **[Combobox Refactoring](COMBOBOX_REFACTORING.md)** - Reusable UI components
+- **[Error Handling](ERROR_HANDLING.md)** - Comprehensive error handling and validation
 
 ### Architecture
 - **[Database API Layer](DATABASE_API_LAYER.md)** - Two-layer architecture and security patterns
