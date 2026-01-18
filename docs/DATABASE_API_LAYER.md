@@ -531,8 +531,7 @@ SELECT dogadopt_api.create_dog(...);
 
 ## Related Documentation
 
-- [Unified Dog Audit System](UNIFIED_DOG_AUDIT_SYSTEM.md) - How audit logging works in the data layer
-- [Rescues & Locations Audit](RESCUES_LOCATIONS_AUDIT.md) - Audit logging for rescue data
+- [Audit System](AUDIT_SYSTEM.md) - Complete audit logging for dogs, rescues, and locations
 - [Authentication](AUTHENTICATION.md) - User roles and permissions
 - [Breed Features](BREED_FEATURES.md) - Multi-breed support system
 

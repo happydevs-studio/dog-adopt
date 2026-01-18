@@ -72,7 +72,7 @@ When adding new documentation:
 - Check if there's documentation for your topic in the categories above
 - Search the docs directory for keywords: `grep -r "search term" docs/`
 - Review the [Main README](../README.md) for general project information
-- Check [CI/CD Setup](CI_CD_SETUP.md) for deployment issues
+- Check [Setup and Deployment](SETUP_AND_DEPLOYMENT.md) for deployment issues
 - See [Smoke Test Troubleshooting](SMOKE_TEST_TROUBLESHOOTING.md) for production site issues
 
 ## 📋 Documentation Standards
