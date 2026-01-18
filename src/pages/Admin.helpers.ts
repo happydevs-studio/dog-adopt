@@ -1,4 +1,5 @@
 import type { DogFormData, RescueFormData } from './Admin.types';
+import { DEFAULT_DOG_IMAGE } from '@/lib/constants';
 
 export interface DogDataPayload {
   name: string;
@@ -160,11 +161,6 @@ const REQUIRED_FIELD_VALIDATIONS: FieldValidation[] = [
     errorMessage: 'Location is required. Please enter or select a location.',
   },
   {
-    field: 'image',
-    validate: (value) => typeof value === 'string' && value.trim() !== '',
-    errorMessage: 'Dog image is required. Please upload an image or provide an image URL.',
-  },
-  {
     field: 'description',
     validate: (value) => typeof value === 'string' && value.trim() !== '',
     errorMessage: 'Description is required. Please provide a description of the dog.',
@@ -229,7 +225,7 @@ export function buildDogDataPayload(formData: DogFormData, imageUrl: string): Do
     status_notes: formData.status_notes || null,
     rescue_id: formData.rescue_id || null,
     location_id: null, // TODO: Add location support when needed
-    image: imageUrl,
+    image: imageUrl || DEFAULT_DOG_IMAGE,
     profile_url: formData.profileUrl || null,
     description: formData.description,
     good_with_kids: formData.good_with_kids,
