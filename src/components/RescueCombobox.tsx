@@ -20,7 +20,7 @@ export function RescueCombobox({
       value: rescue.id,
       label: rescue.name,
       description: rescue.region,
-      keywords: [rescue.region],
+      keywords: [rescue.name, rescue.region],
     })),
     [rescues]
   );
