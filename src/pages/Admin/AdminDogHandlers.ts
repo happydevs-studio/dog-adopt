@@ -10,6 +10,7 @@ import {
   buildCreateDogParams,
   buildUpdateDogParams,
 } from '../Admin.helpers';
+import { getSupabaseErrorMessage } from '@/utils/errorHandling';
 
 export interface DogDialogState {
   isDialogOpen: boolean;
@@ -132,7 +133,11 @@ export async function handleDogSubmit(
 ): Promise<void> {
   const validation = validateDogForm(formData);
   if (!validation.isValid) {
-    toast({ title: 'Validation Error', description: validation.error, variant: 'destructive' });
+    toast({ 
+      title: 'Validation Error', 
+      description: validation.error, 
+      variant: 'destructive' 
+    });
     return;
   }
 
@@ -140,8 +145,15 @@ export async function handleDogSubmit(
 
   try {
     let imageUrl = formData.image;
+    
+    // Upload image if a new file is provided
     if (imageFile) {
-      imageUrl = await uploadImage(imageFile);
+      try {
+        imageUrl = await uploadImage(imageFile);
+      } catch (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        throw new Error('Failed to upload image. Please try a different image or check your connection.');
+      }
     }
 
     const dogData = buildDogDataPayload(formData, imageUrl);
@@ -149,12 +161,22 @@ export async function handleDogSubmit(
     if (editingDog) {
       const params = buildUpdateDogParams(editingDog.id, dogData, formData.breeds);
       const { error } = await supabase.schema('dogadopt_api').rpc('update_dog', params);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Supabase error updating dog:', error);
+        throw error;
+      }
+      
       toast({ title: 'Success', description: 'Dog updated successfully!' });
     } else {
       const params = buildCreateDogParams(dogData, formData.breeds);
       const { error } = await supabase.schema('dogadopt_api').rpc('create_dog', params);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Supabase error creating dog:', error);
+        throw error;
+      }
+      
       toast({ title: 'Success', description: 'Dog added successfully!' });
     }
 
@@ -162,9 +184,10 @@ export async function handleDogSubmit(
     onSuccess();
   } catch (error) {
     console.error('Error saving dog:', error);
+    const errorMessage = getSupabaseErrorMessage(error);
     toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to save dog',
+      title: 'Failed to Save Dog',
+      description: errorMessage,
       variant: 'destructive'
     });
   } finally {
@@ -185,14 +208,19 @@ export async function handleDogDelete(
       .delete()
       .eq('id', dogId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error deleting dog:', error);
+      throw error;
+    }
+    
     toast({ title: 'Success', description: 'Dog deleted successfully!' });
     onSuccess();
   } catch (error) {
     console.error('Error deleting dog:', error);
+    const errorMessage = getSupabaseErrorMessage(error);
     toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to delete dog',
+      title: 'Failed to Delete Dog',
+      description: errorMessage,
       variant: 'destructive'
     });
   }
