@@ -110,8 +110,54 @@ export function validateBirthDate(data: DogFormData): { isValid: boolean; error?
  * Validate a dog form
  */
 export function validateDogForm(data: DogFormData): { isValid: boolean; error?: string } {
+  // Required field validations with specific messages
+  if (!data.name || data.name.trim() === '') {
+    return { isValid: false, error: 'Dog name is required. Please enter a name.' };
+  }
+
   if (data.breeds.length === 0) {
-    return { isValid: false, error: 'Please select at least one breed' };
+    return { isValid: false, error: 'At least one breed is required. Please select a breed from the list.' };
+  }
+
+  if (!data.age) {
+    return { isValid: false, error: 'Age category is required. Please select Puppy, Young, Adult, or Senior.' };
+  }
+
+  if (!data.size) {
+    return { isValid: false, error: 'Size is required. Please select Small, Medium, or Large.' };
+  }
+
+  if (!data.gender) {
+    return { isValid: false, error: 'Gender is required. Please select Male or Female.' };
+  }
+
+  if (!data.status) {
+    return { isValid: false, error: 'Adoption status is required. Please select a status.' };
+  }
+
+  if (!data.rescue_id || data.rescue_id === '') {
+    return { isValid: false, error: 'Rescue organization is required. Please select a rescue from the list.' };
+  }
+
+  if (!data.location || data.location.trim() === '') {
+    return { isValid: false, error: 'Location is required. Please enter or select a location.' };
+  }
+
+  if (!data.image || data.image.trim() === '') {
+    return { isValid: false, error: 'Dog image is required. Please upload an image or provide an image URL.' };
+  }
+
+  if (!data.description || data.description.trim() === '') {
+    return { isValid: false, error: 'Description is required. Please provide a description of the dog.' };
+  }
+
+  // Validate profile URL format if provided
+  if (data.profileUrl && data.profileUrl.trim() !== '') {
+    try {
+      new URL(data.profileUrl);
+    } catch {
+      return { isValid: false, error: 'Profile URL is invalid. Please enter a valid URL (e.g., https://example.com).' };
+    }
   }
   
   return validateBirthDate(data);
