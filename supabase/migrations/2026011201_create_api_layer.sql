@@ -238,7 +238,7 @@ BEGIN
     profile_url, status_notes, location_id
   )
   VALUES (
-    p_name, p_age, p_size, p_gender, p_status, p_rescue_id, p_image, p_description,
+    p_name, p_age, p_size, p_gender, p_status::dogadopt.adoption_status, p_rescue_id, p_image, p_description,
     p_good_with_kids, p_good_with_dogs, p_good_with_cats,
     p_birth_year, p_birth_month, p_birth_day, p_rescue_since_date,
     p_profile_url, p_status_notes, p_location_id
@@ -293,7 +293,7 @@ BEGIN
     age = p_age,
     size = p_size,
     gender = p_gender,
-    status = p_status,
+    status = p_status::dogadopt.adoption_status,
     rescue_id = p_rescue_id,
     image = p_image,
     description = p_description,
