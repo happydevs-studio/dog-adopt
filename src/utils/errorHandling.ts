@@ -60,83 +60,146 @@ export function getSupabaseErrorMessage(error: unknown): string {
 }
 
 /**
+ * Check if error is an authorization error
+ */
+function isAuthorizationError(lowerMessage: string): boolean {
+  return lowerMessage.includes('unauthorized') || lowerMessage.includes('admin access required');
+}
+
+/**
+ * Check if error is a foreign key constraint violation
+ */
+function isForeignKeyError(lowerMessage: string): boolean {
+  return lowerMessage.includes('foreign key') || lowerMessage.includes('violates foreign key constraint');
+}
+
+/**
+ * Check if error is a not null constraint violation
+ */
+function isNotNullError(lowerMessage: string): boolean {
+  return lowerMessage.includes('null value') || lowerMessage.includes('violates not-null constraint');
+}
+
+/**
+ * Check if error is a check constraint violation
+ */
+function isCheckConstraintError(lowerMessage: string): boolean {
+  return lowerMessage.includes('check constraint') || lowerMessage.includes('violates check');
+}
+
+/**
+ * Check if error is a unique constraint violation
+ */
+function isUniqueConstraintError(lowerMessage: string): boolean {
+  return lowerMessage.includes('unique') || lowerMessage.includes('duplicate');
+}
+
+/**
+ * Check if error is an image upload error
+ */
+function isImageUploadError(lowerMessage: string): boolean {
+  return lowerMessage.includes('storage') || lowerMessage.includes('upload');
+}
+
+/**
+ * Check if error is a network error
+ */
+function isNetworkError(lowerMessage: string): boolean {
+  return lowerMessage.includes('network') || lowerMessage.includes('connection') || lowerMessage.includes('timeout');
+}
+
+/**
+ * Check if error is an invalid input error
+ */
+function isInvalidInputError(lowerMessage: string): boolean {
+  return lowerMessage.includes('invalid input') || lowerMessage.includes('invalid text representation');
+}
+
+/**
+ * Get foreign key error message
+ */
+function getForeignKeyErrorMessage(lowerMessage: string): string {
+  if (lowerMessage.includes('rescue')) {
+    return 'The selected rescue organization is invalid. Please select a valid rescue from the list.';
+  }
+  if (lowerMessage.includes('location')) {
+    return 'The selected location is invalid. Please select a valid location.';
+  }
+  return 'One or more selected references are invalid. Please check your selections.';
+}
+
+/**
+ * Get not null error message
+ */
+function getNotNullErrorMessage(message: string): string {
+  const field = extractFieldName(message);
+  if (field) {
+    return `The field "${formatFieldName(field)}" is required and cannot be empty.`;
+  }
+  return 'A required field is missing. Please fill in all required fields.';
+}
+
+/**
+ * Get check constraint error message
+ */
+function getCheckConstraintErrorMessage(lowerMessage: string): string {
+  if (lowerMessage.includes('age')) {
+    return 'Invalid age category. Please select Puppy, Young, Adult, or Senior.';
+  }
+  if (lowerMessage.includes('size')) {
+    return 'Invalid size category. Please select Small, Medium, or Large.';
+  }
+  if (lowerMessage.includes('gender')) {
+    return 'Invalid gender. Please select Male or Female.';
+  }
+  if (lowerMessage.includes('status')) {
+    return 'Invalid adoption status. Please select a valid status from the dropdown.';
+  }
+  return 'One or more field values are invalid. Please check your entries.';
+}
+
+/**
  * Parse error message and translate to user-friendly format
  */
 function parseErrorMessage(message: string, hint?: string): string {
   const lowerMessage = message.toLowerCase();
 
-  // Authorization errors
-  if (lowerMessage.includes('unauthorized') || lowerMessage.includes('admin access required')) {
+  if (isAuthorizationError(lowerMessage)) {
     return 'You do not have permission to perform this action. Admin access is required.';
   }
 
-  // Foreign key constraint violations
-  if (lowerMessage.includes('foreign key') || lowerMessage.includes('violates foreign key constraint')) {
-    if (lowerMessage.includes('rescue')) {
-      return 'The selected rescue organization is invalid. Please select a valid rescue from the list.';
-    }
-    if (lowerMessage.includes('location')) {
-      return 'The selected location is invalid. Please select a valid location.';
-    }
-    return 'One or more selected references are invalid. Please check your selections.';
+  if (isForeignKeyError(lowerMessage)) {
+    return getForeignKeyErrorMessage(lowerMessage);
   }
 
-  // Not null constraint violations
-  if (lowerMessage.includes('null value') || lowerMessage.includes('violates not-null constraint')) {
-    const field = extractFieldName(message);
-    if (field) {
-      return `The field "${formatFieldName(field)}" is required and cannot be empty.`;
-    }
-    return 'A required field is missing. Please fill in all required fields.';
+  if (isNotNullError(lowerMessage)) {
+    return getNotNullErrorMessage(message);
   }
 
-  // Check constraint violations
-  if (lowerMessage.includes('check constraint') || lowerMessage.includes('violates check')) {
-    // Age constraint
-    if (lowerMessage.includes('age')) {
-      return 'Invalid age category. Please select Puppy, Young, Adult, or Senior.';
-    }
-    // Size constraint
-    if (lowerMessage.includes('size')) {
-      return 'Invalid size category. Please select Small, Medium, or Large.';
-    }
-    // Gender constraint
-    if (lowerMessage.includes('gender')) {
-      return 'Invalid gender. Please select Male or Female.';
-    }
-    // Status constraint
-    if (lowerMessage.includes('status')) {
-      return 'Invalid adoption status. Please select a valid status from the dropdown.';
-    }
-    return 'One or more field values are invalid. Please check your entries.';
+  if (isCheckConstraintError(lowerMessage)) {
+    return getCheckConstraintErrorMessage(lowerMessage);
   }
 
-  // Unique constraint violations
-  if (lowerMessage.includes('unique') || lowerMessage.includes('duplicate')) {
+  if (isUniqueConstraintError(lowerMessage)) {
     return 'A dog with this information already exists. Please check for duplicates.';
   }
 
-  // Image upload errors
-  if (lowerMessage.includes('storage') || lowerMessage.includes('upload')) {
+  if (isImageUploadError(lowerMessage)) {
     return 'Failed to upload image. Please try a different image or check your connection.';
   }
 
-  // Network/connection errors
-  if (lowerMessage.includes('network') || lowerMessage.includes('connection') || lowerMessage.includes('timeout')) {
+  if (isNetworkError(lowerMessage)) {
     return 'Network error. Please check your internet connection and try again.';
   }
 
-  // Invalid input errors
-  if (lowerMessage.includes('invalid input') || lowerMessage.includes('invalid text representation')) {
+  if (isInvalidInputError(lowerMessage)) {
     return 'Invalid data format. Please check that all fields contain valid information.';
   }
 
-  // If we have a hint, include it
   if (hint && hint.trim()) {
     return `${message}. Hint: ${hint}`;
   }
 
-  // Return the original message if we can't parse it
   return message;
 }
 

@@ -107,60 +107,108 @@ export function validateBirthDate(data: DogFormData): { isValid: boolean; error?
 }
 
 /**
+ * Field validation rule
+ */
+interface FieldValidation {
+  field: keyof DogFormData;
+  validate: (value: unknown) => boolean;
+  errorMessage: string;
+}
+
+/**
+ * Required field validations
+ */
+const REQUIRED_FIELD_VALIDATIONS: FieldValidation[] = [
+  {
+    field: 'name',
+    validate: (value) => typeof value === 'string' && value.trim() !== '',
+    errorMessage: 'Dog name is required. Please enter a name.',
+  },
+  {
+    field: 'breeds',
+    validate: (value) => Array.isArray(value) && value.length > 0,
+    errorMessage: 'At least one breed is required. Please select a breed from the list.',
+  },
+  {
+    field: 'age',
+    validate: (value) => typeof value === 'string' && value !== '',
+    errorMessage: 'Age category is required. Please select Puppy, Young, Adult, or Senior.',
+  },
+  {
+    field: 'size',
+    validate: (value) => typeof value === 'string' && value !== '',
+    errorMessage: 'Size is required. Please select Small, Medium, or Large.',
+  },
+  {
+    field: 'gender',
+    validate: (value) => typeof value === 'string' && value !== '',
+    errorMessage: 'Gender is required. Please select Male or Female.',
+  },
+  {
+    field: 'status',
+    validate: (value) => typeof value === 'string' && value !== '',
+    errorMessage: 'Adoption status is required. Please select a status.',
+  },
+  {
+    field: 'rescue_id',
+    validate: (value) => typeof value === 'string' && value !== '',
+    errorMessage: 'Rescue organization is required. Please select a rescue from the list.',
+  },
+  {
+    field: 'location',
+    validate: (value) => typeof value === 'string' && value.trim() !== '',
+    errorMessage: 'Location is required. Please enter or select a location.',
+  },
+  {
+    field: 'image',
+    validate: (value) => typeof value === 'string' && value.trim() !== '',
+    errorMessage: 'Dog image is required. Please upload an image or provide an image URL.',
+  },
+  {
+    field: 'description',
+    validate: (value) => typeof value === 'string' && value.trim() !== '',
+    errorMessage: 'Description is required. Please provide a description of the dog.',
+  },
+];
+
+/**
+ * Validate profile URL if provided
+ */
+function validateProfileUrl(url: string): { isValid: boolean; error?: string } {
+  if (!url || url.trim() === '') {
+    return { isValid: true };
+  }
+
+  try {
+    new URL(url);
+    return { isValid: true };
+  } catch (error: unknown) {
+    return { 
+      isValid: false, 
+      error: 'Profile URL is invalid. Please enter a valid URL (e.g., https://example.com).' 
+    };
+  }
+}
+
+/**
  * Validate a dog form
  */
 export function validateDogForm(data: DogFormData): { isValid: boolean; error?: string } {
-  // Required field validations with specific messages
-  if (!data.name || data.name.trim() === '') {
-    return { isValid: false, error: 'Dog name is required. Please enter a name.' };
-  }
-
-  if (data.breeds.length === 0) {
-    return { isValid: false, error: 'At least one breed is required. Please select a breed from the list.' };
-  }
-
-  if (!data.age) {
-    return { isValid: false, error: 'Age category is required. Please select Puppy, Young, Adult, or Senior.' };
-  }
-
-  if (!data.size) {
-    return { isValid: false, error: 'Size is required. Please select Small, Medium, or Large.' };
-  }
-
-  if (!data.gender) {
-    return { isValid: false, error: 'Gender is required. Please select Male or Female.' };
-  }
-
-  if (!data.status) {
-    return { isValid: false, error: 'Adoption status is required. Please select a status.' };
-  }
-
-  if (!data.rescue_id || data.rescue_id === '') {
-    return { isValid: false, error: 'Rescue organization is required. Please select a rescue from the list.' };
-  }
-
-  if (!data.location || data.location.trim() === '') {
-    return { isValid: false, error: 'Location is required. Please enter or select a location.' };
-  }
-
-  if (!data.image || data.image.trim() === '') {
-    return { isValid: false, error: 'Dog image is required. Please upload an image or provide an image URL.' };
-  }
-
-  if (!data.description || data.description.trim() === '') {
-    return { isValid: false, error: 'Description is required. Please provide a description of the dog.' };
+  // Check all required fields
+  for (const validation of REQUIRED_FIELD_VALIDATIONS) {
+    const value = data[validation.field];
+    if (!validation.validate(value)) {
+      return { isValid: false, error: validation.errorMessage };
+    }
   }
 
   // Validate profile URL format if provided
-  if (data.profileUrl && data.profileUrl.trim() !== '') {
-    try {
-      new URL(data.profileUrl);
-    } catch (error: unknown) {
-      // Invalid URL format
-      return { isValid: false, error: 'Profile URL is invalid. Please enter a valid URL (e.g., https://example.com).' };
-    }
+  const urlValidation = validateProfileUrl(data.profileUrl);
+  if (!urlValidation.isValid) {
+    return urlValidation;
   }
   
+  // Validate birth date
   return validateBirthDate(data);
 }
 
