@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   knip:
@@ -114,3 +115,94 @@ jobs:
           name: knip-results
           path: knip-output.txt
           retention-days: 30
+      
+      - name: Create issue on failure
+        if: steps.check_results.outputs.has_issues == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('knip-output.txt', 'utf8');
+            
+            const title = '🔍 Unused Dependencies Detected in Main Branch';
+            const body = [
+              'Knip has detected unused code in the main branch.',
+              '',
+              '**Commit:** ${{ github.sha }}',
+              '**Run ID:** ${{ github.run_id }}',
+              '**Time:** ' + new Date().toISOString(),
+              '',
+              'Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.',
+              '',
+              '### Knip Output',
+              '',
+              '<details>',
+              '<summary>Click to view knip output</summary>',
+              '',
+              '```',
+              output,
+              '```',
+              '',
+              '</details>',
+              '',
+              '### What is Knip?',
+              '',
+              '[Knip](https://knip.dev/) helps find:',
+              '- Unused files',
+              '- Unused dependencies',
+              '- Unused exports',
+              '- Unreachable code',
+              '',
+              '### What should be done?',
+              '',
+              'Review the findings and consider:',
+              '1. Removing truly unused dependencies and files',
+              '2. Verifying that "unused" items aren\'t actually needed',
+              '3. Adding items to `ignoreDependencies` in `knip.json` for false positives',
+              '',
+              'This helps keep the codebase clean and maintainable.'
+            ].join('\n');
+            
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'unused-dependencies'
+            });
+            
+            if (issues.data.length === 0) {
+              // Create new issue if none exists
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['unused-dependencies', 'maintenance']
+              });
+            } else {
+              // Comment on existing issue with concise update
+              const commentBody = [
+                '🔔 Unused dependencies detected again',
+                '',
+                '**Commit:** ${{ github.sha }}',
+                '**Time:** ' + new Date().toISOString(),
+                '**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})',
+                '',
+                '<details>',
+                '<summary>Click to view knip output</summary>',
+                '',
+                '```',
+                output,
+                '```',
+                '',
+                '</details>'
+              ].join('\n');
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: commentBody
+              });
+            }

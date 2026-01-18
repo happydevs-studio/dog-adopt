@@ -104,6 +104,20 @@ npm run knip:production   # Check only production dependencies
 
 Knip runs automatically in GitHub Actions to prevent accumulation of unused code.
 
+### Workflow Behavior
+
+**On Pull Requests:**
+- Workflow runs but doesn't fail
+- Comment posted to PR with unused code findings
+- Report uploaded as artifact
+- Informational only - doesn't block PR
+
+**On Main Branch:**
+- Workflow runs on every push
+- Issue created automatically with labels `unused-dependencies` and `maintenance`
+- If an open issue already exists, adds comment with new findings
+- Report uploaded as artifact
+
 ### Notes
 
 - shadcn/ui components are added incrementally - unused ones are common
