@@ -181,11 +181,11 @@ function DogCard({
           className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
-          <h3 className="font-display font-semibold text-foreground">{dog.name}</h3>
+          <h3 className="font-display font-semibold text-foreground truncate">{dog.name}</h3>
           <p className="text-sm text-muted-foreground truncate">
             {dog.breed} • {dog.age} • {dog.size} • {dog.location}
           </p>
-          <p className="text-xs text-muted-foreground">{dog.rescue}</p>
+          <p className="text-xs text-muted-foreground truncate">{dog.rescue}</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto justify-end">
           <Button variant="outline" size="icon" onClick={() => onEdit(dog)}>
