@@ -2,14 +2,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BreedCombobox } from '@/components/BreedCombobox';
+import { getDefaultSizeForBreeds } from '@/data/breedSizes';
 import type { DogFormData } from '../../Admin.types';
 
 interface BasicInfoSectionProps {
   formData: DogFormData;
   onFormDataChange: (data: DogFormData) => void;
+  isEditing?: boolean;
 }
 
-export function BasicInfoSection({ formData, onFormDataChange }: BasicInfoSectionProps) {
+export function BasicInfoSection({ formData, onFormDataChange, isEditing = false }: BasicInfoSectionProps) {
   return (
     <>
       <div className="space-y-2">
@@ -26,11 +28,19 @@ export function BasicInfoSection({ formData, onFormDataChange }: BasicInfoSectio
         <Label>Breed(s)</Label>
         <BreedCombobox
           value={formData.breeds}
-          onChange={(breeds) => onFormDataChange({ ...formData, breeds })}
+          onChange={(breeds) => {
+            // For new dogs (not editing), auto-populate size based on breed
+            if (!isEditing && breeds.length > 0) {
+              const defaultSize = getDefaultSizeForBreeds(breeds);
+              onFormDataChange({ ...formData, breeds, size: defaultSize });
+            } else {
+              onFormDataChange({ ...formData, breeds });
+            }
+          }}
           placeholder="Select one or more breeds..."
         />
         <p className="text-xs text-muted-foreground">
-          Select multiple breeds for cross-breeds or mixes
+          Select multiple breeds for cross-breeds or mixes. Size will be auto-populated for new dogs.
         </p>
       </div>
 
