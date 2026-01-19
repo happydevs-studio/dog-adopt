@@ -14,7 +14,9 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   // Small breeds (up to 20 lbs / 9 kg)
   "Affenpinscher": "Small",
   "Australian Terrier": "Small",
+  "Alaskan Klee Kai": "Small", // Typically 10-15 lbs
   "Biewer Terrier": "Small",
+  "Bichon Frise": "Small", // Typically 12-18 lbs
   "Bolognese": "Small",
   "Brussels Griffon": "Small",
   "Cairn Terrier": "Small",
@@ -128,7 +130,6 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   "Airedale Terrier": "Large",
   "Akbash": "Large",
   "Akita": "Large",
-  "Alaskan Klee Kai": "Small", // Typically 10-15 lbs
   "Alaskan Malamute": "Large",
   "American Bulldog": "Large",
   "American Bully": "Large",
@@ -148,7 +149,6 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   "Bergamasco Sheepdog": "Large",
   "Berger Picard": "Large",
   "Bernese Mountain Dog": "Large",
-  "Bichon Frise": "Small", // Correcting - typically 12-18 lbs
   "Black and Tan Coonhound": "Large",
   "Black Russian Terrier": "Large",
   "Bloodhound": "Large",

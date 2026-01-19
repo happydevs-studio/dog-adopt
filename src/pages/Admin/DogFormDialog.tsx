@@ -12,7 +12,7 @@ import { Loader2, Upload, X } from 'lucide-react';
 import { BreedCombobox } from '@/components/BreedCombobox';
 import { RescueCombobox } from '@/components/RescueCombobox';
 import { LocationCombobox } from '@/components/LocationCombobox';
-import { getDefaultSizeForBreeds } from '@/data/breedSizes';
+import { handleBreedChange } from '@/utils/breedFormHelpers';
 import type { Dog } from '@/types/dog';
 import type { Rescue } from '@/hooks/useRescues';
 import type { DogFormData } from '../Admin.types';
@@ -69,15 +69,7 @@ export function DogFormDialog({
             <Label>Breed(s)</Label>
             <BreedCombobox
               value={formData.breeds}
-              onChange={(breeds) => {
-                // For new dogs (not editing), auto-populate size based on breed
-                if (!editingDog && breeds.length > 0) {
-                  const defaultSize = getDefaultSizeForBreeds(breeds);
-                  onFormDataChange({ ...formData, breeds, size: defaultSize });
-                } else {
-                  onFormDataChange({ ...formData, breeds });
-                }
-              }}
+              onChange={(breeds) => onFormDataChange(handleBreedChange(breeds, formData, !!editingDog))}
               placeholder="Select one or more breeds..."
             />
             <p className="text-xs text-muted-foreground">

@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BreedCombobox } from '@/components/BreedCombobox';
-import { getDefaultSizeForBreeds } from '@/data/breedSizes';
+import { handleBreedChange } from '@/utils/breedFormHelpers';
 import type { DogFormData } from '../../Admin.types';
 
 interface BasicInfoSectionProps {
@@ -28,15 +28,7 @@ export function BasicInfoSection({ formData, onFormDataChange, isEditing = false
         <Label>Breed(s)</Label>
         <BreedCombobox
           value={formData.breeds}
-          onChange={(breeds) => {
-            // For new dogs (not editing), auto-populate size based on breed
-            if (!isEditing && breeds.length > 0) {
-              const defaultSize = getDefaultSizeForBreeds(breeds);
-              onFormDataChange({ ...formData, breeds, size: defaultSize });
-            } else {
-              onFormDataChange({ ...formData, breeds });
-            }
-          }}
+          onChange={(breeds) => onFormDataChange(handleBreedChange(breeds, formData, isEditing))}
           placeholder="Select one or more breeds..."
         />
         <p className="text-xs text-muted-foreground">
