@@ -286,7 +286,7 @@ FROM dogadopt.rescues_audit_logs ral
 LEFT JOIN auth.users u ON u.id = ral.changed_by
 ORDER BY ral.changed_at DESC;
 
--- Insert ADCH member rescue organizations
+-- Insert quality rescue organizations committed to high welfare standards
 INSERT INTO dogadopt.rescues (name, type, region, website) VALUES
 ('Aireworth Dogs in Need', 'Full', 'Yorkshire & The Humber', 'www.areworthdogsinneed.co.uk'),
 ('Akita Rescue & Welfare Trust (UK)', 'Full', 'South East England', 'www.akitarescue.org.uk'),

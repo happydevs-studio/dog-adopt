@@ -47,7 +47,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 const API_BASE = 'https://api.charitycommission.gov.uk/register/api';
 const RATE_LIMIT_DELAY = 5000; // 5 seconds between requests
 
-// List of newly added rescues (from seed.sql after "Additional ADCH member rescues added 2025-12-31")
+// List of newly added rescues (from seed.sql after "Additional quality rescue organizations added 2025-12-31")
 const NEW_RESCUES = [
   'Animals in Need Northants',
   'Ashbourne & District Animal Welfare Society',
@@ -234,7 +234,7 @@ function formatCsvValue(value) {
  * Main execution
  */
 async function main() {
-  console.log('🐕 New ADCH Member Rescues Contact Collector\n');
+  console.log('🐕 Quality Rescue Organizations Contact Collector\n');
   console.log('Collecting official contact information from Charity Commission API\n');
   
   // Fetch only the newly added rescues

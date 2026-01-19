@@ -22,7 +22,7 @@ const Footer = () => {
               Our mission is to promote adoption over purchasing and help every dog find their forever home.
             </p>
             <p className="text-background/60 text-sm max-w-md">
-              Currently independent, we aim to feature quality rescue organisations and hope to build strong partnerships with ADCH and rescue organisations in the future.
+              Currently independent, we aim to feature quality rescue organisations and hope to build strong partnerships with rescue organisations committed to high welfare standards.
             </p>
           </div>
 

@@ -1,6 +1,6 @@
 -- Migration: Sync rescue organization data with latest contact details and coordinates
 -- This migration updates existing rescue records with phone, email, address, postcode,
--- charity_number, latitude, and longitude information from ADCH member list.
+-- charity_number, latitude, and longitude information from quality rescue organizations.
 -- It will only update records where data has actually changed to minimize audit log noise.
 
 -- Merge rescue data: Insert new, update changed, and delete removed ones

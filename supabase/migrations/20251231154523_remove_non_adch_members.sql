@@ -1,8 +1,8 @@
--- Migration: Remove non-ADCH member rescues
--- This migration removes rescue organizations that are no longer in the current ADCH member list
--- Data verified against: Editable-Members-List-with-regions-01102025.pdf (Updated: December 10, 2025)
+-- Migration: Update rescue organization list
+-- This migration removes rescue organizations that are no longer in the current quality rescue list
+-- Data verified to ensure only quality rescue organizations committed to high animal welfare standards
 -- 
--- Removes 22 rescues that are no longer ADCH members
+-- Removes 22 rescues that are no longer in the quality rescue list
 -- Associated dogs will be automatically removed via CASCADE
 -- Updates Woodgreen name to current name
 
@@ -16,7 +16,7 @@ UPDATE dogadopt.rescues
 SET region = 'North West England'
 WHERE name = 'Oak Tree Animals'' Charity';
 
--- Remove rescues that are no longer ADCH members
+-- Remove rescues that are no longer in the quality rescue list
 DELETE FROM dogadopt.rescues
 WHERE name IN (
   'Staffie Smiles',
