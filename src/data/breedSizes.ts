@@ -5,7 +5,7 @@
  * - Large: Over 60 lbs (27+ kg)
  * 
  * Sources: AKC, KC (UK), and FCI breed standards
- * Last updated: January 2026
+ * Last updated: December 2024
  */
 
 export type BreedSize = 'Small' | 'Medium' | 'Large';
@@ -128,7 +128,7 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   "Airedale Terrier": "Large",
   "Akbash": "Large",
   "Akita": "Large",
-  "Alaskan Klee Kai": "Medium", // Typically 10-15 lbs, correcting to Medium/Small range
+  "Alaskan Klee Kai": "Small", // Typically 10-15 lbs
   "Alaskan Malamute": "Large",
   "American Bulldog": "Large",
   "American Bully": "Large",
