@@ -13,8 +13,9 @@ export type BreedSize = 'Small' | 'Medium' | 'Large';
 export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   // Small breeds (up to 20 lbs / 9 kg)
   "Affenpinscher": "Small",
-  "Australian Terrier": "Small",
   "Alaskan Klee Kai": "Small", // Typically 10-15 lbs
+  "American Hairless Terrier": "Small", // Typically 12-24 lbs
+  "Australian Terrier": "Small",
   "Biewer Terrier": "Small",
   "Bichon Frise": "Small", // Typically 12-18 lbs
   "Bolognese": "Small",
@@ -133,7 +134,6 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   "Alaskan Malamute": "Large",
   "American Bulldog": "Large",
   "American Bully": "Large",
-  "American Hairless Terrier": "Small", // Typically 12-24 lbs
   "American Pit Bull Terrier": "Large",
   "American Staffordshire Terrier": "Large",
   "Anatolian Shepherd Dog": "Large",
