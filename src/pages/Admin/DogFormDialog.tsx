@@ -335,10 +335,12 @@ export function DogFormDialog({
                 onCheckedChange={(c) => onFormDataChange({ ...formData, good_with_cats: !!c })}
               />
               <Label htmlFor="good_with_cats">Good with cats</Label>
-              </div>
             </div>
           </div>
+          </div>
+          {/* End of scrollable form content */}
 
+          {/* Sticky action buttons - always visible at bottom on mobile */}
           <div className="sticky bottom-0 bg-background border-t border-border px-4 py-3 sm:px-0 sm:border-0 sm:pt-4 sm:pb-0 -mx-4 sm:mx-0">
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
