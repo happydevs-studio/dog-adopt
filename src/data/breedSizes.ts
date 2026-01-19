@@ -133,8 +133,7 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
   "Alaskan Malamute": "Large",
   "American Bulldog": "Large",
   "American Bully": "Large",
-  "American Foxhound": "Large",
-  "American Hairless Terrier": "Medium",
+  "American Hairless Terrier": "Small", // Typically 12-24 lbs
   "American Pit Bull Terrier": "Large",
   "American Staffordshire Terrier": "Large",
   "Anatolian Shepherd Dog": "Large",
@@ -275,17 +274,18 @@ export const BREED_SIZE_MAP: Record<string, BreedSize> = {
  * Returns 'Medium' as a safe default if breed is not found.
  */
 export function getBreedSize(breedName: string): BreedSize {
-  // Normalize breed name for case-insensitive lookup
-  const normalizedBreed = breedName.trim();
+  // Normalize breed name: trim and collapse multiple spaces
+  const normalizedBreed = breedName.trim().replace(/\s+/g, ' ');
   
   // Direct lookup
   if (BREED_SIZE_MAP[normalizedBreed]) {
     return BREED_SIZE_MAP[normalizedBreed];
   }
   
-  // Case-insensitive lookup
+  // Case-insensitive lookup using normalized lowercase
+  const normalizedLower = normalizedBreed.toLowerCase();
   const foundEntry = Object.entries(BREED_SIZE_MAP).find(
-    ([key]) => key.toLowerCase() === normalizedBreed.toLowerCase()
+    ([key]) => key.toLowerCase() === normalizedLower
   );
   
   if (foundEntry) {
