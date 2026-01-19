@@ -50,36 +50,37 @@ export function DogFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[95vh] overflow-hidden flex flex-col p-0 sm:p-6">
+        <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
           <DialogTitle>{editingDog ? 'Edit Dog' : 'Add New Dog'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => onFormDataChange({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
+        <form onSubmit={onSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="overflow-y-auto px-4 sm:px-0 space-y-3 sm:space-y-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => onFormDataChange({ ...formData, name: e.target.value })}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Breed(s)</Label>
-            <BreedCombobox
-              value={formData.breeds}
-              onChange={(breeds) => onFormDataChange(handleBreedChange(breeds, formData, !!editingDog))}
-              placeholder="Select one or more breeds..."
-            />
-            <p className="text-xs text-muted-foreground">
-              Select multiple breeds for cross-breeds or mixes. Size will be auto-populated for new dogs.
-            </p>
-          </div>
+            <div className="space-y-1 sm:space-y-2">
+              <Label>Breed(s)</Label>
+              <BreedCombobox
+                value={formData.breeds}
+                onChange={(breeds) => onFormDataChange(handleBreedChange(breeds, formData, !!editingDog))}
+                placeholder="Select one or more breeds..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Select multiple breeds for cross-breeds or mixes. Size will be auto-populated for new dogs.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="age">Age</Label>
               <Select value={formData.age} onValueChange={(v) => onFormDataChange({ ...formData, age: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -89,9 +90,9 @@ export function DogFormDialog({
                   <SelectItem value="Senior">Senior</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="size">Size</Label>
+              </div>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="size">Size</Label>
               <Select value={formData.size} onValueChange={(v) => onFormDataChange({ ...formData, size: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -100,9 +101,9 @@ export function DogFormDialog({
                   <SelectItem value="Large">Large</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
+              </div>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="gender">Gender</Label>
               <Select value={formData.gender} onValueChange={(v) => onFormDataChange({ ...formData, gender: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -113,8 +114,8 @@ export function DogFormDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Adoption Status</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="status">Adoption Status</Label>
             <Select value={formData.status} onValueChange={(v) => onFormDataChange({ ...formData, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -126,10 +127,10 @@ export function DogFormDialog({
                 <SelectItem value="withdrawn">Withdrawn</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status_notes">Status Notes (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="status_notes">Status Notes (Optional)</Label>
             <Textarea
               id="status_notes"
               value={formData.status_notes}
@@ -137,16 +138,16 @@ export function DogFormDialog({
               rows={2}
               placeholder="Optional notes about the adoption status..."
             />
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label>Birth Date (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label>Birth Date (Optional)</Label>
             <p className="text-xs text-muted-foreground mb-2">
               Enter the dog's birth date if known. This will automatically calculate their age category.
             </p>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="birthYear" className="text-xs">Year</Label>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="birthYear" className="text-xs">Year</Label>
                 <Input
                   id="birthYear"
                   type="number"
@@ -156,9 +157,9 @@ export function DogFormDialog({
                   value={formData.birthYear}
                   onChange={(e) => onFormDataChange({ ...formData, birthYear: e.target.value })}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="birthMonth" className="text-xs">Month</Label>
+                </div>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="birthMonth" className="text-xs">Month</Label>
                 <Input
                   id="birthMonth"
                   type="number"
@@ -169,9 +170,9 @@ export function DogFormDialog({
                   onChange={(e) => onFormDataChange({ ...formData, birthMonth: e.target.value })}
                   disabled={!formData.birthYear}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="birthDay" className="text-xs">Day</Label>
+                </div>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="birthDay" className="text-xs">Day</Label>
                 <Input
                   id="birthDay"
                   type="number"
@@ -182,15 +183,15 @@ export function DogFormDialog({
                   onChange={(e) => onFormDataChange({ ...formData, birthDay: e.target.value })}
                   disabled={!formData.birthYear || !formData.birthMonth}
                 />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Year is required if you provide month or day. If birth date is not available, the manual age category will be used.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Year is required if you provide month or day. If birth date is not available, the manual age category will be used.
-            </p>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rescueSinceDate">In Rescue Since (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="rescueSinceDate">In Rescue Since (Optional)</Label>
             <p className="text-xs text-muted-foreground mb-2">
               Enter the date the dog was taken into the rescue if known.
             </p>
@@ -200,11 +201,11 @@ export function DogFormDialog({
               value={formData.rescueSinceDate}
               onChange={(e) => onFormDataChange({ ...formData, rescueSinceDate: e.target.value })}
             />
-          </div>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="rescue">Rescue Organisation</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="rescue">Rescue Organisation</Label>
               <RescueCombobox
                 value={formData.rescue_id}
                 onChange={(rescue_id) => {
@@ -222,19 +223,19 @@ export function DogFormDialog({
                 rescues={rescues}
                 placeholder="Select rescue organisation..."
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              </div>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="location">Location</Label>
               <LocationCombobox
                 value={formData.location}
                 onChange={(location) => onFormDataChange({ ...formData, location })}
                 placeholder="Select or enter location..."
               />
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Dog Image (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label>Dog Image (Optional)</Label>
             <p className="text-xs text-muted-foreground">
               If no image is uploaded, a default "Coming Soon" image will be used.
             </p>
@@ -283,10 +284,10 @@ export function DogFormDialog({
                 )}
               </div>
             </div>
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="profileUrl">Dog Profile URL (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="profileUrl">Dog Profile URL (Optional)</Label>
             <Input
               id="profileUrl"
               type="url"
@@ -297,10 +298,10 @@ export function DogFormDialog({
             <p className="text-xs text-muted-foreground">
               Link to the dog's profile page on the rescue's website
             </p>
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -308,9 +309,9 @@ export function DogFormDialog({
               rows={3}
               required
             />
-          </div>
+            </div>
 
-          <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
               <Checkbox
                 id="good_with_kids"
@@ -334,17 +335,20 @@ export function DogFormDialog({
                 onCheckedChange={(c) => onFormDataChange({ ...formData, good_with_cats: !!c })}
               />
               <Label htmlFor="good_with_cats">Good with cats</Label>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
+          <div className="sticky bottom-0 bg-background border-t border-border px-4 py-3 sm:px-0 sm:border-0 sm:pt-4 sm:pb-0 -mx-4 sm:mx-0">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              {editingDog ? 'Save Changes' : 'Add Dog'}
-            </Button>
+                {editingDog ? 'Save Changes' : 'Add Dog'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
