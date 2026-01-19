@@ -156,6 +156,7 @@ export const DOG_BREEDS = [
   "Leonberger",
   "Lhasa Apso",
   "Lowchen",
+  "Lurcher",
   "Maltese",
   "Manchester Terrier",
   "Mastiff",
