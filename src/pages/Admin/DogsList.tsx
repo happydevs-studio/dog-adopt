@@ -73,9 +73,9 @@ export function DogsList({ dogs, rescues, onEdit, onDelete }: DogsListProps) {
       {/* Search and Filter Controls */}
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full min-w-0">
             {/* Search Input */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="search"
@@ -176,7 +176,7 @@ function DogCard({
 }) {
   return (
     <Card>
-      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4">
+      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 w-full min-w-0">
         <img
           src={dog.image}
           alt={dog.name}
