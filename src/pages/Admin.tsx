@@ -96,6 +96,7 @@ const Admin = () => {
 
             <DogsList
               dogs={dogs}
+              rescues={rescues}
               onEdit={adminState.handleOpenDialog}
               onDelete={adminState.handleDelete}
             />
