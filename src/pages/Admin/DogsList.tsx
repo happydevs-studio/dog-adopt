@@ -102,12 +102,13 @@ export function DogsList({ dogs, rescues, onEdit, onDelete }: DogsListProps) {
             </Select>
 
             {/* View Mode Toggle */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('list')}
                 title="List view"
+                className="flex-1 sm:flex-none"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -116,6 +117,7 @@ export function DogsList({ dogs, rescues, onEdit, onDelete }: DogsListProps) {
                 size="icon"
                 onClick={() => setViewMode('grouped')}
                 title="Group by rescue"
+                className="flex-1 sm:flex-none"
               >
                 <Layers className="w-4 h-4" />
               </Button>
