@@ -25,7 +25,7 @@ export function RescuesList({ rescues, onEdit, onDelete }: RescuesListProps) {
     <div className="grid gap-4">
       {rescues.map((rescue) => (
         <Card key={rescue.id}>
-          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4">
+          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 w-full min-w-0">
             <div className="flex-1 min-w-0">
               <h3 className="font-display font-semibold text-foreground">{rescue.name}</h3>
               <p className="text-sm text-muted-foreground">
