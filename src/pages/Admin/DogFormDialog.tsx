@@ -12,6 +12,7 @@ import { Loader2, Upload, X } from 'lucide-react';
 import { BreedCombobox } from '@/components/BreedCombobox';
 import { RescueCombobox } from '@/components/RescueCombobox';
 import { LocationCombobox } from '@/components/LocationCombobox';
+import { handleBreedChange } from '@/utils/breedFormHelpers';
 import type { Dog } from '@/types/dog';
 import type { Rescue } from '@/hooks/useRescues';
 import type { DogFormData } from '../Admin.types';
@@ -68,11 +69,11 @@ export function DogFormDialog({
             <Label>Breed(s)</Label>
             <BreedCombobox
               value={formData.breeds}
-              onChange={(breeds) => onFormDataChange({ ...formData, breeds })}
+              onChange={(breeds) => onFormDataChange(handleBreedChange(breeds, formData, !!editingDog))}
               placeholder="Select one or more breeds..."
             />
             <p className="text-xs text-muted-foreground">
-              Select multiple breeds for cross-breeds or mixes
+              Select multiple breeds for cross-breeds or mixes. Size will be auto-populated for new dogs.
             </p>
           </div>
 
