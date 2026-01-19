@@ -5,8 +5,8 @@
 -- ========================================
 -- RESCUES AND LOCATIONS REFERENCE DATA
 -- ========================================
--- This section syncs rescue organization data from ADCH (Association of Dogs and Cats Homes)
--- Data source: https://adch.org.uk/wp-content/uploads/2025/09/Editable-Members-List-with-regions-01102025.pdf
+-- This section syncs rescue organization data from quality rescue organizations
+-- committed to high animal welfare standards.
 -- Only updates records when there are actual differences to minimize audit log noise
 
 -- Merge rescues: Insert new, update changed, and delete removed ones
@@ -98,7 +98,7 @@ WITH temp_rescues AS (
 ('Preston & District RSPCA', 'Full', 'North West England', 'www.rspca-preston.org.uk', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Scottish SPCA', 'Full', 'Scotland', 'www.scottishspca.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Woodgreen Pets Charity', 'Full', 'East England', 'www.woodgreen.org.uk', '03003039333', 'info@woodgreen.org.uk', 'Wood Green Animal Shelters,London Road, Godmanchester, Huntingdon, Cambridgeshire, PE29 2NH', 'PE29 2NH', '298348', 52.29931, -0.150593),
--- Additional ADCH member rescues added 2025-12-31
+-- Additional quality rescue organizations added 2025-12-31
 ('Animals in Need Northants', 'Full', 'East Midlands', 'www.animalwelfarefurness.org.uk', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Ashbourne & District Animal Welfare Society', 'Full', 'East Midlands', 'www.ashbourneanimalwelfare.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Band of Rescuers North Yorkshire', 'Full', 'Yorkshire & The Humber', 'www.bandofrescuers.co.uk', '07967811171', 'bandofrescuersteam@gmail.com', '43 LOWFIELD DRIVE, HAXBY, YORK, YO32 3QT', 'YO32 3QT', '1183369', 54.019797, -1.072647),

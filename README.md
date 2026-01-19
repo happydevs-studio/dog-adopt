@@ -153,7 +153,7 @@ Knip runs automatically in CI and will comment on PRs with findings. See [docs/K
 
 ### Rescues and Locations
 
-This project maintains a reference list of rescue organizations from the ADCH (Association of Dogs and Cats Homes). The data is managed through the seed file which uses MERGE logic to keep the database synchronized.
+This project maintains a reference list of quality rescue organizations committed to high animal welfare standards. The data is managed through the seed file which uses MERGE logic to keep the database synchronized.
 
 **Updating Rescues Data:**
 

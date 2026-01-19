@@ -1,6 +1,6 @@
 -- Sync Production Data with Seed File
 -- This migration ensures production rescue data is completely in sync with seed.sql
--- Data source: ADCH (Association of Dogs and Cats Homes) member list
+-- Data source: Quality rescue organizations committed to high animal welfare standards
 -- Created: 2025-12-31
 --
 -- This uses MERGE logic to:
@@ -96,7 +96,7 @@ WITH temp_rescues AS (
 ('Preston & District RSPCA', 'Full', 'North West England', 'www.rspca-preston.org.uk', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Scottish SPCA', 'Full', 'Scotland', 'www.scottishspca.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Woodgreen Pets Charity', 'Full', 'East England', 'www.woodgreen.org.uk', '03003039333', 'info@woodgreen.org.uk', 'Wood Green Animal Shelters,London Road, Godmanchester, Huntingdon, Cambridgeshire, PE29 2NH', 'PE29 2NH', '298348', 52.29931, -0.150593),
--- Additional ADCH member rescues added 2025-12-31
+-- Additional quality rescue organizations added 2025-12-31
 ('Animals in Need Northants', 'Full', 'East Midlands', 'www.animalwelfarefurness.org.uk', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Ashbourne & District Animal Welfare Society', 'Full', 'East Midlands', 'www.ashbourneanimalwelfare.org', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 ('Band of Rescuers North Yorkshire', 'Full', 'Yorkshire & The Humber', 'www.bandofrescuers.co.uk', '07967811171', 'bandofrescuersteam@gmail.com', '43 LOWFIELD DRIVE, HAXBY, YORK, YO32 3QT', 'YO32 3QT', '1183369', 54.019797, -1.072647),

@@ -1,6 +1,5 @@
--- Add missing ADCH member rescues
--- These are dog-related rescues from the official ADCH member list that were not in the database
--- Source: Editable-Members-List-with-regions-01102025.pdf (updated December 10, 2025)
+-- Add missing quality rescue organizations
+-- These are dog-related rescues from quality organizations committed to high animal welfare standards
 
 INSERT INTO dogadopt.rescues (name, type, region, website)
 VALUES
