@@ -6,7 +6,41 @@ This document provides guidance for troubleshooting smoke test failures on the p
 
 ## Common Failure Scenarios
 
-### 1. JavaScript 400 Errors on Page Load
+### 1. MIME Type Errors (Module Script Loading Failures)
+
+**Symptom:**
+```
+Failed to load module script: Expected a JavaScript-or-Wasm module script 
+but the server responded with a MIME type of "application/octet-stream".
+```
+
+**Associated Test Failures:**
+- `expect(locator).toBeVisible() failed` for body element (body is hidden)
+- Navigation elements not found
+- No content visible on the page
+
+**Root Cause:**
+GitHub Pages is serving JavaScript module files with incorrect MIME types. This prevents the React application from loading, resulting in an empty page.
+
+**Solution:**
+This issue is caused by the `actions/upload-pages-artifact@v4` action. The fix is to:
+
+1. Use `actions/upload-pages-artifact@v3` in the deployment workflow
+2. Ensure `.gitattributes` file exists with proper text file handling
+3. Ensure `.nojekyll` file is in the `public/` folder
+4. Ensure `CNAME` file is in the `public/` folder
+
+See [GITHUB_PAGES_MIME_TYPE_FIX.md](./GITHUB_PAGES_MIME_TYPE_FIX.md) for detailed information.
+
+**Verification:**
+After deploying the fix:
+1. Check browser console for MIME type errors
+2. Verify JavaScript files load correctly
+3. Verify all smoke tests pass
+
+---
+
+### 2. JavaScript 400 Errors on Page Load
 
 **Symptom:**
 ```
