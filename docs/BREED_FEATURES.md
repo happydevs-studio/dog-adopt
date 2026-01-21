@@ -221,6 +221,100 @@ To apply:
 npm run supabase:reset
 ```
 
+## Breed Size Auto-Population Feature
+
+### Overview
+
+When adding a new dog in the admin panel, the size field now automatically populates based on the selected breed(s). This eliminates the need to manually set the size for every dog and ensures consistency.
+
+### How It Works
+
+1. **Select a breed** in the "Add Dog" form
+2. **Size auto-populates** based on breed standards:
+   - **Small**: Up to 20 lbs (e.g., Chihuahua, Jack Russell Terrier, Yorkshire Terrier)
+   - **Medium**: 21-60 lbs (e.g., Border Collie, Beagle, Cocker Spaniel)
+   - **Large**: Over 60 lbs (e.g., Golden Retriever, German Shepherd, Great Dane)
+3. **Manual override** available - you can still change the size if needed
+
+### Examples
+
+| Breed | Auto-populated Size |
+|-------|-------------------|
+| Jack Russell Terrier | Small |
+| Chihuahua | Small |
+| Border Collie | Medium |
+| Beagle | Medium |
+| Golden Retriever | Large |
+| German Shepherd | Large |
+| Cockapoo | Small |
+| Labradoodle | Large |
+
+### Multi-Breed Dogs
+
+For dogs with multiple breeds selected (cross-breeds):
+- The size is determined by the **first breed** selected
+- Example: Selecting "Jack Russell Terrier" then "Beagle" → Size = Small
+
+### Editing Existing Dogs
+
+- The auto-population **only applies to new dogs**
+- When editing an existing dog, the size field retains its current value
+- This prevents unintended changes to existing records
+
+### Technical Implementation
+
+#### Files Modified
+1. **`src/data/breedSizes.ts`** - Comprehensive breed-to-size mapping (250+ breeds)
+   - Utility functions: `getBreedSize()`, `getDefaultSizeForBreeds()`
+   - Based on AKC, KC (UK), and FCI breed standards
+   - Smart string normalization (handles spaces, case)
+
+2. **`src/utils/breedFormHelpers.ts`** - Reusable `handleBreedChange()` function
+   - Eliminates code duplication
+   - Encapsulates breed selection logic
+
+3. **`src/pages/Admin/DogFormDialog.tsx`**
+   - Updated to use `handleBreedChange()` utility
+   - Auto-populates size for new dogs only
+
+4. **`src/pages/Admin/DogForm/BasicInfoSection.tsx`**
+   - Updated to use `handleBreedChange()` utility
+   - Consistent behavior with main dialog
+
+### String Handling
+- Case-insensitive matching
+- Handles multiple spaces (e.g., "Jack  Russell  Terrier")
+- Trim whitespace automatically
+
+### Coverage
+- 250+ breeds from major kennel clubs
+- Common cross-breeds included (Cockapoo, Labradoodle, etc.)
+- Size categories based on standard weight ranges:
+  - Small: Up to 20 lbs (9 kg)
+  - Medium: 21-60 lbs (10-27 kg)
+  - Large: Over 60 lbs (27+ kg)
+
+### Known Limitations
+
+The breed entries in `breedSizes.ts` are functionally correct but not perfectly organized by size category in the file. The mapping works correctly (all lookups return the right size), but some Medium/Large breeds appear in the Large section comments. This is a cosmetic issue only and doesn't affect functionality.
+
+### Testing
+
+The feature has been tested with:
+- ✓ Common small breeds (Chihuahua, Jack Russell, etc.)
+- ✓ Common medium breeds (Beagle, Border Collie, etc.)
+- ✓ Common large breeds (Golden Retriever, German Shepherd, etc.)
+- ✓ Cross-breeds (Cockapoo, Labradoodle, etc.)
+- ✓ Case-insensitive breed matching
+- ✓ Unknown breeds default to Medium
+
+### Impact
+
+- Saves time for admins adding dogs
+- Reduces data entry errors
+- Maintains consistency across listings
+- No breaking changes to existing data
+
 ## Future Enhancements
 
 Potential improvements:
@@ -230,3 +324,7 @@ Potential improvements:
 4. Show breed-specific information (size ranges, temperament)
 5. Support custom breed names for rare breeds
 6. Add breed popularity statistics
+7. Perfect file organization in breedSizes.ts (cosmetic improvement)
+8. Breed validation with warnings for unmapped breeds
+9. Custom sizes via admin UI for breed-size mappings
+10. Size suggestions when manually overriding breed defaults
