@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+// Configuration constants
+const MAX_ALLOWED_CONSOLE_ERRORS = 3;
+
+// Helper function to wait for loading spinner to disappear
+async function waitForLoadingComplete(page: any) {
+  const loadingSpinner = page.locator('svg.animate-spin');
+  if (await loadingSpinner.isVisible().catch(() => false)) {
+    await loadingSpinner.waitFor({ state: 'hidden', timeout: 20000 });
+  }
+}
+
 test.describe('Smoke Tests - Production Site', () => {
   test('homepage loads successfully', async ({ page }) => {
     // Navigate to the homepage
@@ -87,8 +98,8 @@ test.describe('Smoke Tests - Production Site', () => {
       console.log('Console errors detected:', criticalErrors);
     }
     
-    // Assert no critical JavaScript errors (allow up to 3 minor errors)
-    expect(criticalErrors.length).toBeLessThanOrEqual(3);
+    // Assert no critical JavaScript errors (allow up to MAX_ALLOWED_CONSOLE_ERRORS minor errors)
+    expect(criticalErrors.length).toBeLessThanOrEqual(MAX_ALLOWED_CONSOLE_ERRORS);
   });
 
   test('site loads within acceptable time', async ({ page }) => {
@@ -108,10 +119,7 @@ test.describe('Smoke Tests - Production Site', () => {
     await page.waitForLoadState('networkidle');
     
     // Wait for the loading spinner to disappear (if present)
-    const loadingSpinner = page.locator('svg.animate-spin');
-    if (await loadingSpinner.isVisible().catch(() => false)) {
-      await loadingSpinner.waitFor({ state: 'hidden', timeout: 20000 });
-    }
+    await waitForLoadingComplete(page);
     
     // Check for error state
     const errorMessage = page.locator('text=/error loading dogs/i');
@@ -120,7 +128,7 @@ test.describe('Smoke Tests - Production Site', () => {
     if (hasError) {
       // If there's an error, log it but don't fail the test - this might be a transient API issue
       console.log('WARNING: Dogs section is showing an error message');
-      await page.screenshot({ path: 'playwright-report/dogs-error.png' });
+      await page.screenshot({ path: `playwright-report/dogs-error-${Date.now()}.png` });
       // Verify the page structure loaded even if data didn't
       await expect(page.locator('text=/Dogs Looking for Homes/i')).toBeVisible();
       return;
@@ -156,10 +164,7 @@ test.describe('Smoke Tests - Production Site', () => {
     await page.waitForLoadState('networkidle');
     
     // Wait for the loading spinner to disappear (if present)
-    const loadingSpinner = page.locator('svg.animate-spin');
-    if (await loadingSpinner.isVisible().catch(() => false)) {
-      await loadingSpinner.waitFor({ state: 'hidden', timeout: 20000 });
-    }
+    await waitForLoadingComplete(page);
     
     // Check if there's an error message on the page
     const errorMessage = page.locator('text=/error loading rescues/i');
@@ -168,7 +173,7 @@ test.describe('Smoke Tests - Production Site', () => {
     if (hasError) {
       // If there's an error, log it but don't fail the test - this might be a transient API issue
       console.log('WARNING: Rescues page is showing an error message');
-      await page.screenshot({ path: 'playwright-report/rescues-error.png' });
+      await page.screenshot({ path: `playwright-report/rescues-error-${Date.now()}.png` });
       // Verify the page structure loaded even if data didn't
       await expect(page.locator('text=/Rescue Organizations/i')).toBeVisible();
       return;
