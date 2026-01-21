@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, Loader2, RotateCcw } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,119 +84,131 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col">
-        <div className="mb-6">
-          <h1 className="text-4xl font-display font-bold text-foreground mb-2">
-            Chat with Us
-          </h1>
-          <p className="text-muted-foreground">
-            Ask me anything about available dogs and rescue organizations
-          </p>
-        </div>
+    <>
+      <SEO
+        title="AI Dog Adoption Assistant | Chat & Find Your Perfect Match | DogAdopt.co.uk"
+        description="Chat with our AI assistant to find the perfect rescue dog. Get personalized recommendations based on your preferences. Ask questions about available dogs and UK rescues."
+        canonicalUrl="https://dogadopt.co.uk/chat"
+        keywords="dog adoption chat, AI dog finder, find rescue dog, dog adoption assistant, match with dog, dog adoption help UK, rescue dog search, pet adoption assistant"
+        ogTitle="AI Dog Adoption Assistant | Find Your Perfect Rescue Dog"
+        ogDescription="Use our AI-powered chat assistant to find rescue dogs that match your lifestyle and preferences. Get instant answers about available dogs and rescues."
+        twitterTitle="AI Dog Adoption Chat | Smart Rescue Dog Matching"
+        twitterDescription="Chat with our AI assistant to discover rescue dogs perfect for you. Personalized recommendations based on your needs."
+      />
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
         
-        <Card className="flex-1 flex flex-col min-h-0">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                <CardTitle>Dog Adoption Assistant</CardTitle>
-              </div>
-              {messages.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetConversation}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset
-                </Button>
-              )}
-            </div>
-            <CardDescription>
-              {dataLoading ? 'Loading data...' : `Currently tracking ${dogs.length} dogs and ${rescues.length} rescues`}
-            </CardDescription>
-          </CardHeader>
+        <main className="flex-1 container mx-auto px-4 py-8 flex flex-col">
+          <div className="mb-6">
+            <h1 className="text-4xl font-display font-bold text-foreground mb-2">
+              Chat with Us
+            </h1>
+            <p className="text-muted-foreground">
+              Ask me anything about available dogs and rescue organizations
+            </p>
+          </div>
           
-          <CardContent className="flex-1 flex flex-col min-h-0 pb-6">
-            {/* Messages area */}
-            <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollAreaRef}>
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <ChatMessage
-                    key={message.id}
-                    message={message}
-                    onQuestionClick={handleStarterQuestion}
-                  />
-                ))}
-                
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg px-4 py-3 max-w-[80%]">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Thinking...
+          <Card className="flex-1 flex flex-col min-h-0">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  <CardTitle>Dog Adoption Assistant</CardTitle>
+                </div>
+                {messages.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetConversation}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset
+                  </Button>
+                )}
+              </div>
+              <CardDescription>
+                {dataLoading ? 'Loading data...' : `Currently tracking ${dogs.length} dogs and ${rescues.length} rescues`}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="flex-1 flex flex-col min-h-0 pb-6">
+              {/* Messages area */}
+              <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollAreaRef}>
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <ChatMessage
+                      key={message.id}
+                      message={message}
+                      onQuestionClick={handleStarterQuestion}
+                    />
+                  ))}
+                  
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted rounded-lg px-4 py-3 max-w-[80%]">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Thinking...
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                <div ref={messagesEndRef} />
+                  )}
+                  
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+              
+              {/* Starter questions */}
+              {messages.length <= 1 && !isLoading && (
+                <StarterQuestions
+                  questions={starterQuestions}
+                  dataLoading={dataLoading}
+                  onQuestionClick={handleStarterQuestion}
+                />
+              )}
+              
+              {/* Quick filter buttons - show when conversation has started */}
+              {messages.length > 1 && !isLoading && (
+                <QuickFilters onFilterClick={handleStarterQuestion} />
+              )}
+              
+              {/* Input area */}
+              <div className="flex gap-2">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={dataLoading ? "Loading data..." : "Type your message..."}
+                  disabled={isLoading || dataLoading}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading || dataLoading}
+                  size="icon"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
-            </ScrollArea>
-            
-            {/* Starter questions */}
-            {messages.length <= 1 && !isLoading && (
-              <StarterQuestions
-                questions={starterQuestions}
-                dataLoading={dataLoading}
-                onQuestionClick={handleStarterQuestion}
-              />
-            )}
-            
-            {/* Quick filter buttons - show when conversation has started */}
-            {messages.length > 1 && !isLoading && (
-              <QuickFilters onFilterClick={handleStarterQuestion} />
-            )}
-            
-            {/* Input area */}
-            <div className="flex gap-2">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={dataLoading ? "Loading data..." : "Type your message..."}
-                disabled={isLoading || dataLoading}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isLoading || dataLoading}
-                size="icon"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-            
-            {/* API status indicator */}
-            {!import.meta.env.VITE_OPENAI_API_KEY && (
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Running in fallback mode (OpenAI API key not configured)
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-      
-      <Footer />
-    </div>
+              
+              {/* API status indicator */}
+              {!import.meta.env.VITE_OPENAI_API_KEY && (
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Running in fallback mode (OpenAI API key not configured)
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+        
+        <Footer />
+      </div>
+    </>
   );
 };
 
