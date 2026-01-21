@@ -88,9 +88,9 @@ If the v3 upload action doesn't work or becomes deprecated, other options includ
 
 ## References
 
-- [GitHub Pages deployment with actions](https://github.com/actions/deploy-pages)
-- [Vite static deployment guide](https://vitejs.dev/guide/static-deploy.html)
-- [GitHub Pages Actions v4 MIME type issues discussion](https://github.com/actions/deploy-pages/discussions)
+- [GitHub Actions - Deploy Pages](https://github.com/actions/deploy-pages)
+- [GitHub Actions - Upload Pages Artifact](https://github.com/actions/upload-pages-artifact)
+- [Vite Static Deployment Guide](https://vitejs.dev/guide/static-deploy.html#github-pages)
 
 ## Related Files
 
