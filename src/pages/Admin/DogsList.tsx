@@ -69,26 +69,26 @@ export function DogsList({ dogs, rescues, onEdit, onDelete }: DogsListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-hidden">
       {/* Search and Filter Controls */}
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 w-full min-w-0">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
             {/* Search Input */}
-            <div className="flex-1 relative min-w-0">
+            <div className="flex-1 relative w-full min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="search"
                 placeholder="Search by name, breed, or rescue..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
 
             {/* Rescue Filter */}
             <Select value={rescueFilter} onValueChange={setRescueFilter}>
-              <SelectTrigger className="w-full sm:w-[240px]">
+              <SelectTrigger className="w-full sm:w-[240px] min-w-0">
                 <SelectValue placeholder="Filter by rescue" />
               </SelectTrigger>
               <SelectContent>
@@ -175,21 +175,21 @@ function DogCard({
   onDelete: (dogId: string) => void;
 }) {
   return (
-    <Card>
-      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 w-full min-w-0">
+    <Card className="overflow-hidden">
+      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 w-full">
         <img
           src={dog.image}
           alt={dog.name}
           className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
         />
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full sm:w-auto">
           <h3 className="font-display font-semibold text-foreground truncate">{dog.name}</h3>
           <p className="text-sm text-muted-foreground truncate">
             {dog.breed} • {dog.age} • {dog.size} • {dog.location}
           </p>
           <p className="text-xs text-muted-foreground truncate">{dog.rescue}</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto justify-end">
+        <div className="flex gap-2 w-full sm:w-auto justify-end flex-shrink-0">
           <Button variant="outline" size="icon" onClick={() => onEdit(dog)}>
             <Pencil className="w-4 h-4" />
           </Button>

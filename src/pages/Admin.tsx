@@ -59,11 +59,11 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {isDevBypass && <DevBypassBanner />}
       <AdminHeader userEmail={user.email} onSignOut={handleSignOut} />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-full">
         <Tabs defaultValue="dogs" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
             <TabsTrigger value="dogs">Dogs</TabsTrigger>
