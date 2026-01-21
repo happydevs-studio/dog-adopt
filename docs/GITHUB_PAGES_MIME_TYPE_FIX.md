@@ -51,6 +51,9 @@ Created a `.gitattributes` file to ensure proper handling of text files:
 
 # HTML files
 *.html text eol=lf
+
+# SVG files (XML-based, should be text)
+*.svg text eol=lf
 ```
 
 This ensures that:
@@ -87,7 +90,7 @@ If the v3 upload action doesn't work or becomes deprecated, other options includ
 
 - [GitHub Pages deployment with actions](https://github.com/actions/deploy-pages)
 - [Vite static deployment guide](https://vitejs.dev/guide/static-deploy.html)
-- [GitHub Pages MIME type issues](https://github.com/actions/upload-pages-artifact/issues)
+- [GitHub Pages Actions v4 MIME type issues discussion](https://github.com/actions/deploy-pages/discussions)
 
 ## Related Files
 
