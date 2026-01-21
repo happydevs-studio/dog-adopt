@@ -80,17 +80,18 @@ After deployment, the following should be verified:
 
 ## Alternative Solutions
 
-If the v3 upload action doesn't work or becomes deprecated, other options include:
+If the v3 upload action becomes deprecated or doesn't work, other options include:
 
-1. **Use a different deployment method**: Deploy directly to the `gh-pages` branch
-2. **Add a build step**: Process files before upload to ensure correct MIME types
-3. **Wait for GitHub to fix**: Monitor for updates to the v4 actions
+1. **Direct branch deployment**: Deploy directly to the `gh-pages` branch using actions like `peaceiris/actions-gh-pages@v3` instead of the artifact-based deployment
+2. **Custom deployment script**: Create a custom deployment script that manually uploads files with correct MIME type metadata
+3. **Third-party deployment actions**: Use community-maintained actions that specifically handle Vite/SPA deployments, such as `crazy-max/ghaction-github-pages@v4`
 
 ## References
 
-- [GitHub Actions - Deploy Pages](https://github.com/actions/deploy-pages)
-- [GitHub Actions - Upload Pages Artifact](https://github.com/actions/upload-pages-artifact)
-- [Vite Static Deployment Guide](https://vitejs.dev/guide/static-deploy.html#github-pages)
+- [GitHub Actions - Deploy Pages (v4)](https://github.com/actions/deploy-pages/tree/v4.0.5)
+- [GitHub Actions - Upload Pages Artifact (v3)](https://github.com/actions/upload-pages-artifact/tree/v3.0.1)
+- [Vite Static Deployment Guide - GitHub Pages](https://vitejs.dev/guide/static-deploy.html#github-pages)
+- [Vite Configuration Reference](https://vitejs.dev/config/)
 
 ## Related Files
 

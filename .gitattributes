@@ -13,6 +13,10 @@
 # HTML files
 *.html text eol=lf
 
+# YAML files
+*.yml text eol=lf
+*.yaml text eol=lf
+
 # JSON files
 *.json text eol=lf
 
