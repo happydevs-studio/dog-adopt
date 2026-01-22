@@ -1,22 +1,20 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useEffect } from 'react';
+import SEO from '@/components/SEO';
 
 const PrivacyPolicy = () => {
-  useEffect(() => {
-    document.title = 'Privacy Policy | dogadopt.co.uk - UK Dog Adoption Platform';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Privacy policy for dogadopt.co.uk. Learn how we collect, use, and protect your data on our non-profit dog adoption platform.');
-    }
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
-        <h1 className="font-display text-4xl font-bold mb-4">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-8">Last Updated: 31 December 2024</p>
+    <>
+      <SEO 
+        title="Privacy Policy | dogadopt.co.uk - UK Dog Adoption Platform"
+        description="Privacy policy for dogadopt.co.uk. Learn how we collect, use, and protect your data on our non-profit dog adoption platform."
+        canonicalUrl="https://dogadopt.co.uk/privacy"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-12 max-w-3xl">
+          <h1 className="font-display text-4xl font-bold mb-4">Privacy Policy</h1>
+          <p className="text-muted-foreground mb-8">Last Updated: 31 December 2024</p>
         
         <div className="prose prose-slate max-w-none space-y-6">
           <section>
@@ -83,6 +81,7 @@ const PrivacyPolicy = () => {
       </main>
       <Footer />
     </div>
+    </>
   );
 };
 

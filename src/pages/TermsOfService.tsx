@@ -1,22 +1,20 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useEffect } from 'react';
+import SEO from '@/components/SEO';
 
 const TermsOfService = () => {
-  useEffect(() => {
-    document.title = 'Terms of Service | dogadopt.co.uk - UK Dog Adoption Platform';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Terms of service for dogadopt.co.uk. Understand your rights and responsibilities when using our dog adoption platform.');
-    }
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
-        <h1 className="font-display text-4xl font-bold mb-4">Terms of Service</h1>
-        <p className="text-muted-foreground mb-8">Last Updated: 31 December 2024</p>
+    <>
+      <SEO 
+        title="Terms of Service | dogadopt.co.uk - UK Dog Adoption Platform"
+        description="Terms of service for dogadopt.co.uk. Understand your rights and responsibilities when using our dog adoption platform."
+        canonicalUrl="https://dogadopt.co.uk/terms"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-12 max-w-3xl">
+          <h1 className="font-display text-4xl font-bold mb-4">Terms of Service</h1>
+          <p className="text-muted-foreground mb-8">Last Updated: 31 December 2024</p>
         
         <div className="prose prose-slate max-w-none space-y-6">
           <section>
@@ -81,6 +79,7 @@ const TermsOfService = () => {
       </main>
       <Footer />
     </div>
+    </>
   );
 };
 

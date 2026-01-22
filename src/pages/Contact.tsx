@@ -1,22 +1,20 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Mail, Heart } from 'lucide-react';
-import { useEffect } from 'react';
+import SEO from '@/components/SEO';
 
 const Contact = () => {
-  useEffect(() => {
-    document.title = 'Contact Us | dogadopt.co.uk - Get in Touch';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Contact dogadopt.co.uk for questions about our dog adoption platform, rescue listings, or website support. Email: info@dogadopt.co.uk');
-    }
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
-        <h1 className="font-display text-4xl font-bold mb-8">Contact Us</h1>
+    <>
+      <SEO 
+        title="Contact Us | dogadopt.co.uk - Get in Touch"
+        description="Contact dogadopt.co.uk for questions about our dog adoption platform, rescue listings, or website support. Email: info@dogadopt.co.uk"
+        canonicalUrl="https://dogadopt.co.uk/contact"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-12 max-w-3xl">
+          <h1 className="font-display text-4xl font-bold mb-8">Contact Us</h1>
         
         <div className="space-y-8">
           <section>
@@ -96,6 +94,7 @@ const Contact = () => {
       </main>
       <Footer />
     </div>
+    </>
   );
 };
 
