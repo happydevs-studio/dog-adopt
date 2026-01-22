@@ -1,8 +1,8 @@
-import { Heart, Menu, Shield, LogOut, User } from 'lucide-react';
+import { Heart, Menu, Shield, LogOut, User, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,17 +16,27 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If we're already on the homepage, scroll to top and clear hash
+    if (location.pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.replaceState(null, '', '/');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" onClick={handleLogoClick}>
             <img 
               src="/brand_images/logos/Original Logo Symbol.png" 
               alt="DogAdopt Logo" 
@@ -38,14 +48,18 @@ const Header = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            <a href="/#dogs" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Find a Dog
-            </Link>
+            </a>
             <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               About
             </Link>
             <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Rescues
+            </Link>
+            <Link to="/chat" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
+              <MessageSquare className="w-4 h-4" />
+              Chat
             </Link>
             {isAdmin && (
               <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
@@ -102,14 +116,18 @@ const Header = () => {
         {isMenuOpen && (
           <nav className="md:hidden py-4 border-t border-border animate-fade-up">
             <div className="flex flex-col gap-4">
-              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+              <a href="/#dogs" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Find a Dog
-              </Link>
+              </a>
               <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 About
               </Link>
               <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Rescues
+              </Link>
+              <Link to="/chat" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
+                <MessageSquare className="w-4 h-4" />
+                Chat
               </Link>
               {isAdmin && (
                 <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">

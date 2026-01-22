@@ -1,38 +1,23 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, MapPin, Users } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import type { Dog } from '@/types/dog';
+import { DogBadges } from './DogBadges';
+import { DogCompatibilityBadges } from './DogCompatibilityBadges';
+import { formatStatus, getStatusVariant, getDogProfileUrl, formatRescueDate } from './DogCard.helpers';
 
 interface DogCardProps {
   dog: Dog;
   viewMode?: 'text-only' | 'with-images';
+  showDistance?: boolean;
 }
 
-const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
+const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardProps) => {
   const showImage = viewMode === 'with-images';
-  
-  // Use computed age from birth date if available, otherwise fall back to manual age
   const displayAge = dog.computedAge || dog.age;
-
-  // Add UTM parameters to dog profile URL
-  const getDogProfileUrl = () => {
-    if (!dog.profileUrl) return null;
-    
-    try {
-      const url = new URL(dog.profileUrl);
-      url.searchParams.set('utm_source', 'dogadopt');
-      url.searchParams.set('utm_medium', 'referral');
-      url.searchParams.set('utm_campaign', 'dog_profile');
-      return url.toString();
-    } catch (e) {
-      // If URL is invalid, return null to prevent broken links
-      console.warn(`Invalid profile URL for dog ${dog.name}:`, dog.profileUrl, e);
-      return null;
-    }
-  };
-
-  const profileUrl = getDogProfileUrl();
+  const profileUrl = getDogProfileUrl(dog.profileUrl, dog.name);
   const isProfileLinkEnabled = !!profileUrl;
+  const rescueDate = formatRescueDate(dog.rescueSinceDate);
 
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
@@ -43,7 +28,8 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
             alt={`${dog.name} - ${dog.breed} available for adoption`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          <div className="absolute top-3 left-3 flex gap-2">
+          <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+            <Badge variant={getStatusVariant(dog.status)}>{formatStatus(dog.status)}</Badge>
             <Badge variant="warm">{displayAge}</Badge>
             <Badge variant="secondary">{dog.size}</Badge>
           </div>
@@ -55,10 +41,13 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
 
       <div className="p-5 space-y-4">
         {!showImage && (
-          <div className="flex gap-2 mb-2">
-            <Badge variant="warm">{displayAge}</Badge>
-            <Badge variant="secondary">{dog.size}</Badge>
-          </div>
+          <DogBadges 
+            status={dog.status}
+            age={displayAge}
+            size={dog.size}
+            showDistance={showDistance}
+            distance={dog.distance}
+          />
         )}
         <div>
           <h3 className="font-display text-xl font-semibold text-foreground">{dog.name}</h3>
@@ -72,24 +61,13 @@ const DogCard = ({ dog, viewMode = 'text-only' }: DogCardProps) => {
           <span>{dog.rescue}</span>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {dog.goodWithKids && (
-            <Badge variant="success" className="text-xs">
-              <Users className="w-3 h-3 mr-1" />
-              Good with kids
-            </Badge>
-          )}
-          {dog.goodWithDogs && (
-            <Badge variant="success" className="text-xs">
-              Good with dogs
-            </Badge>
-          )}
-          {dog.goodWithCats && (
-            <Badge variant="success" className="text-xs">
-              Good with cats
-            </Badge>
-          )}
-        </div>
+        {rescueDate && (
+          <div className="text-xs text-muted-foreground">
+            {rescueDate}
+          </div>
+        )}
+
+        <DogCompatibilityBadges dog={dog} />
 
         <Button 
           variant="default" 

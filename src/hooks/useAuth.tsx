@@ -38,12 +38,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(!DEV_BYPASS_AUTH);
 
   const checkAdminRole = async (userId: string) => {
-    const { data, error } = await (supabase as any)
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
+    // Use API layer function instead of direct table access
+    const { data, error } = await supabase
+      .schema('dogadopt_api')
+      .rpc('check_user_role', { p_role: 'admin' });
     
     if (error) {
       console.error('Error checking admin role:', error);
@@ -140,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (signInError) return { error: signInError };
         return { error: null };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Mock Google auth error:', error);
         return { error: new Error('Mock Google authentication failed') };
       }

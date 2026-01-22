@@ -72,7 +72,7 @@ const AboutSection = () => {
               <span className="text-primary">#AdoptDontShop</span> — Because every dog deserves a second chance.
             </p>
             <p className="text-sm text-muted-foreground italic">
-              Currently independent, we hope to build strong relationships with ADCH and rescue organisations to help even more dogs find forever homes.
+              Currently independent, we hope to build strong relationships with quality rescue organisations to help even more dogs find forever homes.
             </p>
           </div>
         </div>

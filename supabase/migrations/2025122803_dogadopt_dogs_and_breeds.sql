@@ -157,7 +157,7 @@ INSERT INTO dogadopt.breeds (name) VALUES
   ('Greyhound'), ('Havanese'), ('Ibizan Hound'), ('Irish Setter'), ('Irish Terrier'),
   ('Irish Water Spaniel'), ('Irish Wolfhound'), ('Italian Greyhound'),
   ('Jack Russell Terrier'), ('Japanese Chin'), ('Keeshond'), ('Kerry Blue Terrier'),
-  ('Labrador Retriever'), ('Lakeland Terrier'), ('Lhasa Apso'), ('Maltese'),
+  ('Labrador Retriever'), ('Lakeland Terrier'), ('Lhasa Apso'), ('Lurcher'), ('Maltese'),
   ('Manchester Terrier'), ('Mastiff'), ('Miniature Pinscher'), ('Miniature Schnauzer'),
   ('Mixed Breed'), ('Newfoundland'), ('Norfolk Terrier'), ('Norwegian Elkhound'),
   ('Norwich Terrier'), ('Old English Sheepdog'), ('Papillon'), ('Patterdale Terrier'), ('Pekingese'),

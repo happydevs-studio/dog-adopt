@@ -80,6 +80,121 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Process a single rescue for geocoding
+ */
+async function processRescue(rescue, csvRows) {
+  console.log(`📍 ${rescue.name}`);
+  console.log(`   Postcode: ${rescue.postcode}`);
+  
+  if (rescue.latitude && !forceUpdate) {
+    console.log('   ⏭️  Already has coordinates (use --force to update)');
+    return { status: 'skipped' };
+  }
+  
+  const result = await geocodePostcode(rescue.postcode);
+  
+  if (result) {
+    console.log(`   ✓ Coordinates: ${result.latitude}, ${result.longitude}`);
+    
+    // Add to CSV output
+    if (csvFilename) {
+      csvRows.push({
+        id: rescue.id,
+        name: rescue.name,
+        postcode: result.postcode,
+        latitude: result.latitude,
+        longitude: result.longitude
+      });
+    }
+    
+    if (!isDryRun && !csvFilename) {
+      const { error: updateError } = await supabase
+        .from('rescues')
+        .update({
+          latitude: result.latitude,
+          longitude: result.longitude,
+          coordinates_updated_at: new Date().toISOString(),
+          coordinates_source: 'postcodes.io'
+        })
+        .eq('id', rescue.id);
+      
+      if (updateError) {
+        console.error(`   ❌ Update failed:`, updateError.message);
+        return { status: 'failed' };
+      } else {
+        console.log('   💾 Saved to database');
+        return { status: 'success' };
+      }
+    } else {
+      console.log(`   ${csvFilename ? '📝 Added to CSV' : '[Would save to database]'}`);
+      return { status: 'success' };
+    }
+  } else {
+    return { status: 'failed' };
+  }
+}
+
+/**
+ * Print summary of geocoding results
+ */
+function printSummary(successCount, failCount, skippedCount) {
+  console.log('\n' + '='.repeat(50));
+  console.log('📊 Summary:');
+  console.log(`   ✅ Successful: ${successCount}`);
+  console.log(`   ❌ Failed: ${failCount}`);
+  if (skippedCount > 0) {
+    console.log(`   ⏭️  Skipped: ${skippedCount}`);
+  }
+  console.log('='.repeat(50));
+}
+
+/**
+ * Write CSV and SQL files
+ */
+function writeOutputFiles(csvRows) {
+  if (!csvFilename || csvRows.length === 0) {
+    return;
+  }
+  
+  const csvContent = [
+    'id,name,postcode,latitude,longitude',
+    ...csvRows.map(row => 
+      `${row.id},"${row.name.replace(/"/g, '""')}","${row.postcode}",${row.latitude},${row.longitude}`
+    )
+  ].join('\n');
+  
+  const csvPath = join(process.cwd(), csvFilename);
+  writeFileSync(csvPath, csvContent, 'utf8');
+  console.log(`\n📄 CSV file saved: ${csvPath}`);
+  console.log(`   ${csvRows.length} row(s) written`);
+  
+  // Also generate SQL UPDATE statements
+  const sqlFilename = csvFilename.replace('.csv', '.sql');
+  const sqlStatements = csvRows.map(row => 
+    `UPDATE dogadopt.rescues SET latitude = ${row.latitude}, longitude = ${row.longitude}, coordinates_source = 'postcodes.io' WHERE id = '${row.id}'; -- ${row.name}`
+  ).join('\n');
+  
+  const sqlPath = join(process.cwd(), sqlFilename);
+  writeFileSync(sqlPath, sqlStatements, 'utf8');
+  console.log(`\n📝 SQL file saved: ${sqlPath}`);
+  console.log(`   Ready to copy into seed.sql`);
+}
+
+/**
+ * Print final usage notes
+ */
+function printUsageNotes() {
+  if (isDryRun) {
+    console.log('\n💡 Run without --dry-run to apply changes');
+  }
+  
+  if (csvFilename && !isDryRun) {
+    console.log('\n💡 Note: CSV mode does not update the database directly');
+    console.log('   Use the generated SQL file or run without --csv to update');
+  }
+}
+
 async function main() {
   console.log('🗺️  Geocoding Rescues\n');
   console.log(`Mode: ${isDryRun ? 'DRY RUN (no changes)' : 'LIVE'}`);
@@ -116,55 +231,14 @@ async function main() {
   const csvRows = [];
   
   for (const rescue of rescues) {
-    console.log(`📍 ${rescue.name}`);
-    console.log(`   Postcode: ${rescue.postcode}`);
+    const result = await processRescue(rescue, csvRows);
     
-    if (rescue.latitude && !forceUpdate) {
-      console.log('   ⏭️  Already has coordinates (use --force to update)');
-      skippedCount++;
-      continue;
-    }
-    
-    const result = await geocodePostcode(rescue.postcode);
-    
-    if (result) {
-      console.log(`   ✓ Coordinates: ${result.latitude}, ${result.longitude}`);
-      
-      // Add to CSV output
-      if (csvFilename) {
-        csvRows.push({
-          id: rescue.id,
-          name: rescue.name,
-          postcode: result.postcode,
-          latitude: result.latitude,
-          longitude: result.longitude
-        });
-      }
-      
-      if (!isDryRun && !csvFilename) {
-        const { error: updateError } = await supabase
-          .from('rescues')
-          .update({
-            latitude: result.latitude,
-            longitude: result.longitude,
-            coordinates_updated_at: new Date().toISOString(),
-            coordinates_source: 'postcodes.io'
-          })
-          .eq('id', rescue.id);
-        
-        if (updateError) {
-          console.error(`   ❌ Update failed:`, updateError.message);
-          failCount++;
-        } else {
-          console.log('   💾 Saved to database');
-          successCount++;
-        }
-      } else {
-        console.log(`   ${csvFilename ? '📝 Added to CSV' : '[Would save to database]'}`);
-        successCount++;
-      }
-    } else {
+    if (result.status === 'success') {
+      successCount++;
+    } else if (result.status === 'failed') {
       failCount++;
+    } else if (result.status === 'skipped') {
+      skippedCount++;
     }
     
     console.log('');
@@ -173,49 +247,9 @@ async function main() {
     await delay(200);
   }
   
-  console.log('\n' + '='.repeat(50));
-  console.log('📊 Summary:');
-  console.log(`   ✅ Successful: ${successCount}`);
-  console.log(`   ❌ Failed: ${failCount}`);
-  if (skippedCount > 0) {
-    console.log(`   ⏭️  Skipped: ${skippedCount}`);
-  }
-  console.log('='.repeat(50));
-  
-  // Write CSV file if requested
-  if (csvFilename && csvRows.length > 0) {
-    const csvContent = [
-      'id,name,postcode,latitude,longitude',
-      ...csvRows.map(row => 
-        `${row.id},"${row.name.replace(/"/g, '""')}","${row.postcode}",${row.latitude},${row.longitude}`
-      )
-    ].join('\n');
-    
-    const csvPath = join(process.cwd(), csvFilename);
-    writeFileSync(csvPath, csvContent, 'utf8');
-    console.log(`\n📄 CSV file saved: ${csvPath}`);
-    console.log(`   ${csvRows.length} row(s) written`);
-    
-    // Also generate SQL UPDATE statements
-    const sqlFilename = csvFilename.replace('.csv', '.sql');
-    const sqlStatements = csvRows.map(row => 
-      `UPDATE dogadopt.rescues SET latitude = ${row.latitude}, longitude = ${row.longitude}, coordinates_source = 'postcodes.io' WHERE id = '${row.id}'; -- ${row.name}`
-    ).join('\n');
-    
-    const sqlPath = join(process.cwd(), sqlFilename);
-    writeFileSync(sqlPath, sqlStatements, 'utf8');
-    console.log(`\n📝 SQL file saved: ${sqlPath}`);
-    console.log(`   Ready to copy into seed.sql`);
-  }
-  
-  if (isDryRun) {
-    console.log('\n💡 Run without --dry-run to apply changes');
-  }
-  
-  if (csvFilename && !isDryRun) {
-    console.log('\n💡 Note: CSV mode does not update the database directly');
-    console.log('   Use the generated SQL file or run without --csv to update');
-  }
+  printSummary(successCount, failCount, skippedCount);
+  writeOutputFiles(csvRows);
+  printUsageNotes();
 }
 
 main().catch(console.error);

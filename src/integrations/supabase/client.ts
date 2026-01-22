@@ -40,7 +40,7 @@ export const supabase = createClient<Database>(url, key, {
     autoRefreshToken: true,
   },
   db: {
-    schema: 'dogadopt' as any
+    schema: 'dogadopt' as unknown as 'public'
   }
 });
 

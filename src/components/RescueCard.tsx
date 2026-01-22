@@ -9,7 +9,31 @@ interface RescueCardProps {
 }
 
 const RescueCard = ({ rescue, showDistance = false }: RescueCardProps) => {
-  const hasWebsite = !!rescue.website;
+  // Add UTM parameters and normalize rescue website URL
+  const getRescueWebsiteUrl = () => {
+    if (!rescue.website) return null;
+    
+    try {
+      // Normalize URL by adding https:// if no protocol is present
+      let urlString = rescue.website.trim();
+      if (!urlString.match(/^https?:\/\//i)) {
+        urlString = 'https://' + urlString;
+      }
+      
+      const url = new URL(urlString);
+      url.searchParams.set('utm_source', 'dogadopt');
+      url.searchParams.set('utm_medium', 'referral');
+      url.searchParams.set('utm_campaign', 'rescue_profile');
+      return url.toString();
+    } catch (e) {
+      // If URL is invalid, return null to prevent broken links
+      console.warn(`Invalid website URL for rescue ${rescue.name}:`, rescue.website, e);
+      return null;
+    }
+  };
+
+  const websiteUrl = getRescueWebsiteUrl();
+  const hasWebsite = !!websiteUrl;
 
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
@@ -33,6 +57,14 @@ const RescueCard = ({ rescue, showDistance = false }: RescueCardProps) => {
           <span>{rescue.region}</span>
         </div>
 
+        <div className="text-sm font-medium text-foreground">
+          {rescue.dogCount === 0 ? (
+            <span>See website for available dogs</span>
+          ) : (
+            <span>{rescue.dogCount} available {rescue.dogCount === 1 ? 'dog' : 'dogs'}</span>
+          )}
+        </div>
+
         <Button 
           variant="default" 
           className="w-full"
@@ -41,7 +73,7 @@ const RescueCard = ({ rescue, showDistance = false }: RescueCardProps) => {
         >
           {hasWebsite ? (
             <a 
-              href={rescue.website}
+              href={websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"

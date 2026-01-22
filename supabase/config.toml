@@ -3,8 +3,8 @@ project_id = "dog-adopt"
 [api]
 enabled = true
 port = 54321
-schemas = ["dogadopt"]
-extra_search_path = ["dogadopt"]
+schemas = ["dogadopt", "dogadopt_api"]
+extra_search_path = ["dogadopt", "dogadopt_api"]
 max_rows = 1000
 
 [db]

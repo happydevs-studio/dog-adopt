@@ -1,0 +1,199 @@
+name: Code Complexity Check
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  complexity-check:
+    name: Check Code Complexity
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run complexity analysis
+        id: complexity
+        run: |
+          echo "Running complexity analysis..."
+          
+          # Run ESLint with complexity rules and capture exit code
+          set +e
+          npx eslint . \
+            --rule 'complexity: ["error", { "max": 15 }]' \
+            --rule 'max-depth: ["error", 4]' \
+            --rule 'max-lines-per-function: ["error", { "max": 150, "skipBlankLines": true, "skipComments": true }]' \
+            --rule 'max-nested-callbacks: ["error", 3]' \
+            --format json \
+            --output-file complexity-report.json
+          
+          ESLINT_EXIT_CODE=$?
+          set -e
+          
+          # Check if complexity report was created
+          if [ ! -f complexity-report.json ]; then
+            echo "❌ Failed to generate complexity report"
+            exit 1
+          fi
+          
+          # Display human-readable output for console (intentionally runs twice)
+          # Note: We run ESLint twice because we need both JSON format for processing
+          # and human-readable format for console output. ESLint doesn't support
+          # multiple output formats in a single run.
+          echo "Generating human-readable report..."
+          npx eslint . \
+            --rule 'complexity: ["error", { "max": 15 }]' \
+            --rule 'max-depth: ["error", 4]' \
+            --rule 'max-lines-per-function: ["error", { "max": 150, "skipBlankLines": true, "skipComments": true }]' \
+            --rule 'max-nested-callbacks: ["error", 3]' \
+            || echo "Complexity issues found (see JSON report for details)"
+          
+          # Count files with complexity issues (filter for only complexity-related rules)
+          ISSUE_COUNT=$(jq '[.[] | select(.messages[] | .ruleId | IN("complexity", "max-depth", "max-lines-per-function", "max-nested-callbacks"))] | length' complexity-report.json)
+          echo "issue_count=$ISSUE_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$ISSUE_COUNT" -gt 0 ]; then
+            echo "❌ Found $ISSUE_COUNT files with complexity issues"
+            exit 1
+          else
+            echo "✅ No complexity issues found"
+          fi
+      
+      - name: Upload complexity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complexity-report
+          path: complexity-report.json
+          retention-days: 30
+      
+      - name: Comment on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let reportContent = '## ⚠️ Code Complexity Issues Detected\n\n';
+            reportContent += 'The following files have complexity issues that should be addressed:\n\n';
+            
+            try {
+              const report = JSON.parse(fs.readFileSync('complexity-report.json', 'utf8'));
+              // Filter for only complexity-related rules
+              const complexityRules = ['complexity', 'max-depth', 'max-lines-per-function', 'max-nested-callbacks'];
+              const filesWithIssues = report.filter(file => 
+                file.messages.some(msg => complexityRules.includes(msg.ruleId))
+              );
+              
+              if (filesWithIssues.length > 0) {
+                reportContent += '| File | Issues |\n';
+                reportContent += '|------|--------|\n';
+                
+                filesWithIssues.forEach(file => {
+                  const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
+                  const complexityIssues = file.messages.filter(msg => complexityRules.includes(msg.ruleId));
+                  reportContent += `| ${relativePath} | ${complexityIssues.length} |\n`;
+                });
+                
+                reportContent += '\n### Issues Found:\n\n';
+                
+                filesWithIssues.slice(0, 5).forEach(file => {
+                  const relativePath = file.filePath.replace(`${process.env.GITHUB_WORKSPACE}/`, '');
+                  reportContent += `\n**${relativePath}**\n`;
+                  
+                  const complexityIssues = file.messages.filter(msg => complexityRules.includes(msg.ruleId));
+                  complexityIssues.forEach(msg => {
+                    reportContent += `- Line ${msg.line}: ${msg.message} (${msg.ruleId})\n`;
+                  });
+                });
+                
+                if (filesWithIssues.length > 5) {
+                  reportContent += `\n_... and ${filesWithIssues.length - 5} more files. See the full report in the workflow artifacts._\n`;
+                }
+              }
+            } catch (e) {
+              reportContent += 'Could not parse complexity report.\n';
+            }
+            
+            reportContent += '\n### Complexity Guidelines:\n';
+            reportContent += '- **Cyclomatic Complexity**: Maximum 15 per function\n';
+            reportContent += '- **Max Depth**: Maximum 4 levels of nesting\n';
+            reportContent += '- **Max Lines per Function**: Maximum 150 lines (excluding comments and blank lines)\n';
+            reportContent += '- **Max Nested Callbacks**: Maximum 3 levels\n\n';
+            reportContent += 'Please refactor the code to reduce complexity before merging.\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reportContent
+            });
+      
+      - name: Create issue on failure
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '⚠️ Code Complexity Issues in Main Branch';
+            const body = [
+              'Code complexity issues have been detected in the main branch.',
+              '',
+              '**Commit:** ${{ github.sha }}',
+              '**Run ID:** ${{ github.run_id }}',
+              '**Time:** ' + new Date().toISOString(),
+              '',
+              'Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.',
+              '',
+              'Download the complexity report artifact to see all issues.',
+              '',
+              '### Complexity Guidelines:',
+              '- **Cyclomatic Complexity**: Maximum 15 per function',
+              '- **Max Depth**: Maximum 4 levels of nesting',
+              '- **Max Lines per Function**: Maximum 150 lines',
+              '- **Max Nested Callbacks**: Maximum 3 levels'
+            ].join('\n');
+            
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'code-complexity'
+            });
+            
+            if (issues.data.length === 0) {
+              // Create new issue if none exists
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['code-complexity', 'technical-debt']
+              });
+            } else {
+              // Comment on existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: 'Another complexity issue detected:\n\n' + body
+              });
+            }

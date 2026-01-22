@@ -108,9 +108,13 @@ This project uses GitHub Actions for automated CI/CD:
 
 1. **GitHub Pages Deployment**: Automatically deploys to GitHub Pages when code is pushed to the `main` branch
 2. **Supabase Migrations**: Automatically applies database migrations when migration files are updated
+3. **Code Complexity Check**: Automatically analyzes code complexity on PRs and pushes to main
+4. **Unused Code Check**: Automatically detects unused files, dependencies, and exports using [knip](https://knip.dev/)
 
 **Setup Instructions:**
 See [CI/CD Setup Documentation](docs/CI_CD_SETUP.md) for detailed configuration steps.
+See [Complexity Check Documentation](docs/COMPLEXITY_CHECK.md) for code quality guidelines.
+See [Knip Analysis](docs/KNIP_ANALYSIS.md) for unused code detection results.
 
 **Quick Setup:**
 1. Enable GitHub Pages in repository settings (set source to "GitHub Actions")
@@ -122,11 +126,34 @@ See [CI/CD Setup Documentation](docs/CI_CD_SETUP.md) for detailed configuration 
    - `SUPABASE_PROJECT_REF`
 3. Push to `main` branch to trigger deployment
 
+## Code Quality Tools
+
+This project uses several tools to maintain code quality:
+
+- **ESLint**: Code linting (`npm run lint`)
+- **TypeScript**: Type checking (`npm run typecheck`)
+- **Knip**: Unused code detection (`npm run knip`)
+- **Playwright**: Smoke testing (`npm run test:smoke`)
+
+### Finding Unused Code
+
+This project uses [knip](https://knip.dev/) to find unused files, dependencies, and exports:
+
+```bash
+# Check for all unused code
+npm run knip
+
+# Check only production dependencies
+npm run knip:production
+```
+
+Knip runs automatically in CI and will comment on PRs with findings. See [docs/KNIP_ANALYSIS.md](docs/KNIP_ANALYSIS.md) for the latest analysis results.
+
 ## Data Management
 
 ### Rescues and Locations
 
-This project maintains a reference list of rescue organizations from the ADCH (Association of Dogs and Cats Homes). The data is managed through the seed file which uses MERGE logic to keep the database synchronized.
+This project maintains a reference list of quality rescue organizations committed to high animal welfare standards. The data is managed through the seed file which uses MERGE logic to keep the database synchronized.
 
 **Updating Rescues Data:**
 
