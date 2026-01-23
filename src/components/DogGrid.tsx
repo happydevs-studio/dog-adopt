@@ -113,19 +113,19 @@ const DogGrid = () => {
   }, [currentPage]);
 
   return (
-    <section id="dogs" className="py-16 bg-background">
+    <section id="dogs" className="py-12 sm:py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12" ref={gridTopRef}>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 sm:mb-12" ref={gridTopRef}>
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
             Dogs Looking for Homes
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Browse our selection of rescue dogs from trusted shelters across the UK. 
             <span className="block mt-2 text-primary font-medium">Each one deserves a loving forever home.</span>
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
           <div className="lg:w-64 shrink-0">
             <FilterSidebar
               sizeFilter={sizeFilter}
