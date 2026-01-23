@@ -36,30 +36,7 @@ const DogGrid = () => {
   const { data: dogs = [], isLoading, error } = useDogs(userLocation);
   const gridTopRef = useRef<HTMLDivElement>(null);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Location state changed:', { 
-      hasLocation, 
-      latitude, 
-      longitude, 
-      locationError, 
-      locationLoading 
-    });
-  }, [hasLocation, latitude, longitude, locationError, locationLoading]);
-
-  useEffect(() => {
-    console.log('Dogs loaded:', dogs.length, 'with location:', !!userLocation);
-    if (userLocation && dogs.length > 0) {
-      const withDistance = dogs.filter(d => d.distance !== undefined).length;
-      console.log(`${withDistance} dogs have calculated distances`);
-    }
-  }, [dogs, userLocation]);
-
   const handleLocationRequest = () => {
-    console.log('Find Near Me button clicked');
-    console.log('Navigator geolocation available:', !!navigator.geolocation);
-    console.log('Is secure context:', window.isSecureContext);
-    console.log('Current protocol:', window.location.protocol);
     requestLocation();
   };
 
@@ -113,18 +90,19 @@ const DogGrid = () => {
   }, [currentPage]);
 
   return (
-    <section id="dogs" className="py-16 bg-background">
+    <section id="dogs" className="py-12 sm:py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12" ref={gridTopRef}>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 sm:mb-12" ref={gridTopRef}>
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
             Dogs Looking for Homes
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Browse our selection of rescue dogs from shelters across the UK. Each one deserves a loving forever home.
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Browse our selection of rescue dogs from trusted shelters across the UK. 
+            <span className="block mt-2 text-primary font-medium">Each one deserves a loving forever home.</span>
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
           <div className="lg:w-64 shrink-0">
             <FilterSidebar
               sizeFilter={sizeFilter}
@@ -155,10 +133,15 @@ const DogGrid = () => {
               onClearLocation={clearLocation}
             />
 
-            <div className="flex items-center justify-end mb-6">
-              <p className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{filteredDogs.length}</span> dogs found
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-bold text-lg text-foreground">{filteredDogs.length}</span> {filteredDogs.length === 1 ? 'dog' : 'dogs'}
               </p>
+              {filteredDogs.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </p>
+              )}
             </div>
 
             <DogGridResults
