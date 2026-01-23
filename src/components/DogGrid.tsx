@@ -36,30 +36,7 @@ const DogGrid = () => {
   const { data: dogs = [], isLoading, error } = useDogs(userLocation);
   const gridTopRef = useRef<HTMLDivElement>(null);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Location state changed:', { 
-      hasLocation, 
-      latitude, 
-      longitude, 
-      locationError, 
-      locationLoading 
-    });
-  }, [hasLocation, latitude, longitude, locationError, locationLoading]);
-
-  useEffect(() => {
-    console.log('Dogs loaded:', dogs.length, 'with location:', !!userLocation);
-    if (userLocation && dogs.length > 0) {
-      const withDistance = dogs.filter(d => d.distance !== undefined).length;
-      console.log(`${withDistance} dogs have calculated distances`);
-    }
-  }, [dogs, userLocation]);
-
   const handleLocationRequest = () => {
-    console.log('Find Near Me button clicked');
-    console.log('Navigator geolocation available:', !!navigator.geolocation);
-    console.log('Is secure context:', window.isSecureContext);
-    console.log('Current protocol:', window.location.protocol);
     requestLocation();
   };
 

@@ -37,13 +37,13 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Button variant="hero" size="xl" asChild className="text-sm sm:text-base">
+              <Button variant="hero" size="xl" asChild>
                 <a href="#dogs">
                   <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                   Browse Available Dogs
                 </a>
               </Button>
-              <Button variant="heroOutline" size="xl" asChild className="text-sm sm:text-base">
+              <Button variant="heroOutline" size="xl" asChild>
                 <Link to="/about">
                   <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                   Why Adopt?
