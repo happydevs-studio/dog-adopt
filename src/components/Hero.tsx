@@ -10,8 +10,14 @@ const Hero = () => {
   const { data: rescues = [] } = useRescues();
   const availableDogs = dogs.filter(dog => dog.status === 'available');
   return (
-    <section className="relative min-h-[600px] gradient-hero overflow-hidden">
-      <div className="container mx-auto px-4 py-16 lg:py-24">
+    <section className="relative min-h-[600px] md:min-h-[700px] gradient-hero overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      </div>
+      
+      <div className="container mx-auto px-4 py-12 md:py-16 lg:py-24 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 animate-fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
@@ -24,35 +30,39 @@ const Hero = () => {
               <span className="text-primary block">Rescue Companion</span>
             </h1>
             
-            <p className="text-lg text-muted-foreground max-w-lg">
-              Discover rescue dogs from quality rescue organisations across the UK. 
-              100% non-profit. Every adoption saves a life and helps end the puppy farming crisis.
+            <p className="text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
+              Discover loving rescue dogs from quality organisations across the UK. 
+              <span className="block mt-2 font-medium text-foreground">100% non-profit</span>
+              <span className="block mt-1">Every adoption saves a life and creates a forever bond.</span>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" asChild>
+              <Button variant="hero" size="xl" asChild>
                 <a href="#dogs">
-                  <Search className="w-5 h-5 mr-2" />
-                  Browse Dogs
+                  <Search className="w-5 h-5" />
+                  Browse Available Dogs
                 </a>
               </Button>
-              <Button variant="heroOutline" asChild>
-                <Link to="/about">Learn More</Link>
+              <Button variant="heroOutline" size="xl" asChild>
+                <Link to="/about">
+                  <Heart className="w-5 h-5" />
+                  Why Adopt?
+                </Link>
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-border">
-              <div>
-                <p className="font-display text-3xl font-bold text-primary">{availableDogs.length.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Dogs Available</p>
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 border-t border-border">
+              <div className="text-center sm:text-left">
+                <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{availableDogs.length.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Dogs Available</p>
               </div>
-              <div>
-                <p className="font-display text-3xl font-bold text-primary">{rescues.length.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">UK Rescues</p>
+              <div className="text-center sm:text-left">
+                <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{rescues.length.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Quality Rescues</p>
               </div>
-              <div>
-                <p className="font-display text-3xl font-bold text-primary">0</p>
-                <p className="text-sm text-muted-foreground">Happy Adoptions</p>
+              <div className="text-center sm:text-left">
+                <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">100%</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Non-Profit</p>
               </div>
             </div>
           </div>

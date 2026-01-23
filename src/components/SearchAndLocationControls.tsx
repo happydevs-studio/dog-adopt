@@ -86,10 +86,10 @@ export const SearchBar = ({ searchQuery, onSearchChange }: SearchBarProps) => (
     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
     <Input
       type="search"
-      placeholder="Search by name, breed, or location..."
+      placeholder="Search by name, breed, location, or rescue..."
       value={searchQuery}
       onChange={(e) => onSearchChange(e.target.value)}
-      className="pl-10"
+      className="pl-10 h-12 text-base"
     />
   </div>
 );

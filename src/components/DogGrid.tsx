@@ -116,11 +116,12 @@ const DogGrid = () => {
     <section id="dogs" className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12" ref={gridTopRef}>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Dogs Looking for Homes
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Browse our selection of rescue dogs from shelters across the UK. Each one deserves a loving forever home.
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Browse our selection of rescue dogs from trusted shelters across the UK. 
+            <span className="block mt-2 text-primary font-medium">Each one deserves a loving forever home.</span>
           </p>
         </div>
 
@@ -155,10 +156,15 @@ const DogGrid = () => {
               onClearLocation={clearLocation}
             />
 
-            <div className="flex items-center justify-end mb-6">
-              <p className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{filteredDogs.length}</span> dogs found
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-bold text-lg text-foreground">{filteredDogs.length}</span> {filteredDogs.length === 1 ? 'dog' : 'dogs'}
               </p>
+              {filteredDogs.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </p>
+              )}
             </div>
 
             <DogGridResults

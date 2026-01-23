@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
+import FeaturesSection from '@/components/FeaturesSection';
 import DogGrid from '@/components/DogGrid';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
@@ -17,6 +18,7 @@ const Index = () => {
         <Header />
         <main>
           <Hero />
+          <FeaturesSection />
           <DogGrid />
         </main>
         <Footer />

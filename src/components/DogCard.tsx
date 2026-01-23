@@ -20,7 +20,7 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
   const rescueDate = formatRescueDate(dog.rescueSinceDate);
 
   return (
-    <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
+    <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-2 border border-border/50">
       {showImage && (
         <div className="relative aspect-square overflow-hidden">
           <img
@@ -39,7 +39,7 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
         </div>
       )}
 
-      <div className="p-5 space-y-4">
+      <div className="p-6 space-y-4">
         {!showImage && (
           <DogBadges 
             status={dog.status}
@@ -71,7 +71,7 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
 
         <Button 
           variant="default" 
-          className="w-full"
+          className="w-full group-hover:bg-primary group-hover:scale-105 transition-all"
           asChild={isProfileLinkEnabled}
           disabled={!isProfileLinkEnabled}
         >
