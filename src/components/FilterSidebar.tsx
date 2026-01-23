@@ -92,14 +92,14 @@ const FilterSidebar = ({
           <div className="border-t border-border pt-3 md:pt-4">
             <Label className="text-xs md:text-sm font-semibold text-foreground mb-2 block">Status</Label>
             <RadioGroup value={statusFilter} onValueChange={(value) => onStatusChange(value as StatusFilter)}>
-              {/* Always show Available */}
+              {/* Show only Available on mobile, all options on desktop */}
               <div className="flex items-center space-x-2 py-0.5">
                 <RadioGroupItem value="available" id="status-available" />
                 <Label htmlFor="status-available" className="text-muted-foreground cursor-pointer text-xs md:text-sm">
                   Available
                 </Label>
               </div>
-              {/* Show other statuses only on larger screens */}
+              {/* Additional statuses only visible on desktop */}
               {[
                 { value: 'reserved', label: 'Reserved' },
                 { value: 'adopted', label: 'Adopted' },
@@ -109,7 +109,7 @@ const FilterSidebar = ({
               ].map((status) => (
                 <div key={status.value} className="hidden md:flex items-center space-x-2 py-0.5">
                   <RadioGroupItem value={status.value} id={`status-${status.value}`} />
-                  <Label htmlFor={`status-${status.value}`} className="text-muted-foreground cursor-pointer text-sm">
+                  <Label htmlFor={`status-${status.value}`} className="text-muted-foreground cursor-pointer text-xs md:text-sm">
                     {status.label}
                   </Label>
                 </div>
