@@ -9,6 +9,7 @@ interface LocationControlsProps {
   locationError: string | null;
   onRequestLocation: () => void;
   onClearLocation: () => void;
+  context?: 'dogs' | 'rescues'; // Context for user-friendly messaging
 }
 
 export const LocationControls = ({
@@ -16,8 +17,13 @@ export const LocationControls = ({
   locationLoading,
   locationError,
   onRequestLocation,
-  onClearLocation
-}: LocationControlsProps) => (
+  onClearLocation,
+  context = 'dogs'
+}: LocationControlsProps) => {
+  // User-friendly button text based on context
+  const findNearMeText = context === 'rescues' ? 'Find Rescues Near Me' : 'Find Dogs Near Me';
+  
+  return (
   <div className="mb-4 space-y-2">
     <div className="flex items-center gap-2">
       {!hasLocation && !locationLoading && (
@@ -28,7 +34,7 @@ export const LocationControls = ({
           className="gap-2"
         >
           <MapPin className="w-4 h-4" />
-          Sort by Distance
+          {findNearMeText}
         </Button>
       )}
       
@@ -53,7 +59,7 @@ export const LocationControls = ({
             disabled
           >
             <Navigation className="w-4 h-4" />
-            Sorted by distance
+            Showing nearest first
           </Button>
           <Button
             onClick={onClearLocation}
@@ -74,7 +80,8 @@ export const LocationControls = ({
       </Alert>
     )}
   </div>
-);
+  );
+};
 
 interface SearchBarProps {
   searchQuery: string;
