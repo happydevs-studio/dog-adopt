@@ -58,6 +58,13 @@ export function resetConversationState() {
 }
 
 /**
+ * Filter dogs to only those with 'available' status
+ */
+function getAvailableDogs(dogs: Dog[]): Dog[] {
+  return dogs.filter(d => d.status === 'available');
+}
+
+/**
  * Extract size preferences from message
  */
 function extractSizePreference(lowerMessage: string) {
@@ -157,7 +164,7 @@ function buildContext(context: ChatContext): string {
   const { dogs, rescues } = context;
   
   // Filter to only available dogs for the context
-  const availableDogs = dogs.filter(d => d.status === 'available');
+  const availableDogs = getAvailableDogs(dogs);
   
   let contextStr = 'Available Dogs:\n';
   availableDogs.forEach(dog => {
@@ -300,7 +307,7 @@ function handleBasicPatterns(
   const { dogs, rescues } = context;
   
   // Filter to only available dogs
-  const availableDogs = dogs.filter(d => d.status === 'available');
+  const availableDogs = getAvailableDogs(dogs);
   
   if (isGreeting(message)) {
     return {
@@ -636,7 +643,7 @@ function generateFallbackResponse(
   const { dogs, rescues } = context;
   
   // Filter to only available dogs for all responses
-  const availableDogs = dogs.filter(d => d.status === 'available');
+  const availableDogs = getAvailableDogs(dogs);
   
   updateConversationState(userMessage);
   
@@ -702,7 +709,7 @@ export async function getChatResponse(
   const fallbackResponse = generateFallbackResponse(userMessage, context);
   
   // Filter to only available dogs for suggestions
-  const availableDogs = context.dogs.filter(d => d.status === 'available');
+  const availableDogs = getAvailableDogs(context.dogs);
   
   // If it's a string (old format), convert to new format
   if (typeof fallbackResponse === 'string') {
@@ -727,7 +734,7 @@ export async function getChatResponse(
  */
 export function getStarterQuestions(context: ChatContext): string[] {
   // Filter to only available dogs
-  const availableDogs = context.dogs.filter(d => d.status === 'available');
+  const availableDogs = getAvailableDogs(context.dogs);
   const questions = ['What dogs are available?'];
   
   if (availableDogs.some(d => d.goodWithKids)) {
