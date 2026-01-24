@@ -156,8 +156,11 @@ function applyConversationFilters(dogs: Dog[]): Dog[] {
 function buildContext(context: ChatContext): string {
   const { dogs, rescues } = context;
   
+  // Filter to only available dogs for the context
+  const availableDogs = dogs.filter(d => d.status === 'available');
+  
   let contextStr = 'Available Dogs:\n';
-  dogs.forEach(dog => {
+  availableDogs.forEach(dog => {
     contextStr += `- ${dog.name}: ${dog.breed}, ${dog.computedAge || dog.age}, ${dog.size}, ${dog.gender}`;
     contextStr += `, Located at ${dog.rescue} in ${dog.location}`;
     if (dog.goodWithKids) contextStr += ', Good with kids';
@@ -195,6 +198,7 @@ async function generateOpenAIResponse(
 You have access to information about available dogs and rescue organizations in the UK.
 Use the following data to answer questions accurately and helpfully.
 Be friendly, encouraging, and help users find their perfect dog match.
+IMPORTANT: Only count and mention dogs that are currently 'available' for adoption, not reserved, fostered, or on hold.
 
 ${contextStr}`;
 
@@ -295,9 +299,12 @@ function handleBasicPatterns(
 ): ChatResponse | string | null {
   const { dogs, rescues } = context;
   
+  // Filter to only available dogs
+  const availableDogs = dogs.filter(d => d.status === 'available');
+  
   if (isGreeting(message)) {
     return {
-      content: buildGreetingResponse(dogs.length, rescues.length),
+      content: buildGreetingResponse(availableDogs.length, rescues.length),
       suggestedQuestions: ['What dogs are available?', 'Show me small dogs', 'Tell me about puppies']
     };
   }
@@ -316,7 +323,7 @@ function handleBasicPatterns(
   }
   
   if (isStatsRequest(message)) {
-    return buildStatsResponse(dogs, rescues);
+    return buildStatsResponse(availableDogs, rescues);
   }
   
   return null;
@@ -628,34 +635,37 @@ function generateFallbackResponse(
   const message = userMessage.toLowerCase();
   const { dogs, rescues } = context;
   
+  // Filter to only available dogs for all responses
+  const availableDogs = dogs.filter(d => d.status === 'available');
+  
   updateConversationState(userMessage);
   
-  const basicResponse = handleBasicPatterns(message, context);
+  const basicResponse = handleBasicPatterns(message, { dogs: availableDogs, rescues });
   if (basicResponse) return basicResponse;
   
-  const compoundResponse = handleCompoundDogQuery(message, dogs);
+  const compoundResponse = handleCompoundDogQuery(message, availableDogs);
   if (compoundResponse) return compoundResponse;
   
-  const whatDogsResponse = handleWhatDogsQuery(message, dogs);
+  const whatDogsResponse = handleWhatDogsQuery(message, availableDogs);
   if (whatDogsResponse) return whatDogsResponse;
   
-  const traitResponse = handleTraitQuery(message, dogs);
+  const traitResponse = handleTraitQuery(message, availableDogs);
   if (traitResponse) return traitResponse;
   
-  const breedResponse = handleBreedQuery(message, dogs);
+  const breedResponse = handleBreedQuery(message, availableDogs);
   if (breedResponse) return breedResponse;
   
-  const sizeAgeResponse = handleSizeAgeQuery(message, dogs);
+  const sizeAgeResponse = handleSizeAgeQuery(message, availableDogs);
   if (sizeAgeResponse) return sizeAgeResponse;
   
-  const locationResponse = handleLocationQuery(message, dogs, rescues);
+  const locationResponse = handleLocationQuery(message, availableDogs, rescues);
   if (locationResponse) return locationResponse;
   
-  const dogDetailResponse = handleDogDetailRequest(message, dogs);
+  const dogDetailResponse = handleDogDetailRequest(message, availableDogs);
   if (dogDetailResponse) return dogDetailResponse;
   
   if (isShowMoreRequest(message) && conversationState.lastQuery) {
-    const filtered = applyConversationFilters(dogs);
+    const filtered = applyConversationFilters(availableDogs);
     if (filtered.length > 5) {
       return `Here are more dogs matching your preferences:\n\n${formatDogList(filtered.slice(5, 10), 5, true)}`;
     }
@@ -691,9 +701,12 @@ export async function getChatResponse(
   // Fall back to pattern matching
   const fallbackResponse = generateFallbackResponse(userMessage, context);
   
+  // Filter to only available dogs for suggestions
+  const availableDogs = context.dogs.filter(d => d.status === 'available');
+  
   // If it's a string (old format), convert to new format
   if (typeof fallbackResponse === 'string') {
-    const suggestions = generateSuggestions(context.dogs, context);
+    const suggestions = generateSuggestions(availableDogs, context);
     return {
       content: fallbackResponse,
       suggestedQuestions: suggestions.length > 0 ? suggestions : undefined
@@ -702,7 +715,7 @@ export async function getChatResponse(
   
   // If it's already a ChatResponse, add suggestions if not present
   if (!fallbackResponse.suggestedQuestions) {
-    const suggestions = generateSuggestions(context.dogs, context);
+    const suggestions = generateSuggestions(availableDogs, context);
     fallbackResponse.suggestedQuestions = suggestions.length > 0 ? suggestions : undefined;
   }
   
@@ -713,23 +726,24 @@ export async function getChatResponse(
  * Generate example starter questions based on available data
  */
 export function getStarterQuestions(context: ChatContext): string[] {
-  const { dogs } = context;
+  // Filter to only available dogs
+  const availableDogs = context.dogs.filter(d => d.status === 'available');
   const questions = ['What dogs are available?'];
   
-  if (dogs.some(d => d.goodWithKids)) {
+  if (availableDogs.some(d => d.goodWithKids)) {
     questions.push('Show me dogs good with children');
   }
   
-  if (dogs.some(d => d.size === 'Small')) {
+  if (availableDogs.some(d => d.size === 'Small')) {
     questions.push('Do you have any small dogs?');
   }
   
-  if (dogs.some(d => (d.computedAge || d.age) === 'Puppy')) {
+  if (availableDogs.some(d => (d.computedAge || d.age) === 'Puppy')) {
     questions.push('Tell me about puppies');
   }
   
   // Add more dynamic questions
-  if (dogs.some(d => d.goodWithCats)) {
+  if (availableDogs.some(d => d.goodWithCats)) {
     questions.push('Which dogs are good with cats?');
   }
   
