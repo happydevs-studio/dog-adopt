@@ -1,13 +1,10 @@
--- Dog Availability Report API
--- Creates a function to get daily dog availability counts for reporting
+-- Fix ambiguous column reference in get_daily_dog_availability function
+-- This migration fixes the recursive CTE where the column alias was missing
+-- causing "column reference 'report_date' is ambiguous" error
 
--- =====================================================
--- DOG AVAILABILITY REPORT FUNCTION
--- =====================================================
+-- Drop and recreate the function with the fix
+DROP FUNCTION IF EXISTS dogadopt_api.get_daily_dog_availability(DATE, DATE, UUID);
 
--- Function: Get daily dog availability counts
--- This function calculates the number of available dogs per day based on the dogs table
--- and their status changes tracked in the audit logs.
 CREATE OR REPLACE FUNCTION dogadopt_api.get_daily_dog_availability(
   p_start_date DATE DEFAULT CURRENT_DATE - INTERVAL '30 days',
   p_end_date DATE DEFAULT CURRENT_DATE,
@@ -33,7 +30,7 @@ BEGIN
     -- Generate a series of dates from start to end
     SELECT p_start_date::DATE as report_date
     UNION ALL
-    SELECT (date_series.report_date + INTERVAL '1 day')::DATE
+    SELECT (date_series.report_date + INTERVAL '1 day')::DATE as report_date
     FROM date_series
     WHERE date_series.report_date < p_end_date
   ),
@@ -78,4 +75,5 @@ GRANT EXECUTE ON FUNCTION dogadopt_api.get_daily_dog_availability TO anon, authe
 COMMENT ON FUNCTION dogadopt_api.get_daily_dog_availability IS 
 'Returns daily count of available dogs within a date range. 
 Optional rescue_id filter to show data for a specific rescue.
-Defaults to last 30 days if no dates provided.';
+Defaults to last 30 days if no dates provided.
+Fixed: Added explicit column alias in recursive CTE to resolve ambiguous column reference.';
