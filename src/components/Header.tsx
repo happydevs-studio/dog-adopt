@@ -57,6 +57,9 @@ const Header = () => {
             <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Rescues
             </Link>
+            <Link to="/reports" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+              Reports
+            </Link>
             <Link to="/chat" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
               <MessageSquare className="w-4 h-4" />
               Chat
@@ -124,6 +127,9 @@ const Header = () => {
               </Link>
               <Link to="/rescues" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Rescues
+              </Link>
+              <Link to="/reports" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                Reports
               </Link>
               <Link to="/chat" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
                 <MessageSquare className="w-4 h-4" />

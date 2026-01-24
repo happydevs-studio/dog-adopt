@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import About from "./pages/About";
 import Rescues from "./pages/Rescues";
 import Chat from "./pages/Chat";
+import Reports from "./pages/Reports";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/rescues" element={<Rescues />} />
               <Route path="/chat" element={<Chat />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/contact" element={<Contact />} />
