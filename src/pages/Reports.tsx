@@ -24,6 +24,24 @@ interface RescueOption {
   name: string;
 }
 
+interface RescueApiResponse {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  postcode: string | null;
+  charity_number: string | null;
+  contact_notes: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string;
+  dog_count: number;
+}
+
 interface ChartData {
   date: string;
   fullDate: string;
@@ -299,7 +317,8 @@ const Reports = () => {
       
       if (error) throw error;
       // Map the API response to RescueOption format (id, name)
-      return (data as any[])?.map(rescue => ({
+      const apiData = data as RescueApiResponse[];
+      return apiData?.map(rescue => ({
         id: rescue.id,
         name: rescue.name
       })) || [];
