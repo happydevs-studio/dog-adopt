@@ -294,12 +294,15 @@ const Reports = () => {
     queryKey: ['rescues-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('rescues')
-        .select('id, name')
-        .order('name');
+        .schema('dogadopt_api')
+        .rpc('get_rescues');
       
       if (error) throw error;
-      return data as RescueOption[];
+      // Map the API response to RescueOption format (id, name)
+      return (data as any[])?.map(rescue => ({
+        id: rescue.id,
+        name: rescue.name
+      })) || [];
     },
   });
 
