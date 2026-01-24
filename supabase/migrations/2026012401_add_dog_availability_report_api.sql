@@ -33,7 +33,7 @@ BEGIN
     -- Generate a series of dates from start to end
     SELECT p_start_date::DATE as report_date
     UNION ALL
-    SELECT (date_series.report_date + INTERVAL '1 day')::DATE
+    SELECT (date_series.report_date + INTERVAL '1 day')::DATE as report_date
     FROM date_series
     WHERE date_series.report_date < p_end_date
   ),
