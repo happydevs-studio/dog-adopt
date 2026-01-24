@@ -30,6 +30,10 @@ interface ChartData {
   count: number;
 }
 
+// Configuration constants
+const REPORTS_MIN_DATE = new Date('2026-01-01');
+const DEFAULT_DAYS_BACK = 30;
+
 // Filters Component
 const ReportFilters = ({
   startDate,
@@ -273,7 +277,7 @@ const Reports = () => {
   // Date range state - default to last 30 days
   const [startDate, setStartDate] = useState<Date>(() => {
     const date = new Date();
-    date.setDate(date.getDate() - 30);
+    date.setDate(date.getDate() - DEFAULT_DAYS_BACK);
     return date;
   });
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -281,8 +285,8 @@ const Reports = () => {
   // Rescue filter state
   const [selectedRescueId, setSelectedRescueId] = useState<string>('all');
 
-  // Minimum date is Jan 1, 2026
-  const minDate = new Date('2026-01-01');
+  // Date constraints
+  const minDate = REPORTS_MIN_DATE;
   const maxDate = new Date();
 
   // Fetch rescues for filter dropdown

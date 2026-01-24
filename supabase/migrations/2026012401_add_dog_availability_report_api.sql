@@ -39,25 +39,23 @@ BEGIN
   ),
   dog_status_per_date AS (
     -- For each dog and date, find the most recent status as of that date
-    SELECT DISTINCT ON (ds.report_date, d.id)
+    -- Using LATERAL join for better performance
+    SELECT 
       ds.report_date,
       d.id as dog_id,
-      COALESCE(
-        (
-          -- Get the most recent status from audit logs before or on this date
-          SELECT (new_snapshot->>'status')::TEXT
-          FROM dogadopt.dogs_audit_logs dal
-          WHERE dal.dog_id = d.id
-            AND DATE(dal.changed_at) <= ds.report_date
-            AND dal.new_snapshot->>'status' IS NOT NULL
-          ORDER BY dal.changed_at DESC
-          LIMIT 1
-        ),
-        -- If no audit log, use current status (for dogs that haven't changed)
-        d.status::TEXT
-      ) as status
+      COALESCE(dal.status, d.status::TEXT) as status
     FROM date_series ds
     CROSS JOIN dogadopt.dogs d
+    LEFT JOIN LATERAL (
+      -- Get the most recent status from audit logs before or on this date
+      SELECT (new_snapshot->>'status')::TEXT as status
+      FROM dogadopt.dogs_audit_logs
+      WHERE dog_id = d.id
+        AND DATE(changed_at) <= ds.report_date
+        AND new_snapshot->>'status' IS NOT NULL
+      ORDER BY changed_at DESC
+      LIMIT 1
+    ) dal ON true
     WHERE 
       -- Dog must have been created before or on this date
       DATE(d.created_at) <= ds.report_date
