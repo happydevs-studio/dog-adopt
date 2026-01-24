@@ -33,9 +33,9 @@ BEGIN
     -- Generate a series of dates from start to end
     SELECT p_start_date::DATE as report_date
     UNION ALL
-    SELECT (report_date + INTERVAL '1 day')::DATE
+    SELECT (date_series.report_date + INTERVAL '1 day')::DATE
     FROM date_series
-    WHERE report_date < p_end_date
+    WHERE date_series.report_date < p_end_date
   ),
   dog_status_per_date AS (
     -- For each dog and date, find the most recent status as of that date
