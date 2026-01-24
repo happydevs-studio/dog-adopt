@@ -85,6 +85,7 @@ const RescuesSection = () => {
           locationError={locationError}
           onRequestLocation={handleLocationRequest}
           onClearLocation={clearLocation}
+          context="rescues"
         />
 
         <div className="flex items-center justify-end mb-6">
