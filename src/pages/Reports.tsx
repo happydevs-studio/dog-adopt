@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
@@ -17,14 +17,257 @@ import { cn } from '@/lib/utils';
 interface DailyAvailabilityData {
   report_date: string;
   available_count: number;
-  rescue_id: string | null;
-  rescue_name: string | null;
 }
 
 interface RescueOption {
   id: string;
   name: string;
 }
+
+interface ChartData {
+  date: string;
+  fullDate: string;
+  count: number;
+}
+
+// Filters Component
+const ReportFilters = ({
+  startDate,
+  endDate,
+  selectedRescueId,
+  rescues,
+  rescuesLoading,
+  minDate,
+  maxDate,
+  onStartDateChange,
+  onEndDateChange,
+  onRescueChange,
+}: {
+  startDate: Date;
+  endDate: Date;
+  selectedRescueId: string;
+  rescues?: RescueOption[];
+  rescuesLoading: boolean;
+  minDate: Date;
+  maxDate: Date;
+  onStartDateChange: (date: Date) => void;
+  onEndDateChange: (date: Date) => void;
+  onRescueChange: (value: string) => void;
+}) => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Filters</CardTitle>
+      <CardDescription>
+        Customize the date range and rescue to view specific data
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Start Date */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Start Date</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'w-full justify-start text-left font-normal',
+                  !startDate && 'text-muted-foreground'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => date && onStartDateChange(date)}
+                disabled={(date) => date < minDate || date > maxDate || date > endDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* End Date */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">End Date</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'w-full justify-start text-left font-normal',
+                  !endDate && 'text-muted-foreground'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => date && onEndDateChange(date)}
+                disabled={(date) => date < minDate || date > maxDate || date < startDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Rescue Filter */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Rescue</label>
+          <Select
+            value={selectedRescueId}
+            onValueChange={onRescueChange}
+            disabled={rescuesLoading}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select rescue" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Rescues</SelectItem>
+              {rescues?.map((rescue) => (
+                <SelectItem key={rescue.id} value={rescue.id}>
+                  {rescue.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Summary Statistics Component
+const SummaryStats = ({
+  totalDogs,
+  avgDogs,
+  endDate,
+  daysCount,
+}: {
+  totalDogs: number;
+  avgDogs: number;
+  endDate: Date;
+  daysCount: number;
+}) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Current Available Dogs
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold">{totalDogs}</div>
+        <p className="text-xs text-muted-foreground mt-1">
+          As of {format(endDate, 'PPP')}
+        </p>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Average Daily Count
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold">{avgDogs}</div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Over {daysCount} days
+        </p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+// Chart Component
+const AvailabilityChart = ({
+  chartData,
+  isLoading,
+  error,
+}: {
+  chartData: ChartData[];
+  isLoading: boolean;
+  error: Error | null;
+}) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96 text-destructive">
+        <div className="text-center">
+          <p className="font-semibold">Error loading data</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-96 text-muted-foreground">
+        <div className="text-center">
+          <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+          <p className="font-semibold">No data available</p>
+          <p className="text-sm mt-1">
+            Try adjusting your date range or rescue filter
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-96">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          <XAxis 
+            dataKey="date" 
+            className="text-xs"
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+          />
+          <YAxis 
+            className="text-xs"
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+          />
+          <Tooltip 
+            contentStyle={{
+              backgroundColor: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '0.5rem',
+            }}
+            labelStyle={{ color: 'hsl(var(--foreground))' }}
+          />
+          <Legend />
+          <Line 
+            type="monotone" 
+            dataKey="count" 
+            stroke="hsl(var(--primary))" 
+            strokeWidth={2}
+            name="Available Dogs"
+            dot={{ fill: 'hsl(var(--primary))' }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const Reports = () => {
   // Date range state - default to last 30 days
@@ -80,7 +323,7 @@ const Reports = () => {
   });
 
   // Transform data for chart
-  const chartData = availabilityData?.map(item => ({
+  const chartData: ChartData[] = availabilityData?.map(item => ({
     date: format(new Date(item.report_date), 'MMM dd'),
     fullDate: item.report_date,
     count: item.available_count,
@@ -114,127 +357,28 @@ const Reports = () => {
               </div>
             </div>
 
-            {/* Filters Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Filters</CardTitle>
-                <CardDescription>
-                  Customize the date range and rescue to view specific data
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Start Date */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !startDate && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={startDate}
-                          onSelect={(date) => date && setStartDate(date)}
-                          disabled={(date) => date < minDate || date > maxDate || date > endDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* End Date */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !endDate && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={endDate}
-                          onSelect={(date) => date && setEndDate(date)}
-                          disabled={(date) => date < minDate || date > maxDate || date < startDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Rescue Filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Rescue</label>
-                    <Select
-                      value={selectedRescueId}
-                      onValueChange={setSelectedRescueId}
-                      disabled={rescuesLoading}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select rescue" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Rescues</SelectItem>
-                        {rescues?.map((rescue) => (
-                          <SelectItem key={rescue.id} value={rescue.id}>
-                            {rescue.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Filters */}
+            <ReportFilters
+              startDate={startDate}
+              endDate={endDate}
+              selectedRescueId={selectedRescueId}
+              rescues={rescues}
+              rescuesLoading={rescuesLoading}
+              minDate={minDate}
+              maxDate={maxDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onRescueChange={setSelectedRescueId}
+            />
 
             {/* Summary Statistics */}
             {!dataLoading && !error && chartData.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Current Available Dogs
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{totalDogs}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      As of {format(endDate, 'PPP')}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Average Daily Count
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{avgDogs}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Over {chartData.length} days
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <SummaryStats
+                totalDogs={totalDogs}
+                avgDogs={avgDogs}
+                endDate={endDate}
+                daysCount={chartData.length}
+              />
             )}
 
             {/* Chart Card */}
@@ -246,64 +390,11 @@ const Reports = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {dataLoading ? (
-                  <div className="flex items-center justify-center h-96">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : error ? (
-                  <div className="flex items-center justify-center h-96 text-destructive">
-                    <div className="text-center">
-                      <p className="font-semibold">Error loading data</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {error instanceof Error ? error.message : 'Unknown error occurred'}
-                      </p>
-                    </div>
-                  </div>
-                ) : chartData.length === 0 ? (
-                  <div className="flex items-center justify-center h-96 text-muted-foreground">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="font-semibold">No data available</p>
-                      <p className="text-sm mt-1">
-                        Try adjusting your date range or rescue filter
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-96">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis 
-                          dataKey="date" 
-                          className="text-xs"
-                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                        />
-                        <YAxis 
-                          className="text-xs"
-                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '0.5rem',
-                          }}
-                          labelStyle={{ color: 'hsl(var(--foreground))' }}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="count" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                          name="Available Dogs"
-                          dot={{ fill: 'hsl(var(--primary))' }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
+                <AvailabilityChart
+                  chartData={chartData}
+                  isLoading={dataLoading}
+                  error={error}
+                />
               </CardContent>
             </Card>
           </div>

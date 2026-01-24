@@ -15,9 +15,7 @@ CREATE OR REPLACE FUNCTION dogadopt_api.get_daily_dog_availability(
 )
 RETURNS TABLE (
   report_date DATE,
-  available_count BIGINT,
-  rescue_id UUID,
-  rescue_name TEXT
+  available_count BIGINT
 )
 LANGUAGE plpgsql
 STABLE
@@ -44,8 +42,6 @@ BEGIN
     SELECT DISTINCT ON (ds.report_date, d.id)
       ds.report_date,
       d.id as dog_id,
-      d.rescue_id,
-      r.name as rescue_name,
       COALESCE(
         (
           -- Get the most recent status from audit logs before or on this date
@@ -62,7 +58,6 @@ BEGIN
       ) as status
     FROM date_series ds
     CROSS JOIN dogadopt.dogs d
-    LEFT JOIN dogadopt.rescues r ON d.rescue_id = r.id
     WHERE 
       -- Dog must have been created before or on this date
       DATE(d.created_at) <= ds.report_date
@@ -71,11 +66,9 @@ BEGIN
   )
   SELECT 
     dspd.report_date,
-    COUNT(*) FILTER (WHERE dspd.status = 'available') as available_count,
-    dspd.rescue_id,
-    dspd.rescue_name
+    COUNT(*) FILTER (WHERE dspd.status = 'available') as available_count
   FROM dog_status_per_date dspd
-  GROUP BY dspd.report_date, dspd.rescue_id, dspd.rescue_name
+  GROUP BY dspd.report_date
   ORDER BY dspd.report_date ASC;
 END;
 $$;
