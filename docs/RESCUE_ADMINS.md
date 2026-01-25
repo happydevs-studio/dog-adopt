@@ -78,6 +78,38 @@ VALUES (
 );
 ```
 
+### For Developers
+
+#### API Functions
+
+Two API functions are available in the `dogadopt_api` schema:
+
+```typescript
+// Check if current user can administer a specific rescue
+const { data } = await supabase
+  .schema('dogadopt_api')
+  .rpc('check_rescue_admin', { p_rescue_id: rescueId });
+
+// Get all rescues the current user can administer
+const { data } = await supabase
+  .schema('dogadopt_api')
+  .rpc('get_user_rescue_admins');
+```
+
+#### React Hooks
+
+Use the `useRescueAdmin` hook in your components:
+
+```typescript
+import { useIsRescueAdmin, useUserRescueAdmins } from '@/hooks/useRescueAdmin';
+
+// Check if user can administer a specific rescue
+const { data: isAdmin } = useIsRescueAdmin(rescueId);
+
+// Get all rescues the user can administer
+const { data: rescueAdmins } = useUserRescueAdmins();
+```
+
 ## Security Considerations
 
 1. **RLS Enforcement**: All access is controlled through Row Level Security policies
@@ -87,8 +119,11 @@ VALUES (
 
 ## Migration Details
 
-- **File**: `supabase/migrations/2026012501_add_rescue_admins.sql`
+- **Files**: 
+  - `supabase/migrations/2026012501_add_rescue_admins.sql` - Core rescue admins feature
+  - `supabase/migrations/2026012502_add_rescue_admin_api.sql` - API functions
 - **Seed Update**: `supabase/seed.sql` includes automatic rescue admin sync
+- **Frontend Hook**: `src/hooks/useRescueAdmin.ts` - React hooks for checking rescue admin status
 
 ## Testing
 
