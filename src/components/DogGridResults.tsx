@@ -2,6 +2,7 @@ import { Loader2, Search } from 'lucide-react';
 import DogCard from './DogCard';
 import type { Dog } from '@/types/dog';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 type ViewMode = 'text-only' | 'with-images';
 
@@ -105,6 +106,14 @@ export const DogGridResults = ({
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
                 <span>Check back later - new dogs are added regularly</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>
+                  <Link to="/rescues" className="text-primary hover:underline font-medium">
+                    Browse our rescues page
+                  </Link> for a more complete list of nearby rescues
+                </span>
               </li>
             </ul>
           </div>

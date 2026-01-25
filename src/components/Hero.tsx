@@ -54,7 +54,7 @@ const Hero = () => {
             <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 border-t border-border">
               <div className="text-center sm:text-left">
                 <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{availableDogs.length.toLocaleString()}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Dogs Available</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Dogs Available (from {rescues.length} {rescues.length === 1 ? 'rescue' : 'rescues'} so far!)</p>
               </div>
               <div className="text-center sm:text-left">
                 <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{rescues.length.toLocaleString()}</p>
