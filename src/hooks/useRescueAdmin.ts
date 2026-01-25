@@ -11,6 +11,17 @@ export interface RescueAdmin {
   notes: string | null;
 }
 
+// Database response interface (matches RPC function return type with snake_case)
+interface RescueAdminApiResponse {
+  rescue_id: string;
+  rescue_name: string;
+  rescue_region: string;
+  rescue_website: string | null;
+  rescue_email: string | null;
+  granted_at: string;
+  notes: string | null;
+}
+
 /**
  * Hook to check if the current user is a rescue admin for a specific rescue
  * Returns true if user is either a global admin or a rescue admin for that rescue
@@ -55,7 +66,7 @@ export const useUserRescueAdmins = () => {
       if (!data) return [];
 
       // Convert snake_case to camelCase
-      return data.map((item: any) => ({
+      return (data as RescueAdminApiResponse[]).map((item) => ({
         rescueId: item.rescue_id,
         rescueName: item.rescue_name,
         rescueRegion: item.rescue_region,
