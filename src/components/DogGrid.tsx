@@ -8,6 +8,7 @@ import { PaginationControls } from '@/components/PaginationControls';
 import { SearchBar, LocationControls } from '@/components/SearchAndLocationControls';
 import { DogGridResults } from '@/components/DogGridResults';
 import { ViewModeSelector } from '@/components/ViewModeSelector';
+import { RescuesInfoBox } from '@/components/RescuesInfoBox';
 
 type ViewMode = 'text-only' | 'with-images';
 
@@ -159,6 +160,12 @@ const DogGrid = () => {
               viewMode={viewMode}
               hasLocation={hasLocation}
             />
+
+            {!isLoading && !error && filteredDogs.length > 0 && (
+              <div className="mt-8">
+                <RescuesInfoBox />
+              </div>
+            )}
 
             {!isLoading && !error && filteredDogs.length > 0 && totalPages > 1 && (
               <div className="mt-8">
