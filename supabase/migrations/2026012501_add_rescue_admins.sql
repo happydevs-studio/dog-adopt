@@ -83,6 +83,12 @@ USING (
     SELECT 1 FROM dogadopt.rescue_admins
     WHERE user_id = auth.uid() AND rescue_id = dogadopt.rescues.id
   )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM dogadopt.rescue_admins
+    WHERE user_id = auth.uid() AND rescue_id = dogadopt.rescues.id
+  )
 );
 
 -- ========================================
@@ -110,11 +116,18 @@ WITH CHECK (
 
 CREATE POLICY "Global admins can update dogs"
 ON dogadopt.dogs FOR UPDATE
-USING (dogadopt.has_role(auth.uid(), 'admin'));
+USING (dogadopt.has_role(auth.uid(), 'admin'))
+WITH CHECK (dogadopt.has_role(auth.uid(), 'admin'));
 
 CREATE POLICY "Rescue admins can update their rescue's dogs"
 ON dogadopt.dogs FOR UPDATE
 USING (
+  EXISTS (
+    SELECT 1 FROM dogadopt.rescue_admins ra
+    WHERE ra.user_id = auth.uid() AND ra.rescue_id = dogadopt.dogs.rescue_id
+  )
+)
+WITH CHECK (
   EXISTS (
     SELECT 1 FROM dogadopt.rescue_admins ra
     WHERE ra.user_id = auth.uid() AND ra.rescue_id = dogadopt.dogs.rescue_id
