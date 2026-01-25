@@ -9,6 +9,9 @@ const Hero = () => {
   const { data: dogs = [] } = useDogs();
   const { data: rescues = [] } = useRescues();
   const availableDogs = dogs.filter(dog => dog.status === 'available');
+  
+  // Count unique rescues that have available dogs
+  const rescuesWithDogs = new Set(availableDogs.map(dog => dog.rescue)).size;
   return (
     <section className="relative min-h-[500px] sm:min-h-[600px] md:min-h-[700px] gradient-hero overflow-hidden">
       {/* Decorative background elements */}
@@ -54,7 +57,7 @@ const Hero = () => {
             <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 border-t border-border">
               <div className="text-center sm:text-left">
                 <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{availableDogs.length.toLocaleString()}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Dogs Available (from {rescues.length} {rescues.length === 1 ? 'rescue' : 'rescues'} so far!)</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Dogs Available (from {rescuesWithDogs} {rescuesWithDogs === 1 ? 'rescue' : 'rescues'} so far!)</p>
               </div>
               <div className="text-center sm:text-left">
                 <p className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1">{rescues.length.toLocaleString()}</p>
