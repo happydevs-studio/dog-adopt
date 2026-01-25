@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import FilterSidebar from './FilterSidebar';
 import { useDogs } from '@/hooks/useDogs';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -82,6 +82,12 @@ const DogGrid = () => {
     setCurrentPage(1);
   };
 
+  // Calculate unique rescues count from filtered dogs (memoized for performance)
+  const uniqueRescuesCount = useMemo(
+    () => new Set(filteredDogs.map(dog => dog.rescue)).size,
+    [filteredDogs]
+  );
+
   // Scroll to top of dog grid when page changes
   useEffect(() => {
     if (gridTopRef.current) {
@@ -136,7 +142,7 @@ const DogGrid = () => {
 
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-bold text-lg text-foreground">{filteredDogs.length}</span> {filteredDogs.length === 1 ? 'dog' : 'dogs'}
+                Showing <span className="font-bold text-lg text-foreground">{filteredDogs.length}</span> {filteredDogs.length === 1 ? 'dog' : 'dogs'} from <span className="font-bold text-lg text-foreground">{uniqueRescuesCount}</span> {uniqueRescuesCount === 1 ? 'rescue' : 'rescues'}
               </p>
               {filteredDogs.length > 0 && (
                 <p className="text-xs text-muted-foreground">
