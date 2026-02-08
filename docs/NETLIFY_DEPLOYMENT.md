@@ -211,7 +211,7 @@ If you're migrating from GitHub Pages:
 
 1. Set up environment variables in Netlify (they were in GitHub Secrets)
 2. Disable GitHub Pages deployment workflow or remove it
-3. Update `VITE_BASE_PATH` from `/adopt-a-dog-uk/` to `/` if using root domain
+3. Update `VITE_BASE_PATH` from your subdirectory path (e.g., `/your-subdirectory/`) to `/` if using root domain
 4. Update any hardcoded URLs in your code
 5. Rebuild and deploy
 
