@@ -48,7 +48,25 @@ const ConfigurationCheck = ({ children }: ConfigurationCheckProps) => {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">For Production Deployment (GitHub Pages):</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">For Netlify Deployment:</h2>
+              <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
+                <li className="pl-2">Log in to Netlify and go to your site dashboard</li>
+                <li className="pl-2">Navigate to Site settings → Environment variables</li>
+                <li className="pl-2">Add the following environment variables:
+                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
+                    <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">VITE_SUPABASE_URL</code></li>
+                    <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">VITE_SUPABASE_PUBLISHABLE_KEY</code></li>
+                    <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">VITE_SUPABASE_PROJECT_ID</code></li>
+                    <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">VITE_BASE_PATH</code> (set to <code className="bg-gray-100 px-1 rounded">/</code>)</li>
+                    <li><code className="bg-gray-100 px-2 py-1 rounded text-sm">VITE_DEV_BYPASS_AUTH</code> (set to <code className="bg-gray-100 px-1 rounded">false</code>)</li>
+                  </ul>
+                </li>
+                <li className="pl-2">Trigger a new deployment from Netlify or push a new commit</li>
+              </ol>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">For GitHub Pages Deployment:</h2>
               <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
                 <li className="pl-2">Go to your repository Settings → Secrets and variables → Actions</li>
                 <li className="pl-2">Add the following repository secrets:
@@ -71,7 +89,7 @@ const ConfigurationCheck = ({ children }: ConfigurationCheckProps) => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-blue-800">
-                    <strong>Need help?</strong> See <code className="bg-blue-100 px-2 py-1 rounded">docs/CI_CD_SETUP.md</code> for detailed setup instructions.
+                    <strong>Need help?</strong> See <code className="bg-blue-100 px-2 py-1 rounded">docs/NETLIFY_DEPLOYMENT.md</code> or <code className="bg-blue-100 px-2 py-1 rounded">docs/SETUP_AND_DEPLOYMENT.md</code> for detailed setup instructions.
                   </p>
                 </div>
               </div>
