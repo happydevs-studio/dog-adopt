@@ -22,6 +22,8 @@ Concise, organized documentation for the Adopt-a-Dog UK project.
 - **[Code Quality](CODE_QUALITY.md)** - Complexity checks and Knip analysis
 
 ### Deployment
+- **[Netlify Deployment](NETLIFY_DEPLOYMENT.md)** - Complete Netlify deployment guide with environment variable configuration
+- **[Setup and Deployment](SETUP_AND_DEPLOYMENT.md)** - CI/CD pipeline, GitHub Pages, secrets configuration
 - **[Base Path Configuration](BASE_PATH_CONFIGURATION.md)** - Configurable deployment paths
 - **[GitHub Pages SPA Fix](GITHUB_PAGES_SPA_FIX.md)** - SPA routing workaround
 
