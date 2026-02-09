@@ -5,6 +5,8 @@ import type { Dog } from '@/types/dog';
 import { DogBadges } from './DogBadges';
 import { DogCompatibilityBadges } from './DogCompatibilityBadges';
 import { formatStatus, getStatusVariant, getDogProfileUrl, formatRescueDate } from './DogCard.helpers';
+import { useState } from 'react';
+import ConfettiCelebration from './ConfettiCelebration';
 
 interface DogCardProps {
   dog: Dog;
@@ -18,23 +20,34 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
   const profileUrl = getDogProfileUrl(dog.profileUrl, dog.name);
   const isProfileLinkEnabled = !!profileUrl;
   const rescueDate = formatRescueDate(dog.rescueSinceDate);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-2 border border-border/50">
+      <ConfettiCelebration trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
       {showImage && (
         <div className="relative aspect-square overflow-hidden">
           <img
             src={dog.image}
             alt={`${dog.name} - ${dog.breed} available for adoption`}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:animate-wiggle"
           />
           <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
             <Badge variant={getStatusVariant(dog.status)}>{formatStatus(dog.status)}</Badge>
             <Badge variant="warm">{displayAge}</Badge>
             <Badge variant="secondary">{dog.size}</Badge>
           </div>
-          <button className="absolute top-3 right-3 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shadow-soft">
-            <Heart className="w-5 h-5" />
+          <button 
+            className="absolute top-3 right-3 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shadow-soft group/heart"
+            onClick={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('animate-heart-beat');
+              setTimeout(() => {
+                e.currentTarget.classList.remove('animate-heart-beat');
+              }, 300);
+            }}
+          >
+            <Heart className="w-5 h-5 group-hover/heart:fill-current transition-all" />
           </button>
         </div>
       )}
@@ -74,6 +87,11 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
           className="w-full group-hover:bg-primary group-hover:scale-105 transition-all"
           asChild={isProfileLinkEnabled}
           disabled={!isProfileLinkEnabled}
+          onClick={() => {
+            if (isProfileLinkEnabled) {
+              setShowConfetti(true);
+            }
+          }}
         >
           {isProfileLinkEnabled ? (
             <a 
