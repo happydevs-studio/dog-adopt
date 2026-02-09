@@ -4,6 +4,7 @@ import heroImage from '@/assets/hero-dog.jpg';
 import { useDogs } from '@/hooks/useDogs';
 import { useRescues } from '@/hooks/useRescues';
 import { Link } from 'react-router-dom';
+import FloatingPaws from './FloatingPaws';
 
 const Hero = () => {
   const { data: dogs = [] } = useDogs();
@@ -18,6 +19,7 @@ const Hero = () => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 sm:top-20 right-5 sm:right-10 w-48 sm:w-72 h-48 sm:h-72 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-10 sm:bottom-20 left-5 sm:left-10 w-64 sm:w-96 h-64 sm:h-96 bg-primary/5 rounded-full blur-3xl" />
+        <FloatingPaws />
       </div>
       
       <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16 lg:py-24 relative z-10">
