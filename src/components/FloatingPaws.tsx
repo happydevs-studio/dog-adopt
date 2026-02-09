@@ -1,17 +1,17 @@
 const FloatingPaws = () => {
   const pawPositions = [
-    { left: '10%', animationDelay: '0s', duration: '20s' },
-    { left: '25%', animationDelay: '4s', duration: '25s' },
-    { left: '50%', animationDelay: '2s', duration: '22s' },
-    { left: '70%', animationDelay: '6s', duration: '28s' },
-    { left: '85%', animationDelay: '8s', duration: '24s' },
+    { id: 'paw-1', left: '10%', animationDelay: '0s', duration: '20s' },
+    { id: 'paw-2', left: '25%', animationDelay: '4s', duration: '25s' },
+    { id: 'paw-3', left: '50%', animationDelay: '2s', duration: '22s' },
+    { id: 'paw-4', left: '70%', animationDelay: '6s', duration: '28s' },
+    { id: 'paw-5', left: '85%', animationDelay: '8s', duration: '24s' },
   ];
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {pawPositions.map((position, index) => (
+      {pawPositions.map((position) => (
         <div
-          key={index}
+          key={position.id}
           className="absolute animate-float-up opacity-10"
           style={{
             left: position.left,

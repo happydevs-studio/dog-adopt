@@ -11,7 +11,6 @@ const PawPrintCursor = () => {
   const [nextId, setNextId] = useState(0);
 
   useEffect(() => {
-    let animationFrameId: number;
     let lastTime = Date.now();
     const THROTTLE_MS = 100; // Create paw print every 100ms
 
@@ -39,9 +38,6 @@ const PawPrintCursor = () => {
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
     };
   }, [nextId]);
 

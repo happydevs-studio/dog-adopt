@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+const VELOCITY_MULTIPLIER = 50;
+const BASE_FALL_DISTANCE = 500;
+
 interface Confetti {
   id: number;
   x: number;
@@ -65,8 +68,8 @@ const ConfettiCelebration = ({ trigger, onComplete }: ConfettiCelebrationProps) 
             top: piece.y,
             backgroundColor: piece.color,
             transform: `rotate(${piece.rotation}deg)`,
-            '--confetti-x': `${piece.velocity.x * 50}px`,
-            '--confetti-y': `${piece.velocity.y * 50 + 500}px`,
+            '--confetti-x': `${piece.velocity.x * VELOCITY_MULTIPLIER}px`,
+            '--confetti-y': `${piece.velocity.y * VELOCITY_MULTIPLIER + BASE_FALL_DISTANCE}px`,
           } as React.CSSProperties}
         />
       ))}

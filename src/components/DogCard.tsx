@@ -21,6 +21,7 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
   const isProfileLinkEnabled = !!profileUrl;
   const rescueDate = formatRescueDate(dog.rescueSinceDate);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [heartBeat, setHeartBeat] = useState(false);
 
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-2 border border-border/50">
@@ -38,12 +39,12 @@ const DogCard = ({ dog, viewMode = 'text-only', showDistance = false }: DogCardP
             <Badge variant="secondary">{dog.size}</Badge>
           </div>
           <button 
-            className="absolute top-3 right-3 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shadow-soft group/heart"
+            className={`absolute top-3 right-3 w-10 h-10 bg-card/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors shadow-soft group/heart ${heartBeat ? 'animate-heart-beat' : ''}`}
             onClick={(e) => {
               e.preventDefault();
-              e.currentTarget.classList.add('animate-heart-beat');
+              setHeartBeat(true);
               setTimeout(() => {
-                e.currentTarget.classList.remove('animate-heart-beat');
+                setHeartBeat(false);
               }, 300);
             }}
           >
