@@ -235,6 +235,23 @@ WHERE NOT EXISTS (
 );
 
 -- ========================================
+-- SYNC RESCUE ADMINS
+-- ========================================
+-- Automatically grant rescue admin access to users whose email matches rescue contact email
+-- This ensures rescue contacts can manage their own rescue and dogs
+
+INSERT INTO dogadopt.rescue_admins (user_id, rescue_id, granted_by, notes)
+SELECT 
+  u.id as user_id,
+  r.id as rescue_id,
+  NULL as granted_by,
+  'Auto-granted from rescue contact email during seed sync' as notes
+FROM dogadopt.rescues r
+INNER JOIN auth.users u ON LOWER(u.email) = LOWER(r.email)
+WHERE r.email IS NOT NULL
+ON CONFLICT (user_id, rescue_id) DO NOTHING;
+
+-- ========================================
 -- DEVELOPMENT SAMPLE DATA
 -- ========================================
 -- Only insert sample dogs in local development environment
@@ -242,8 +259,9 @@ WHERE NOT EXISTS (
 
 -- HOW TO CREATE AN ADMIN USER:
 -- 
+-- GLOBAL ADMIN (can manage all rescues and dogs):
 -- 1. Sign up at /auth with any email/password (e.g., admin@test.com / admin123)
--- 2. Run this SQL to promote yourself to admin:
+-- 2. Run this SQL to promote yourself to global admin:
 --    
 --    UPDATE dogadopt.user_roles 
 --    SET role = 'admin' 
@@ -251,6 +269,17 @@ WHERE NOT EXISTS (
 --
 -- Or run this Docker command:
 --    docker exec supabase_db_dog-adopt psql -U postgres -c "UPDATE dogadopt.user_roles SET role = 'admin' WHERE user_id = (SELECT id FROM auth.users WHERE email = 'YOUR_EMAIL@example.com');"
+--
+-- RESCUE ADMIN (can manage a specific rescue and its dogs):
+-- 1. Sign up with the email that matches the rescue's contact email (rescues.email)
+-- 2. The seed sync will automatically grant rescue admin access
+-- 3. Or manually grant access with:
+--    
+--    INSERT INTO dogadopt.rescue_admins (user_id, rescue_id)
+--    VALUES (
+--      (SELECT id FROM auth.users WHERE email = 'rescue@example.com'),
+--      (SELECT id FROM dogadopt.rescues WHERE name = 'Rescue Name')
+--    );
 
 DO $$
 BEGIN
