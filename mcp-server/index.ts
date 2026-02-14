@@ -35,7 +35,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 // Create Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  db: { schema: 'dogadopt' as any }
+  db: { schema: 'dogadopt' as unknown as 'public' }
 });
 
 // Types for rescue data
