@@ -34,6 +34,10 @@ Concise, organized documentation for the Adopt-a-Dog UK project.
 
 - **[Rescue Contact Collection](RESCUE_CONTACT_COLLECTION.md)** - Charity Commission API integration
 
+## 🤖 AI Integration
+
+- **[MCP Server Guide](MCP_SERVER_GUIDE.md)** - Model Context Protocol server for ChatGPT and AI assistants
+
 ## 🔍 Quick Reference
 
 **Local development:**
