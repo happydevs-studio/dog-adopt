@@ -10,13 +10,18 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc && node dist/index.js"
+    "dev": "tsc && node dist/index.js",
+    "test": "node test.mjs"
   },
-  "keywords": ["mcp", "dog-rescue", "chatgpt"],
+  "keywords": [
+    "mcp",
+    "dog-rescue",
+    "chatgpt"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@supabase/supabase-js": "^2.87.1",
     "dotenv": "^16.6.1"
   },
