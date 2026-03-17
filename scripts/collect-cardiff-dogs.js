@@ -34,7 +34,7 @@
  */
 
 import { load } from 'cheerio';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -49,6 +49,20 @@ const USER_AGENT = 'AdoptADogUK/1.0 (+https://www.dogadopt.co.uk; https://github
 /** Fetch wrapper that includes a polite User-Agent header */
 function politelyfetch(url) {
   return fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+}
+
+/** Remove cached HTML and JSON files after a successful sync */
+function cleanCache() {
+  if (!existsSync(CACHE_DIR)) return;
+  const files = readdirSync(CACHE_DIR);
+  let removed = 0;
+  for (const f of files) {
+    if (f.endsWith('.html') || f.endsWith('.json')) {
+      rmSync(join(CACHE_DIR, f));
+      removed++;
+    }
+  }
+  console.log(`🧹 Cleaned ${removed} cached files from ${CACHE_DIR}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -467,11 +481,12 @@ function cleanBreedNames(raw) {
 const args = process.argv.slice(2);
 
 if (args.includes('--sync')) {
-  // Full pipeline: download → parse → upload (for CI/scheduled runs)
+  // Full pipeline: download → parse → upload → clean (for CI/scheduled runs)
   (async () => {
     await downloadPages();
     parseAllDogs();
     await uploadToSupabase();
+    cleanCache();
   })().catch(err => {
     console.error('❌ Sync failed:', err.message);
     process.exit(1);
