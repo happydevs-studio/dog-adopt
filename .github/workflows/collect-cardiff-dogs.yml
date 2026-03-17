@@ -1,0 +1,36 @@
+name: Collect Cardiff Dogs
+
+on:
+ # schedule:
+    # Daily at 8am UTC (before UK working hours)
+  # - cron: '0 8 * * *'
+  workflow_dispatch:  # Manual trigger via GitHub UI
+
+jobs:
+  collect:
+    name: Sync Cardiff Dogs Home listings
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install script dependencies
+        run: cd scripts && npm ci
+
+      - name: Download dog pages
+        run: cd scripts && node collect-cardiff-dogs.js --download
+
+      - name: Parse factual data
+        run: cd scripts && node collect-cardiff-dogs.js --parse
+
+      - name: Sync to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: cd scripts && node collect-cardiff-dogs.js --upload
