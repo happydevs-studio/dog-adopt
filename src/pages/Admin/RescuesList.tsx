@@ -1,16 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Mail, Pencil, Trash2 } from 'lucide-react';
 import type { Rescue } from '@/hooks/useRescues';
 
 interface RescuesListProps {
   rescues: Rescue[];
   onEdit: (rescue: Rescue) => void;
   onDelete: (rescueId: string) => void;
+  onContact: (rescue: Rescue) => void;
 }
 
-export function RescuesList({ rescues, onEdit, onDelete }: RescuesListProps) {
+export function RescuesList({ rescues, onEdit, onDelete, onContact }: RescuesListProps) {
   if (rescues.length === 0) {
     return (
       <Card>
@@ -43,6 +44,9 @@ export function RescuesList({ rescues, onEdit, onDelete }: RescuesListProps) {
               )}
             </div>
             <div className="flex gap-2 w-full sm:w-auto justify-end">
+              <Button variant="outline" size="icon" title="Generate partnership letter" onClick={() => onContact(rescue)}>
+                <Mail className="w-4 h-4" />
+              </Button>
               <Button variant="outline" size="icon" onClick={() => onEdit(rescue)}>
                 <Pencil className="w-4 h-4" />
               </Button>

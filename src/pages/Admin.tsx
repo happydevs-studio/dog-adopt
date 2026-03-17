@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useDogs } from '@/hooks/useDogs';
 import { useRescues } from '@/hooks/useRescues';
+import type { Rescue } from '@/hooks/useRescues';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ import { DevBypassBanner } from '@/components/auth/DevBypassBanner';
 import { AdminHeader } from './Admin/AdminHeader';
 import { DogFormDialog } from './Admin/DogFormDialog';
 import { RescueFormDialog } from './Admin/RescueFormDialog';
+import { RescueContactDialog } from './Admin/RescueContactDialog';
 import { DogsList } from './Admin/DogsList';
 import { RescuesList } from './Admin/RescuesList';
 import { useAdminState } from './Admin/useAdminState';
@@ -23,6 +25,7 @@ const Admin = () => {
   const { toast } = useToast();
   
   const adminState = useAdminState(rescues);
+  const [contactRescue, setContactRescue] = useState<Rescue | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -121,10 +124,17 @@ const Admin = () => {
               onSubmit={adminState.handleRescueSubmit}
             />
 
+            <RescueContactDialog
+              open={contactRescue !== null}
+              rescue={contactRescue}
+              onOpenChange={(open) => { if (!open) setContactRescue(null); }}
+            />
+
             <RescuesList
               rescues={rescues}
               onEdit={adminState.handleOpenRescueDialog}
               onDelete={adminState.handleRescueDelete}
+              onContact={setContactRescue}
             />
           </TabsContent>
         </Tabs>
