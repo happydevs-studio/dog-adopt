@@ -4,6 +4,9 @@
 -- so the write functions need to allow service_role callers alongside admin users.
 -- Also adds a get_dogs_by_rescue() function needed by sync scripts.
 
+-- Grant service_role USAGE on dogadopt_api schema (was only granted to anon/authenticated)
+GRANT USAGE ON SCHEMA dogadopt_api TO service_role;
+
 -- Helper: check if caller is admin OR service_role
 CREATE OR REPLACE FUNCTION dogadopt.is_admin_or_service_role()
 RETURNS BOOLEAN
@@ -12,10 +15,17 @@ STABLE
 SECURITY DEFINER
 SET search_path = dogadopt
 AS $$
+DECLARE
+  v_claims JSONB;
 BEGIN
   -- Service role key (used by backend scripts)
-  IF current_setting('request.jwt.claim.role', true) = 'service_role' THEN
-    RETURN TRUE;
+  -- PostgREST stores claims as JSON string in request.jwt.claims
+  IF current_setting('request.jwt.claims', true) IS NOT NULL
+     AND current_setting('request.jwt.claims', true) <> '' THEN
+    v_claims := current_setting('request.jwt.claims', true)::jsonb;
+    IF v_claims ->> 'role' = 'service_role' THEN
+      RETURN TRUE;
+    END IF;
   END IF;
   -- Admin user (used by UI)
   RETURN dogadopt.has_role(auth.uid(), 'admin');
