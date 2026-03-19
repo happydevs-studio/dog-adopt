@@ -17,7 +17,7 @@
  * 
  * Setup:
  * 1. Get API key from: https://developer.charitycommission.gov.uk/
- * 2. Add to .env: CHARITY_COMMISSION_API_KEY=your_key
+ * 2. Add to .env.local: CHARITY_COMMISSION_API_KEY=your_key
  * 
  * Usage: node scripts/collect-rescue-details.js
  */
@@ -40,17 +40,17 @@ const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const charityApiKey = process.env.CHARITY_COMMISSION_API_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Missing Supabase credentials in .env file');
+  console.error('❌ Missing Supabase credentials in .env.local file');
   process.exit(1);
 }
 
 if (!charityApiKey) {
-  console.error('❌ Missing CHARITY_COMMISSION_API_KEY in .env file');
+  console.error('❌ Missing CHARITY_COMMISSION_API_KEY in .env.local file');
   console.error('\nTo get an API key:');
   console.error('1. Visit: https://developer.charitycommission.gov.uk/');
   console.error('2. Sign up for a free account');
   console.error('3. Subscribe to the "Charity Commission API" product');
-  console.error('4. Add CHARITY_COMMISSION_API_KEY=your_key to .env\n');
+  console.error('4. Add CHARITY_COMMISSION_API_KEY=your_key to .env.local\n');
   process.exit(1);
 }
 

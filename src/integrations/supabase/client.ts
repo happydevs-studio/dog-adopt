@@ -16,7 +16,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     console.error('VITE_SUPABASE_PUBLISHABLE_KEY:', SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'Missing');
     console.error('');
     console.error('To fix this:');
-    console.error('1. For local development: Copy .env.example to .env and fill in your Supabase credentials');
+    console.error('1. For local development: Copy .env.example to .env.local and fill in your Supabase credentials');
     console.error('2. For production: Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in GitHub repository secrets');
     console.error('   See docs/CI_CD_SETUP.md for detailed instructions');
   } else {

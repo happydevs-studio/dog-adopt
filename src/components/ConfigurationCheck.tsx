@@ -41,7 +41,7 @@ const ConfigurationCheck = ({ children }: ConfigurationCheckProps) => {
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">For Local Development:</h2>
               <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
-                <li className="pl-2">Copy <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env.example</code> to <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env</code></li>
+                <li className="pl-2">Copy <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env.example</code> to <code className="bg-gray-100 px-2 py-1 rounded text-sm">.env.local</code></li>
                 <li className="pl-2">Fill in your Supabase project URL and publishable key</li>
                 <li className="pl-2">Restart the development server</li>
               </ol>

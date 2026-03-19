@@ -5,7 +5,7 @@
 ### 1. Get API Key
 1. Visit https://developer.charitycommission.gov.uk/
 2. Sign up and subscribe to "Charity Commission API"
-3. Add to `.env`: `CHARITY_COMMISSION_API_KEY=your_key_here`
+3. Add to `.env.local`: `CHARITY_COMMISSION_API_KEY=your_key_here`
 
 ### 2. Test
 ```bash
@@ -84,7 +84,7 @@ Uses postcodes.io API (free, UK-only, no API key) to retrieve latitude/longitude
 
 **"404 - Charity not found"** → Verify charity number at register website
 
-**"401 - Authentication failed"** → Check API key in `.env`
+**"401 - Authentication failed"** → Check API key in `.env.local`
 
 **No data collected** → Ensure rescues have charity numbers in `seed.sql`
 

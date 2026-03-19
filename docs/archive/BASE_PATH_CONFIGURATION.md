@@ -19,7 +19,7 @@ The base path is now configurable via the `VITE_BASE_PATH` environment variable:
 
 ### Local Development
 
-1. Edit your `.env` file:
+1. Edit your `.env.local` file:
    ```bash
    VITE_BASE_PATH="/adopt-a-dog-uk/"  # or "/" for root domain testing
    ```

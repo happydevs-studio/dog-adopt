@@ -21,7 +21,7 @@ const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const charityApiKey = process.env.CHARITY_COMMISSION_API_KEY;
 
 if (!supabaseUrl || !supabaseKey || !charityApiKey) {
-  console.error('❌ Missing credentials in .env file');
+  console.error('❌ Missing credentials in .env.local file');
   process.exit(1);
 }
 

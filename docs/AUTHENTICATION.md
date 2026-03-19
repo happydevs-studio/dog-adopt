@@ -21,7 +21,7 @@ In development, authentication is **bypassed by default** to make local developm
 
 To **disable** the bypass and test real authentication locally:
 ```bash
-# In your .env file
+# In your .env.local file
 VITE_DEV_BYPASS_AUTH="false"
 ```
 
@@ -135,7 +135,7 @@ VALUES ('user-uuid-here', 'admin');
 ### Dev Bypass Not Working
 
 1. **Ensure you're running in dev mode** (`npm run dev`)
-2. **Check .env file** doesn't have `VITE_DEV_BYPASS_AUTH="false"`
+2. **Check .env.local file** doesn't have `VITE_DEV_BYPASS_AUTH="false"`
 3. **Clear browser cache** and local storage
 4. **Restart dev server**
 

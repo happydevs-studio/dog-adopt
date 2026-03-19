@@ -86,7 +86,7 @@ Controlled by `VITE_BASE_PATH` environment variable:
 - **GitHub Pages subdirectory**: Use `/adopt-a-dog-uk/`
 - **Root domain**: Use `/`
 
-Update in `.env` for local development and GitHub Secrets for production.
+Update in `.env.local` for local development and GitHub Secrets for production.
 
 ## Troubleshooting
 

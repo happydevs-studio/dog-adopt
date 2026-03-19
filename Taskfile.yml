@@ -330,10 +330,3 @@ tasks:
         else
           echo ".env.local exists"
         fi
-        
-        # Check if .env exists for production config
-        if [ ! -f .env ]; then
-          echo "Note: .env file not found. Using existing production config."
-        else
-          echo "Production .env file exists"
-        fi
