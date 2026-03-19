@@ -157,6 +157,7 @@ async function uploadToSupabase() {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
   const isServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log(`� Supabase URL: ${SUPABASE_URL}`);
   console.log(`🔑 Using ${isServiceRole ? 'service role' : 'anon'} key`);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -169,8 +170,15 @@ async function uploadToSupabase() {
     .select('id, name')
     .ilike('name', '%cardiff%');
 
-  if (rescueError || !rescues?.length) {
-    console.error('❌ Cardiff Dogs Home not found in rescues table.', rescueError);
+  if (rescueError) {
+    console.error('❌ Supabase query error when looking up Cardiff rescue:', rescueError.message || rescueError);
+    console.error('   Hint: Check that the dogadopt schema is exposed in your Supabase project API settings.');
+    process.exit(1);
+  }
+
+  if (!rescues?.length) {
+    console.error('❌ Cardiff Dogs Home not found in rescues table (query returned 0 results).');
+    console.error('   The rescue must exist in dogadopt.rescues with "Cardiff" in the name.');
     process.exit(1);
   }
 
