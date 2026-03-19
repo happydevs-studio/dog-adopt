@@ -157,49 +157,45 @@ async function uploadToSupabase() {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
   const isServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log(`� Supabase URL: ${SUPABASE_URL}`);
   console.log(`🔑 Using ${isServiceRole ? 'service role' : 'anon'} key`);
 
+  // Use dogadopt_api schema — the only schema exposed to PostgREST in production.
+  // All operations go through API functions (no direct table access).
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-    db: { schema: 'dogadopt' }
+    db: { schema: 'dogadopt_api' }
   });
 
-  // Find Cardiff Dogs Home rescue
-  const { data: rescues, error: rescueError } = await supabase
-    .from('rescues')
-    .select('id, name')
-    .ilike('name', '%cardiff%');
+  // Find Cardiff Dogs Home rescue via get_rescues() RPC
+  const { data: allRescues, error: rescueError } = await supabase.rpc('get_rescues');
 
   if (rescueError) {
-    console.error('❌ Supabase query error when looking up Cardiff rescue:', rescueError.message || rescueError);
-    console.error('   Hint: Check that the dogadopt schema is exposed in your Supabase project API settings.');
+    console.error('❌ Supabase query error when looking up rescues:', rescueError.message || rescueError);
     process.exit(1);
   }
 
-  if (!rescues?.length) {
-    console.error('❌ Cardiff Dogs Home not found in rescues table (query returned 0 results).');
-    console.error('   The rescue must exist in dogadopt.rescues with "Cardiff" in the name.');
+  const rescue = allRescues?.find(r => r.name.toLowerCase().includes('cardiff'));
+
+  if (!rescue) {
+    console.error('❌ Cardiff Dogs Home not found in rescues table (no rescue with "Cardiff" in the name).');
     process.exit(1);
   }
 
-  const rescue = rescues[0];
   console.log(`🏠 Found rescue: ${rescue.name} (${rescue.id})`);
 
-  // Load existing Cardiff dogs from DB (keyed by profile_url)
-  const { data: existingDogs } = await supabase
-    .from('dogs')
-    .select('id, name, profile_url, status')
-    .eq('rescue_id', rescue.id)
-    .not('profile_url', 'is', null);
+  // Load existing Cardiff dogs from DB via get_dogs_by_rescue() RPC
+  const { data: existingDogs, error: dogsError } = await supabase.rpc('get_dogs_by_rescue', {
+    p_rescue_id: rescue.id,
+  });
+
+  if (dogsError) {
+    console.error('❌ Failed to load existing dogs:', dogsError.message || dogsError);
+    process.exit(1);
+  }
 
   const existingByUrl = new Map(
-    (existingDogs ?? []).map(d => [d.profile_url, d])
+    (existingDogs ?? []).filter(d => d.profile_url).map(d => [d.profile_url, d])
   );
   console.log(`📊 ${existingByUrl.size} existing Cardiff dogs in DB`);
-
-  // Load breeds table for mapping
-  const { data: allBreeds } = await supabase.from('breeds').select('id, name');
-  const breedMap = new Map(allBreeds?.map(b => [b.name.toLowerCase(), b.id]) ?? []);
 
   const dogs = JSON.parse(readFileSync(OUTPUT_FILE, 'utf-8'));
   console.log(`🐕 Syncing ${dogs.length} dogs from website…`);
@@ -207,34 +203,30 @@ async function uploadToSupabase() {
   const scrapedUrls = new Set();
   let inserted = 0;
   let updated = 0;
-  let unchanged = 0;
 
   for (const dog of dogs) {
     scrapedUrls.add(dog.profileUrl);
     const existing = existingByUrl.get(dog.profileUrl);
 
-    const dogRow = {
-      name: dog.name,
-      age: dog.age,
-      size: dog.size,
-      gender: dog.gender,
-      rescue_id: rescue.id,
-      image: '', // Default placeholder
-      profile_url: dog.profileUrl,
-      description: `View ${dog.name}'s full profile on Cardiff Dogs Home website.`,
-      good_with_kids: dog.goodWithKids,
-      good_with_dogs: dog.goodWithDogs,
-      good_with_cats: dog.goodWithCats,
-    };
-
     if (existing) {
-      // Dog already in DB — update factual fields, re-mark as available if withdrawn
-      const updates = { ...dogRow, status: 'available' };
-      delete updates.image; // Don't overwrite if admin set a photo
-      const { error } = await supabase
-        .from('dogs')
-        .update(updates)
-        .eq('id', existing.id);
+      // Dog already in DB — update factual fields via update_dog() RPC
+      // Preserve the existing image (don't overwrite if admin set a photo)
+      const { error } = await supabase.rpc('update_dog', {
+        p_dog_id: existing.id,
+        p_name: dog.name,
+        p_age: dog.age,
+        p_size: dog.size,
+        p_gender: dog.gender,
+        p_status: 'available',
+        p_rescue_id: rescue.id,
+        p_image: existing.image || '',
+        p_description: `View ${dog.name}'s full profile on Cardiff Dogs Home website.`,
+        p_good_with_kids: dog.goodWithKids ?? null,
+        p_good_with_dogs: dog.goodWithDogs ?? null,
+        p_good_with_cats: dog.goodWithCats ?? null,
+        p_breed_names: dog.breeds ?? [],
+        p_profile_url: dog.profileUrl,
+      });
 
       if (error) {
         console.warn(`  ⚠️  Failed to update ${dog.name}: ${error.message}`);
@@ -243,44 +235,26 @@ async function uploadToSupabase() {
         console.log(`  🔄 ${dog.name} — updated`);
       }
     } else {
-      // New dog — insert
-      const { data: newDog, error } = await supabase
-        .from('dogs')
-        .insert({ ...dogRow, status: 'available' })
-        .select('id')
-        .single();
+      // New dog — insert via create_dog() RPC (handles breeds internally)
+      const { error } = await supabase.rpc('create_dog', {
+        p_name: dog.name,
+        p_age: dog.age,
+        p_size: dog.size,
+        p_gender: dog.gender,
+        p_status: 'available',
+        p_rescue_id: rescue.id,
+        p_image: '',
+        p_description: `View ${dog.name}'s full profile on Cardiff Dogs Home website.`,
+        p_good_with_kids: dog.goodWithKids ?? null,
+        p_good_with_dogs: dog.goodWithDogs ?? null,
+        p_good_with_cats: dog.goodWithCats ?? null,
+        p_breed_names: dog.breeds ?? [],
+        p_profile_url: dog.profileUrl,
+      });
 
       if (error) {
         console.warn(`  ⚠️  Failed to insert ${dog.name}: ${error.message}`);
         continue;
-      }
-
-      // Link breeds via junction table
-      if (dog.breeds?.length && newDog) {
-        for (let i = 0; i < dog.breeds.length; i++) {
-          const breedName = dog.breeds[i];
-          let breedId = breedMap.get(breedName.toLowerCase());
-
-          if (!breedId) {
-            const { data: created } = await supabase
-              .from('breeds')
-              .insert({ name: breedName })
-              .select('id')
-              .single();
-            if (created) {
-              breedId = created.id;
-              breedMap.set(breedName.toLowerCase(), breedId);
-            }
-          }
-
-          if (breedId) {
-            await supabase.from('dogs_breeds').insert({
-              dog_id: newDog.id,
-              breed_id: breedId,
-              display_order: i + 1,
-            });
-          }
-        }
       }
 
       inserted++;
@@ -288,17 +262,29 @@ async function uploadToSupabase() {
     }
   }
 
-  // Mark dogs no longer on the website as withdrawn
+  // Mark dogs no longer on the website as withdrawn via update_dog() RPC
   let withdrawn = 0;
   for (const [url, existing] of existingByUrl) {
     if (!scrapedUrls.has(url) && existing.status === 'available') {
-      const { error } = await supabase
-        .from('dogs')
-        .update({
-          status: 'withdrawn',
-          status_notes: 'No longer listed on Cardiff Dogs Home website',
-        })
-        .eq('id', existing.id);
+      // Preserve all existing fields, just change status
+      const existingBreeds = (existing.breeds ?? []).map(b => b.name);
+      const { error } = await supabase.rpc('update_dog', {
+        p_dog_id: existing.id,
+        p_name: existing.name,
+        p_age: existing.age || '',
+        p_size: existing.size || '',
+        p_gender: existing.gender || '',
+        p_status: 'withdrawn',
+        p_rescue_id: rescue.id,
+        p_image: existing.image || '',
+        p_description: existing.description || '',
+        p_good_with_kids: existing.good_with_kids ?? null,
+        p_good_with_dogs: existing.good_with_dogs ?? null,
+        p_good_with_cats: existing.good_with_cats ?? null,
+        p_breed_names: existingBreeds,
+        p_profile_url: existing.profile_url,
+        p_status_notes: 'No longer listed on Cardiff Dogs Home website',
+      });
 
       if (!error) {
         withdrawn++;
@@ -310,6 +296,7 @@ async function uploadToSupabase() {
   console.log(`\n🎉 Sync complete for ${rescue.name}:`);
   console.log(`   ${inserted} new, ${updated} updated, ${withdrawn} withdrawn`);
 }
+
 
 // ---------------------------------------------------------------------------
 // Helpers
