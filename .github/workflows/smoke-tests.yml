@@ -10,7 +10,7 @@ on:
   
   # Run after deployment
   workflow_run:
-    workflows: ["Deploy to GitHub Pages"]
+    workflows: ["Deploy to Netlify"]
     types:
       - completed
 
