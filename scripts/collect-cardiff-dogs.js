@@ -165,6 +165,11 @@ async function uploadToSupabase() {
     db: { schema: 'dogadopt_api' }
   });
 
+  // Pre-validate all parsed breed names against the DB (resolves synonyms too).
+  // Any breed that can't be resolved is replaced with "Crossbreed".
+  const dogs = JSON.parse(readFileSync(OUTPUT_FILE, 'utf-8'));
+  await validateAndResolveBreeds(supabase, dogs);
+
   // Find Cardiff Dogs Home rescue via get_rescues() RPC
   const { data: allRescues, error: rescueError } = await supabase.rpc('get_rescues');
 
@@ -196,8 +201,6 @@ async function uploadToSupabase() {
     (existingDogs ?? []).filter(d => d.profile_url).map(d => [d.profile_url, d])
   );
   console.log(`📊 ${existingByUrl.size} existing Cardiff dogs in DB`);
-
-  const dogs = JSON.parse(readFileSync(OUTPUT_FILE, 'utf-8'));
   console.log(`🐕 Syncing ${dogs.length} dogs from website…`);
 
   const scrapedUrls = new Set();
@@ -295,6 +298,62 @@ async function uploadToSupabase() {
 
   console.log(`\n🎉 Sync complete for ${rescue.name}:`);
   console.log(`   ${inserted} new, ${updated} updated, ${withdrawn} withdrawn`);
+}
+
+
+// ---------------------------------------------------------------------------
+// Breed validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate parsed breed names against the database (including synonyms).
+ * Replaces unrecognised breeds with "Crossbreed" and logs warnings.
+ * Mutates the dogs array in-place.
+ */
+async function validateAndResolveBreeds(supabase, dogs) {
+  // Collect all unique breed names across all dogs
+  const allBreedNames = new Set();
+  for (const dog of dogs) {
+    for (const b of (dog.breeds ?? [])) allBreedNames.add(b);
+  }
+
+  // Resolve each unique name once via the DB RPC
+  const resolved = new Map(); // raw name → canonical name or null
+  for (const name of allBreedNames) {
+    const { data, error } = await supabase.rpc('resolve_breed_name', { p_name: name });
+    if (error) {
+      console.warn(`  ⚠️  Could not resolve breed "${name}": ${error.message}`);
+      resolved.set(name, null);
+    } else {
+      resolved.set(name, data); // data is the canonical name string or null
+    }
+  }
+
+  // Report findings
+  const unknown = [...resolved.entries()].filter(([, v]) => v === null);
+  if (unknown.length > 0) {
+    console.log(`\n🔍 Breed validation results:`);
+    for (const [name] of unknown) {
+      console.log(`  ❌ "${name}" — not recognised, will use "Crossbreed"`);
+    }
+  }
+  const synonyms = [...resolved.entries()].filter(([k, v]) => v !== null && v !== k);
+  if (synonyms.length > 0) {
+    for (const [name, canonical] of synonyms) {
+      console.log(`  🔄 "${name}" → "${canonical}" (synonym)`);
+    }
+  }
+
+  // Apply resolved names to each dog, falling back to Crossbreed
+  for (const dog of dogs) {
+    dog.breeds = (dog.breeds ?? []).map(name => {
+      const canonical = resolved.get(name);
+      return canonical ?? 'Crossbreed';
+    });
+    // Deduplicate (e.g. if two unknowns both became Crossbreed)
+    dog.breeds = [...new Set(dog.breeds)];
+  }
+  console.log('');
 }
 
 
