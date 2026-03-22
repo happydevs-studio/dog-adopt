@@ -255,7 +255,53 @@ INSERT INTO dogadopt.breed_synonyms (synonym, canonical_breed_name) VALUES
   ('Heinz 57', 'Crossbreed'),
   ('Terrier Cross', 'Terrier Mix'),
   ('Terrier cross', 'Terrier Mix'),
-  ('Terrier X', 'Terrier Mix')
+  ('Terrier X', 'Terrier Mix'),
+
+  -- Bare breed-group words (rescue sites often say just "Terrier" or "Spaniel")
+  ('Terrier', 'Terrier Mix'),
+  ('Spaniel', 'Cocker Spaniel'),
+  ('Shepherd', 'German Shepherd'),
+  ('Retriever', 'Labrador Retriever'),
+  ('Hound', 'Greyhound'),
+  ('Setter', 'Irish Setter'),
+  ('Pointer', 'Pointer'),
+  ('Mastiff', 'Mastiff'),
+  ('Sheepdog', 'Old English Sheepdog'),
+  ('Spitz', 'German Spitz'),
+  ('Pinscher', 'Miniature Pinscher'),
+
+  -- Staffie variants that cleanBreedNames may produce
+  ('Staffy Cross', 'Staffordshire Bull Terrier'),
+  ('Staffie Cross', 'Staffordshire Bull Terrier'),
+  ('Staff Cross', 'Staffordshire Bull Terrier'),
+  ('Staffie Type', 'Staffordshire Bull Terrier'),
+  ('Staffy Type', 'Staffordshire Bull Terrier'),
+
+  -- Other informal compound names from rescue listings
+  ('Lurcher Type', 'Lurcher'),
+  ('Collie Cross', 'Border Collie'),
+  ('Collie Type', 'Border Collie'),
+  ('Lab Cross', 'Labrador Retriever'),
+  ('Lab Type', 'Labrador Retriever'),
+  ('Shepherd Cross', 'German Shepherd'),
+  ('Shepherd Type', 'German Shepherd'),
+  ('Husky Cross', 'Siberian Husky'),
+  ('Husky Type', 'Siberian Husky'),
+  ('Akita Cross', 'Akita'),
+  ('Akita Type', 'Akita'),
+  ('Bulldog Type', 'Bulldog'),
+  ('Bull Type', 'Bulldog'),
+  ('Spaniel Cross', 'Cocker Spaniel'),
+  ('Spaniel Type', 'Cocker Spaniel'),
+  ('Poodle Cross', 'Poodle (Standard)'),
+  ('Whippet Cross', 'Whippet'),
+  ('Greyhound Cross', 'Greyhound'),
+  ('Greyhound Type', 'Greyhound'),
+  ('Beagle Cross', 'Beagle'),
+  ('Rottweiler Cross', 'Rottweiler'),
+  ('GSD Cross', 'German Shepherd'),
+  ('Chihuahua Cross', 'Chihuahua'),
+  ('Dachshund Cross', 'Dachshund')
 ON CONFLICT (synonym) DO NOTHING;
 
 

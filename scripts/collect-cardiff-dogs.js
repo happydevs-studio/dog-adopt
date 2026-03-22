@@ -416,9 +416,8 @@ function parseDogPage(html, fallbackName, profileUrl) {
   const dogsText = cells[4] || '';
   const goodWithDogs = parseDogs(dogsText);
 
-  // Try to extract breed from the first paragraph of entry-content
-  // Often format: "Name – 3 Year Old Terrier Girl" or description mentions breed
-  const breeds = parseBreeds($);
+  // Try to extract breed from page content — uses multiple strategies
+  const breeds = parseBreeds($, name);
 
   return {
     name,
@@ -478,26 +477,63 @@ function parseDogs(text) {
 }
 
 /**
- * Attempt to extract breed names from the first paragraph.
- * Cardiff Dogs Home often uses: "Name – 3 Year Old Terrier Girl"
- * or mentions breed types in the description text.
- * Returns "Crossbreed" if no specific breed can be identified.
+ * Attempt to extract breed names from the page using multiple strategies.
+ * Cardiff Dogs Home puts breed info in several locations:
+ *   1. First paragraph: "Name – 3 Year Old Terrier Girl"
+ *   2. First paragraph: "Name is a Staffie cross..."
+ *   3. Any paragraph: breed name or synonym mentioned in text
+ *   4. Page title or subheadings
+ * Returns "Crossbreed" only if no specific breed can be identified.
  */
-function parseBreeds($) {
+function parseBreeds($, dogName) {
   const firstParagraph = $('.entry-content p').first().text().trim();
 
-  // Common pattern: "Name – <age> Year Old <Breed> <Gender>"
+  // Strategy 1: "Name – <age> Year Old <Breed> <Gender>"
   const dashPattern = firstParagraph.match(/[\u2013\u2014–-]\s*\d+\s*(?:Year|Month)s?\s+Old\s+(.+?)(?:\s+(?:Girl|Boy|Male|Female))/i);
   if (dashPattern) {
-    return cleanBreedNames(dashPattern[1]);
+    const result = cleanBreedNames(dashPattern[1]);
+    if (result.length > 0 && !(result.length === 1 && result[0] === 'Crossbreed')) return result;
   }
 
-  // Look for "is a <size> <breed>" pattern
-  const isAPattern = firstParagraph.match(/is\s+(?:a|an)\s+(?:small|medium|large)?\s*(.+?)(?:\s+(?:and|who|that|aged|around|,))/i);
+  // Strategy 2: "is a [size] <breed> [cross/mix/type]..."
+  const isAPattern = firstParagraph.match(/is\s+(?:a|an)\s+(?:small|medium|large)?\s*(.+?)(?:\s+(?:and|who|that|aged|around|looking|,))/i);
   if (isAPattern) {
     const breedText = isAPattern[1].replace(/\b(small|medium|large|sized|male|female|boy|girl|puppy|young|adult|senior)\b/gi, '').trim();
     if (breedText.length > 2) {
-      return cleanBreedNames(breedText);
+      const result = cleanBreedNames(breedText);
+      if (result.length > 0 && !(result.length === 1 && result[0] === 'Crossbreed')) return result;
+    }
+  }
+
+  // Strategy 3: "<Name> is a <breed>" anywhere across all paragraphs
+  const allText = $('.entry-content').text().trim();
+  if (dogName) {
+    const nameEscaped = dogName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameBreedPattern = new RegExp(nameEscaped + '\\s+is\\s+(?:a|an)\\s+(?:\\d+\\s*(?:year|month)s?\\s*old\\s+)?(.+?)(?:\\.|,|\\s+(?:who|that|and|looking|she|he))', 'i');
+    const nameMatch = allText.match(nameBreedPattern);
+    if (nameMatch) {
+      const breedText = nameMatch[1].replace(/\b(small|medium|large|sized|male|female|boy|girl|puppy|young|adult|senior|beautiful|gorgeous|lovely|sweet|friendly|handsome)\b/gi, '').trim();
+      if (breedText.length > 2) {
+        const result = cleanBreedNames(breedText);
+        if (result.length > 0 && !(result.length === 1 && result[0] === 'Crossbreed')) return result;
+      }
+    }
+  }
+
+  // Strategy 4: Look for "<breed> cross" or "<breed> mix" or "<breed> type" patterns
+  const crossMixPattern = allText.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:cross|mix|type)\b/i);
+  if (crossMixPattern) {
+    const result = cleanBreedNames(crossMixPattern[1]);
+    if (result.length > 0 && !(result.length === 1 && result[0] === 'Crossbreed')) return result;
+  }
+
+  // Strategy 5: Look for breed keywords in brackets — e.g. "(Lurcher)" or "(Staffie cross)"
+  const bracketPattern = allText.match(/\(([A-Z][a-z]+(?:\s+[A-Za-z]+)*)\)/i);
+  if (bracketPattern) {
+    const inner = bracketPattern[1].replace(/\b(cross|mix|type)\b/gi, '').trim();
+    if (inner.length > 2) {
+      const result = cleanBreedNames(inner);
+      if (result.length > 0 && !(result.length === 1 && result[0] === 'Crossbreed')) return result;
     }
   }
 
