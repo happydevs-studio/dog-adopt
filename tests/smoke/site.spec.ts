@@ -75,6 +75,18 @@ test.describe('Smoke Tests - Production Site', () => {
         if (error.includes('Failed to load resource') && error.includes('400')) {
           return false;
         }
+        // Filter out application-level data-fetching errors logged by hooks.
+        // These surface as console.error() calls when the Supabase API is slow
+        // or temporarily unavailable; the UI already handles them gracefully
+        // with error states, so they are not critical JavaScript errors.
+        if (error.includes('Error fetching dogs') || error.includes('Error fetching rescues')) {
+          return false;
+        }
+        // Filter out AbortError messages that result from the intentional
+        // request cancellation when the client-side timeout fires.
+        if (error.includes('AbortError') || error.includes('signal is aborted')) {
+          return false;
+        }
         return true;
       }
     );
