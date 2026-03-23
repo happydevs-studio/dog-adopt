@@ -164,13 +164,34 @@ function addDistanceIfAvailable(
   return dog;
 }
 
+// Timeout (ms) after which the get_dogs request is cancelled.  Uses
+// AbortController so the HTTP request is actually cancelled (not just
+// ignored), letting networkidle settle in tests and preventing stale
+// in-flight requests from holding browser connections open.
+const FETCH_TIMEOUT_MS = 15_000;
+
 export const useDogs = (userLocation?: { latitude: number; longitude: number }) => {
   return useQuery({
     queryKey: ['dogs', userLocation],
     queryFn: async (): Promise<Dog[]> => {
-      const { data, error } = await supabase
-        .schema('dogadopt_api')
-        .rpc('get_dogs');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      let result;
+      try {
+        result = await supabase
+          .schema('dogadopt_api')
+          .rpc('get_dogs')
+          .abortSignal(controller.signal);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (controller.signal.aborted) {
+        throw new Error('Request timed out loading dogs. Please try again.');
+      }
+
+      const { data, error } = result;
 
       if (error) {
         console.error('Error fetching dogs:', error);

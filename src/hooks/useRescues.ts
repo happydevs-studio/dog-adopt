@@ -40,36 +40,36 @@ export interface Rescue {
   dogCount: number; // Number of available dogs
 }
 
-// Timeout (ms) after which the get_rescues request is rejected and an error
-// is surfaced to the user.  Keeps the UI responsive even when the database
-// is slow or the network hangs.
+// Timeout (ms) after which the get_rescues request is cancelled and an error
+// is surfaced to the user.  Uses AbortController so the HTTP request is
+// actually cancelled (not just ignored), allowing networkidle to fire and
+// preventing the browser from holding open a connection indefinitely.
 const FETCH_TIMEOUT_MS = 12_000;
-
-/** Returns a Promise that rejects after `ms` milliseconds. */
-function timeoutPromise(ms: number): Promise<never> {
-  return new Promise((_, reject) =>
-    setTimeout(
-      () => reject(new Error('Request timed out loading rescues. Please try again.')),
-      ms
-    )
-  );
-}
 
 export const useRescues = (userLocation?: { latitude: number; longitude: number }) => {
   return useQuery({
     queryKey: ['rescues', userLocation],
     retry: 2,
     queryFn: async (): Promise<Rescue[]> => {
-      // Race the Supabase call against a timeout so the loading spinner
-      // cannot hang indefinitely when the database is slow.
-      const fetchPromise = supabase
-        .schema('dogadopt_api')
-        .rpc('get_rescues');
+      // Use AbortController so the underlying HTTP request is cancelled when
+      // the timeout fires.  This ensures the browser's networkidle state can
+      // settle and prevents abandoned in-flight requests.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-      const result = await Promise.race([
-        fetchPromise,
-        timeoutPromise(FETCH_TIMEOUT_MS),
-      ]);
+      let result;
+      try {
+        result = await supabase
+          .schema('dogadopt_api')
+          .rpc('get_rescues')
+          .abortSignal(controller.signal);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (controller.signal.aborted) {
+        throw new Error('Request timed out loading rescues. Please try again.');
+      }
 
       const { data, error } = result;
 
