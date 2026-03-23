@@ -40,15 +40,38 @@ export interface Rescue {
   dogCount: number; // Number of available dogs
 }
 
+// Timeout (ms) after which the get_rescues request is rejected and an error
+// is surfaced to the user.  Keeps the UI responsive even when the database
+// is slow or the network hangs.
+const FETCH_TIMEOUT_MS = 12_000;
+
+/** Returns a Promise that rejects after `ms` milliseconds. */
+function timeoutPromise(ms: number): Promise<never> {
+  return new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error('Request timed out loading rescues. Please try again.')),
+      ms
+    )
+  );
+}
+
 export const useRescues = (userLocation?: { latitude: number; longitude: number }) => {
   return useQuery({
     queryKey: ['rescues', userLocation],
+    retry: 2,
     queryFn: async (): Promise<Rescue[]> => {
-      // Use API layer function instead of direct table access
-      // Call RPC function from dogadopt_api schema
-      const { data, error } = await supabase
+      // Race the Supabase call against a timeout so the loading spinner
+      // cannot hang indefinitely when the database is slow.
+      const fetchPromise = supabase
         .schema('dogadopt_api')
         .rpc('get_rescues');
+
+      const result = await Promise.race([
+        fetchPromise,
+        timeoutPromise(FETCH_TIMEOUT_MS),
+      ]);
+
+      const { data, error } = result;
 
       if (error) {
         console.error('Error fetching rescues:', error);
