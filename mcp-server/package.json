@@ -1,0 +1,32 @@
+{
+  "name": "dog-rescue-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Dog Rescue organizations in the UK",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "dog-rescue-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "test": "node test.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "dog-rescue",
+    "chatgpt"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@supabase/supabase-js": "^2.87.1",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,177 +1,156 @@
-# Supabase CLI
+# Adopt-a-Dog UK
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A web application to help people find and adopt rescue dogs across the UK. Browse available dogs, filter by breed, size, age, and location, and connect with rescue organizations.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Features
 
-This repository contains all the functionality for Supabase CLI.
+- 🐕 Browse available dogs from rescue organizations across the UK
+- 🔍 Advanced filtering (breed, size, age, location, compatibility)
+- 📍 Location-based search with distance calculations
+- 👥 Admin panel for managing dogs, rescues, and breeds
+- 🔐 Secure authentication with Supabase
+- 📊 Comprehensive audit logging system
+- 🤖 **MCP Server** - AI assistant integration for ChatGPT
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Quick Start
 
-## Getting started
+### Prerequisites
 
-### Install the CLI
+- Node.js 18+ 
+- Supabase account (for database)
+- Docker (for local Supabase development)
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
-```bash
-npm i supabase --save-dev
-```
-
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+### Setup
 
 ```bash
-supabase bootstrap
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your Supabase credentials
+
+# Start local Supabase (optional for local development)
+npm run supabase:start
+
+# Start development server
+npm run dev
 ```
 
-Or using npx:
+Visit http://localhost:8080 to view the application.
+
+### Full Setup with Task
 
 ```bash
-npx supabase bootstrap
+# One-command setup (requires Task)
+task setup
+
+# Or quick start without Supabase
+task quick-start
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## AI Integration with MCP Server
 
-## Docs
+The project includes a Model Context Protocol (MCP) server that allows AI assistants like ChatGPT to access rescue data.
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+### Quick MCP Server Setup
 
-## Breaking changes
+```bash
+# Navigate to MCP server directory
+cd mcp-server
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+# Install dependencies
+npm install
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+# Build the server
+npm run build
 
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
+# Configure in ChatGPT Desktop (macOS)
+# Edit: ~/Library/Application Support/ChatGPT/mcp_config.json
 ```
+
+For complete setup instructions, see [MCP Server Guide](docs/MCP_SERVER_GUIDE.md).
+
+### Available MCP Tools
+
+- **list_rescues** - List all dog rescue organizations
+- **find_rescues_near** - Find rescues near a location (with coordinates)
+- **get_rescue_details** - Get detailed info about a specific rescue
+
+## Documentation
+
+- **[MCP Server Guide](docs/MCP_SERVER_GUIDE.md)** - Complete guide for AI integration
+- **[Setup and Deployment](docs/SETUP_AND_DEPLOYMENT.md)** - CI/CD and deployment
+- **[Authentication](docs/AUTHENTICATION.md)** - User authentication and admin access
+- **[Database API Layer](docs/DATABASE_API_LAYER.md)** - Architecture and security
+- **[All Documentation](docs/README.md)** - Complete documentation index
+
+## Development
+
+```bash
+# Start development server
+npm run dev
+
+# Run type checking
+npm run typecheck
+
+# Run linter
+npm run lint
+
+# Build for production
+npm run build
+
+# Run smoke tests
+npm run test:smoke
+```
+
+### Admin Access
+
+```bash
+# Promote user to admin
+./scripts/make-admin.sh user@email.com
+```
+
+## Tech Stack
+
+- **Frontend**: React + TypeScript + Vite
+- **UI Components**: shadcn/ui + Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Auth)
+- **AI Integration**: Model Context Protocol (MCP)
+- **Testing**: Playwright
+
+## Project Structure
+
+```
+├── src/                    # React application source
+│   ├── components/        # UI components
+│   ├── hooks/            # React hooks
+│   ├── integrations/     # Supabase integration
+│   └── types/            # TypeScript types
+├── mcp-server/            # MCP server for AI integration
+│   ├── index.ts          # MCP server implementation
+│   └── package.json      # MCP server dependencies
+├── supabase/
+│   └── migrations/       # Database migrations
+├── docs/                  # Documentation
+└── scripts/              # Utility scripts
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues and questions:
+- Check the [documentation](docs/README.md)
+- Review existing issues
+- Create a new issue with details
