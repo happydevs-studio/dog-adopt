@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 import ScrollToTop from "./components/ScrollToTop";
+import PawPrintCursor from "./components/PawPrintCursor";
+import GoodDogEasterEgg from "./components/GoodDogEasterEgg";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -27,6 +29,8 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
+          <PawPrintCursor />
+          <GoodDogEasterEgg />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <ScrollToTop />
             <Routes>
